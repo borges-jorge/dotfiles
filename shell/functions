@@ -1,0 +1,31 @@
+# O que é: Funções de shell reutilizáveis para tarefas comuns no terminal.
+# Como usar: adicione ao seu ~/.bashrc ou ~/.zshrc:
+#   source ~/dotfiles/shell/functions
+
+# Cria diretório e entra nele
+mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
+
+# Extrai qualquer arquivo compactado
+extract() {
+    case "$1" in
+        *.tar.bz2) tar xjf "$1" ;;
+        *.tar.gz)  tar xzf "$1" ;;
+        *.tar.xz)  tar xJf "$1" ;;
+        *.zip)     unzip   "$1" ;;
+        *.gz)      gunzip  "$1" ;;
+        *.rar)     unrar x "$1" ;;
+        *)         printf 'Formato nao suportado: %s\n' "$1" ;;
+    esac
+}
+
+# Mostra portas em uso
+ports() {
+    ss -tulnp
+}
+
+# Clona repo e entra na pasta
+clone() {
+    git clone "$1" && cd "$(basename "$1" .git)"
+}

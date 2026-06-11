@@ -1,0 +1,27 @@
+# O que é: Atalhos de shell para comandos usados com frequência.
+# Como usar: adicione ao seu ~/.bashrc ou ~/.zshrc:
+#   source ~/dotfiles/shell/aliases
+
+# Navegação
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ll='ls -lah'
+alias la='ls -A'
+
+# Git
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gl='git lg'
+alias gsw='git switch'
+alias gbr='git branch'
+
+# Python / uv
+alias venv='uv venv && source .venv/bin/activate'
+alias sync='uv sync'
+
+# Utilitários
+alias grep='grep --color=auto'
+alias df='df -h'
+alias du='du -sh'

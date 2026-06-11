@@ -1,0 +1,20 @@
+# O que é: Variáveis de ambiente e ajustes de PATH.
+# Como usar: adicione ao seu ~/.bashrc ou ~/.zshrc:
+#   source ~/dotfiles/shell/exports
+# ATENCAO: nao adicione tokens ou senhas aqui. Use um .env local para segredos.
+
+# Editor padrão
+export EDITOR=vim
+export VISUAL=vim
+
+# Histórico do shell
+export HISTSIZE=10000
+export HISTFILESIZE=20000
+export HISTCONTROL=ignoredups:erasedups
+
+# Python
+export PYTHONDONTWRITEBYTECODE=1
+export PYTHONUNBUFFERED=1
+
+# PATH — descomente e ajuste conforme as ferramentas instaladas
+# export PATH="$HOME/.local/bin:$PATH"

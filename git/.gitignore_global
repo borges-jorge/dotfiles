@@ -1,0 +1,31 @@
+# O que é: Gitignore global aplicado a todos os repositórios da máquina.
+# Como usar: Referenciado automaticamente pelo .gitconfig via core.excludesfile.
+#   Ou configure manualmente:
+#   git config --global core.excludesfile ~/dotfiles/git/.gitignore_global
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+
+# Node
+node_modules/
+
+# Segredos — nunca commitar
+*.pem
+*.key
+.env.local
+.env.*.local
