@@ -11,6 +11,8 @@ uv venv
 
 uv sync
 
+source .venv/bin/activate
+
 ignr -n python
 
 cat << 'EOF' >> .gitignore
