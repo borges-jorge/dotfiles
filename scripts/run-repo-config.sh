@@ -32,15 +32,24 @@
 #   camada que não tem bypass local.
 #
 # ordem_de_bootstrap: |
-#   master e qa recebem o commit inicial (uv init, .pre-commit.yaml,
-#   .githooks) e são enviados ao remoto ANTES de existir qualquer arquivo em
-#   .github/workflows e ANTES de core.hooksPath ser configurado. Isso é
-#   garantido, não probabilístico: o GitHub só avalia um workflow de `push`
-#   se o arquivo .yml existir na ref que está sendo enviada — se
-#   protect-branches.yml não está no commit, não há o que avaliar, ponto.
-#   Só depois desse push os workflows são escritos e adicionados via uma
-#   branch chore/, porque a essa altura master/qa já estão protegidas
-#   localmente (core.hooksPath ativo) e não aceitam mais commit direto.
+#   1. master e qa recebem o commit inicial (uv init, .pre-commit.yaml,
+#      .githooks) e são enviados ao remoto ANTES de existir qualquer
+#      arquivo em .github/workflows e ANTES de core.hooksPath ser
+#      configurado. Isso é garantido, não probabilístico: o GitHub só
+#      avalia um workflow de `push` se o arquivo .yml existir na ref que
+#      está sendo enviada — se protect-branches.yml não está no commit,
+#      não há o que avaliar, ponto.
+#   2. Só depois desse push os workflows são escritos, e core.hooksPath é
+#      ativado — a partir daqui master/qa não aceitam mais commit/push
+#      direto, nem local (hook) nem remoto (Action).
+#   3. Os workflows entram numa branch chore/branch-protection-workflows,
+#      via PR aberto e mergeado com `gh pr merge --merge` (nunca
+#      squash/rebase: "Merge pull request #" é o único formato de
+#      mensagem que o protect-branches.yml aceita sem reverter).
+#   4. O mesmo conteúdo é replicado de qa para master com um segundo PR,
+#      também mergeado com --merge. Os refs locais de qa e master são
+#      atualizados via fast-forward após cada merge.
+#   5. Termina com checkout em qa — repo pronto pra uso, sem passo manual.
 # ---
 set -euo pipefail
 
