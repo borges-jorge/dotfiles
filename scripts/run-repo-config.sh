@@ -1,4 +1,33 @@
 #!/usr/bin/env bash
+# ---
+# description: >
+#   Script de configuração de repositório Python com uv, hooks de qualidade
+#   de código e branch protection. Deve ser executado dentro do repo já
+#   criado e clonado via `gh repo create`.
+# uso: |
+#   gh repo create meu-projeto --private --clone
+#   cd meu-projeto
+#   run-repo-config.sh
+# o_que_faz:
+#   - uv init: Cria estrutura do projeto
+#   - uv add: Adiciona ignr, commitizen, pre-commit
+#   - ignr -n python: Gera .gitignore completo para Python
+#   - .pre-commit.yaml: check-yaml, black, large-files, commitizen
+#   - .githooks/pre-commit: Bloqueia commits diretos em master/qa
+#   - .githooks/pre-push: Bloqueia pushes diretos em master/qa
+#   - .githooks/post-checkout: Avisa ao entrar em branch protegido ou com nome fora da convenção
+#   - protect-branches.yml: Revert automático se bypass local ocorrer
+#   - check-pr-direction.yml: Bloqueia PR para master fora de qa, e PR para qa vindo de master
+# camadas_de_protecao: |
+#   checkout local  ->  .githooks/post-checkout      (aviso: branch protegido ou nome inválido)
+#   commit local    ->  .githooks/pre-commit          (bloqueia na origem)
+#   push local      ->  .githooks/pre-push            (bloqueia antes de enviar)
+#   push remoto     ->  protect-branches.yml          (reverte se bypass local)
+#   PR direction    ->  check-pr-direction.yml        (bloqueia PR fora do fluxo feature->qa->master)
+#
+#   Os hooks locais podem ser burlados com --no-verify. O GitHub Actions é a
+#   camada que não tem bypass local.
+# ---
 set -euo pipefail
 
 uv init

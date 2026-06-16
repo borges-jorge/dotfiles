@@ -1,4 +1,32 @@
 #!/usr/bin/env bash
+# ---
+# description: >
+#   Script de retrofit para adicionar uv, hooks de qualidade de código e
+#   branch protection a um repositório Python já existente. Idempotente:
+#   só cria o que ainda não existe e nunca sobrescreve config já presente
+#   (exceto os .githooks/, que são seguros de regerar).
+# uso: |
+#   cd meu-repo-existente
+#   curl -fsSL https://raw.githubusercontent.com/borges-jorge/dotfiles/master/scripts/retrofit-repo.sh | bash
+# o_que_faz:
+#   - uv add: Adiciona ignr, commitizen, pre-commit (só se pyproject.toml existir)
+#   - .gitignore: Adiciona apenas as entradas ausentes (.idea/, __pycache__/, .venv/, .env)
+#   - .pre-commit.yaml: Criado se não existir (check-yaml, black, large-files, commitizen)
+#   - .githooks/pre-commit: Bloqueia commits diretos em master/qa (sempre regerado)
+#   - .githooks/pre-push: Bloqueia pushes diretos em master/qa (sempre regerado)
+#   - .githooks/post-checkout: Avisa ao entrar em branch protegido ou com nome fora da convenção (sempre regerado)
+#   - protect-branches.yml: Revert automático se bypass local ocorrer (criado se não existir)
+#   - check-pr-direction.yml: Bloqueia PR para master fora de qa, e PR para qa vindo de master (criado se não existir)
+# camadas_de_protecao: |
+#   checkout local  ->  .githooks/post-checkout      (aviso: branch protegido ou nome inválido)
+#   commit local    ->  .githooks/pre-commit          (bloqueia na origem)
+#   push local      ->  .githooks/pre-push            (bloqueia antes de enviar)
+#   push remoto     ->  protect-branches.yml          (reverte se bypass local)
+#   PR direction    ->  check-pr-direction.yml        (bloqueia PR fora do fluxo feature->qa->master)
+#
+#   Os hooks locais podem ser burlados com --no-verify. O GitHub Actions é a
+#   camada que não tem bypass local.
+# ---
 set -euo pipefail
 
 info() { printf '\033[0;34m[INFO]\033[0m  %s\n' "$*"; }
