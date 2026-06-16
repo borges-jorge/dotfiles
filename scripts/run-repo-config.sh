@@ -124,10 +124,9 @@ EOF
 
 chmod +x .githooks/pre-commit .githooks/pre-push .githooks/post-checkout
 
-# Bootstrap de master: commits separados por bloco coerente, enviados
-# ANTES de existir qualquer workflow em .github e ANTES de ativar
-# core.hooksPath. Garantido sem disparo do protect-branches.yml, porque o
-# arquivo simplesmente nao existe na ref enviada neste momento.
+# Commits de master enviados antes de .github/workflows existir e antes
+# de core.hooksPath ser ativado: protect-branches.yml ainda nao existe
+# nessa ref, entao o push nao aciona o workflow.
 git add .python-version pyproject.toml uv.lock
 git commit -m "chore: setup python project with uv"
 
@@ -148,8 +147,8 @@ git push -u origin master
 git checkout -b qa
 git push -u origin qa
 
-# A partir daqui master e qa ja existem local e remoto. So agora ativa a
-# proteção local — commits/pushes diretos passam a ser bloqueados.
+# master e qa ja estao no remoto. Ativa a proteção local: commits/pushes
+# diretos passam a ser bloqueados.
 git config core.hooksPath .githooks
 
 mkdir -p .github/workflows
@@ -211,10 +210,10 @@ jobs:
           fi
 EOF
 
-# qa ja esta protegida (core.hooksPath ativo): os workflows precisam entrar
-# por uma branch chore/ + PR, igual qualquer outra mudança. O merge usa
-# --merge (nunca squash/rebase) porque "Merge pull request #" e o unico
-# formato de mensagem que o protect-branches.yml aceita sem reverter.
+# qa esta protegida (core.hooksPath ativo): os workflows entram por uma
+# branch chore/ + PR. Merge com --merge (nunca squash/rebase): "Merge
+# pull request #" e o formato de mensagem que o protect-branches.yml
+# aceita sem reverter.
 git checkout -b chore/branch-protection-workflows
 git add .github
 git commit -m "ci: add branch protection workflows"
@@ -233,4 +232,4 @@ gh pr merge qa --merge
 
 git fetch origin master:master
 
-printf '\nRepo configurado com sucesso: master e qa criados, workflows ativos, sem passos manuais pendentes.\n'
+printf '\nmaster e qa configurados e sincronizados com o remoto.\n'
