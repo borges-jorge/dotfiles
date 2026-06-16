@@ -18,6 +18,15 @@
 #   - protect-branches.yml + check-pr-direction.yml: adicionados via PR
 #     (chore/branch-protection-workflows -> qa -> master), com merge
 #     automático via gh, terminando com checkout em qa
+# camadas_de_protecao: |
+#   checkout local  ->  .githooks/post-checkout      (aviso: branch protegido ou nome inválido)
+#   commit local    ->  .githooks/pre-commit          (bloqueia na origem)
+#   push local      ->  .githooks/pre-push            (bloqueia antes de enviar)
+#   push remoto     ->  protect-branches.yml          (reverte se bypass local)
+#   PR direction    ->  check-pr-direction.yml        (bloqueia PR fora do fluxo feature->qa->master)
+#
+#   Os hooks locais podem ser burlados com --no-verify. O GitHub Actions é a
+#   camada que não tem bypass local.
 # ---
 set -euo pipefail
 
