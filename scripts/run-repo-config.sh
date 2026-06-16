@@ -3,9 +3,7 @@
 # description: >
 #   Script de configuração de repositório Python com uv, hooks de qualidade
 #   de código e branch protection. Deve ser executado dentro do repo já
-#   criado e clonado via `gh repo create`. Requer `gh` autenticado: o
-#   script abre e mergeia os PRs sozinho, sem passo manual no final —
-#   termina com checkout em qa, repo pronto pra uso.
+#   criado e clonado via `gh repo create`.
 # uso: |
 #   curl -fsSL https://raw.githubusercontent.com/borges-jorge/dotfiles/master/scripts/run-repo-config.sh | bash
 # o_que_faz:
@@ -13,43 +11,13 @@
 #   - uv add: Adiciona ignr, commitizen, pre-commit
 #   - ignr -n python: Gera .gitignore completo para Python
 #   - .pre-commit.yaml: check-yaml, black, large-files, commitizen
-#   - .githooks/pre-commit: Bloqueia commits diretos em master/qa
-#   - .githooks/pre-push: Bloqueia pushes diretos em master/qa
-#   - .githooks/post-checkout: Avisa ao entrar em branch protegido ou com nome fora da convenção
-#   - bootstrap master/qa: commita o setup acima, envia master e qa ao
-#     remoto, e só então ativa core.hooksPath
-#   - protect-branches.yml + check-pr-direction.yml: adicionados numa
-#     branch chore/, com PR aberto e mergeado automaticamente (--merge)
-#     para qa, e depois replicado de qa para master com outro PR
-# camadas_de_protecao: |
-#   checkout local  ->  .githooks/post-checkout      (aviso: branch protegido ou nome inválido)
-#   commit local    ->  .githooks/pre-commit          (bloqueia na origem)
-#   push local      ->  .githooks/pre-push            (bloqueia antes de enviar)
-#   push remoto     ->  protect-branches.yml          (reverte se bypass local)
-#   PR direction    ->  check-pr-direction.yml        (bloqueia PR fora do fluxo feature->qa->master)
-#
-#   Os hooks locais podem ser burlados com --no-verify. O GitHub Actions é a
-#   camada que não tem bypass local.
-#
-# ordem_de_bootstrap: |
-#   1. master e qa recebem o commit inicial (uv init, .pre-commit.yaml,
-#      .githooks) e são enviados ao remoto ANTES de existir qualquer
-#      arquivo em .github/workflows e ANTES de core.hooksPath ser
-#      configurado. Isso é garantido, não probabilístico: o GitHub só
-#      avalia um workflow de `push` se o arquivo .yml existir na ref que
-#      está sendo enviada — se protect-branches.yml não está no commit,
-#      não há o que avaliar, ponto.
-#   2. Só depois desse push os workflows são escritos, e core.hooksPath é
-#      ativado — a partir daqui master/qa não aceitam mais commit/push
-#      direto, nem local (hook) nem remoto (Action).
-#   3. Os workflows entram numa branch chore/branch-protection-workflows,
-#      via PR aberto e mergeado com `gh pr merge --merge` (nunca
-#      squash/rebase: "Merge pull request #" é o único formato de
-#      mensagem que o protect-branches.yml aceita sem reverter).
-#   4. O mesmo conteúdo é replicado de qa para master com um segundo PR,
-#      também mergeado com --merge. Os refs locais de qa e master são
-#      atualizados via fast-forward após cada merge.
-#   5. Termina com checkout em qa — repo pronto pra uso, sem passo manual.
+#   - .githooks/pre-commit, pre-push, post-checkout: bloqueiam commit/push
+#     direto em master/qa e avisam sobre convenção de nome de branch
+#   - bootstrap master/qa: commita o setup, envia ao remoto e só então
+#     ativa core.hooksPath
+#   - protect-branches.yml + check-pr-direction.yml: adicionados via PR
+#     (chore/branch-protection-workflows -> qa -> master), com merge
+#     automático via gh, terminando com checkout em qa
 # ---
 set -euo pipefail
 
