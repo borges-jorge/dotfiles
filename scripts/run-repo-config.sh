@@ -3,7 +3,9 @@
 # description: >
 #   Script de configuração de repositório Python com uv, hooks de qualidade
 #   de código e branch protection. Deve ser executado dentro do repo já
-#   criado e clonado via `gh repo create`.
+#   criado e clonado via `gh repo create`. Requer `gh` autenticado: o
+#   script abre e mergeia os PRs sozinho, sem passo manual no final —
+#   termina com checkout em qa, repo pronto pra uso.
 # uso: |
 #   curl -fsSL https://raw.githubusercontent.com/borges-jorge/dotfiles/master/scripts/run-repo-config.sh | bash
 # o_que_faz:
@@ -16,8 +18,9 @@
 #   - .githooks/post-checkout: Avisa ao entrar em branch protegido ou com nome fora da convenção
 #   - bootstrap master/qa: commita o setup acima, envia master e qa ao
 #     remoto, e só então ativa core.hooksPath
-#   - protect-branches.yml + check-pr-direction.yml: adicionados depois,
-#     numa branch chore/, com instrução para abrir o PR
+#   - protect-branches.yml + check-pr-direction.yml: adicionados numa
+#     branch chore/, com PR aberto e mergeado automaticamente (--merge)
+#     para qa, e depois replicado de qa para master com outro PR
 # camadas_de_protecao: |
 #   checkout local  ->  .githooks/post-checkout      (aviso: branch protegido ou nome inválido)
 #   commit local    ->  .githooks/pre-commit          (bloqueia na origem)
@@ -210,14 +213,25 @@ jobs:
 EOF
 
 # qa ja esta protegida (core.hooksPath ativo): os workflows precisam entrar
-# por uma branch chore/ + PR, igual qualquer outra mudança.
+# por uma branch chore/ + PR, igual qualquer outra mudança. O merge usa
+# --merge (nunca squash/rebase) porque "Merge pull request #" e o unico
+# formato de mensagem que o protect-branches.yml aceita sem reverter.
 git checkout -b chore/branch-protection-workflows
 git add .github
 git commit -m "ci: add branch protection workflows"
 git push -u origin chore/branch-protection-workflows
 
-git checkout qa
+gh pr create --base qa --head chore/branch-protection-workflows --fill
+gh pr merge chore/branch-protection-workflows --merge --delete-branch
 
-printf '\nRepo configurado: master e qa criados local e remoto.\n'
-printf 'Abra o PR dos workflows:  gh pr create --base qa --head chore/branch-protection-workflows\n'
-printf 'Depois de mergeado, abra o PR de qa para master.\n'
+git checkout qa
+git pull --ff-only origin qa
+git branch -D chore/branch-protection-workflows 2>/dev/null || true
+
+# Propaga o mesmo conteudo (agora com os workflows) de qa para master.
+gh pr create --base master --head qa --fill
+gh pr merge qa --merge
+
+git fetch origin master:master
+
+printf '\nRepo configurado com sucesso: master e qa criados, workflows ativos, sem passos manuais pendentes.\n'
