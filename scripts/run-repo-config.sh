@@ -115,12 +115,25 @@ EOF
 
 chmod +x .githooks/pre-commit .githooks/pre-push .githooks/post-checkout
 
-# Bootstrap de master e qa: commita e envia ANTES de existir qualquer
-# workflow em .github e ANTES de ativar core.hooksPath. Garantido sem
-# disparo do protect-branches.yml, porque o arquivo simplesmente nao
-# existe na ref enviada neste momento.
-git add -A
-git commit -m "chore: bootstrap project setup"
+# Bootstrap de master: commits separados por bloco coerente, enviados
+# ANTES de existir qualquer workflow em .github e ANTES de ativar
+# core.hooksPath. Garantido sem disparo do protect-branches.yml, porque o
+# arquivo simplesmente nao existe na ref enviada neste momento.
+git add .python-version pyproject.toml uv.lock
+git commit -m "chore: setup python project with uv"
+
+git add .gitignore
+git commit -m "chore: add gitignore"
+
+git add README.md
+git commit -m "docs: add project readme"
+
+git add .pre-commit.yaml
+git commit -m "chore: configure pre-commit hooks"
+
+git add .githooks
+git commit -m "chore: add git hooks for branch workflow protection"
+
 git push -u origin master
 
 git checkout -b qa
