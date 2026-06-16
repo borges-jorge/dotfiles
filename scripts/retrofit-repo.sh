@@ -171,6 +171,11 @@ jobs:
             echo "::error::PRs para master so sao aceitos de qa. Branch de origem: $HEAD"
             exit 1
           fi
+
+          if [ "$BASE" = "qa" ] && [ "$HEAD" = "master" ]; then
+            echo "::error::PRs para qa nao podem vir de master. Branch de origem: $HEAD"
+            exit 1
+          fi
 EOF
     ok "check-pr-direction.yml criado"
 fi
