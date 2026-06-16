@@ -7,10 +7,6 @@
 # uso: |
 #   curl -fsSL https://raw.githubusercontent.com/borges-jorge/dotfiles/master/scripts/run-repo-config.sh | bash
 # o_que_faz:
-#   - bootstrap qa: Cria a branch qa (orfa, vazia), envia ao remoto antes de
-#     qualquer hook/workflow existir (evitando o problema do ovo e da
-#     galinha) e faz checkout nela, deixando o restante do setup pronto
-#     para ser commitado depois numa branch feature/fix/chore/...
 #   - uv init: Cria estrutura do projeto
 #   - uv add: Adiciona ignr, commitizen, pre-commit
 #   - ignr -n python: Gera .gitignore completo para Python
@@ -18,8 +14,10 @@
 #   - .githooks/pre-commit: Bloqueia commits diretos em master/qa
 #   - .githooks/pre-push: Bloqueia pushes diretos em master/qa
 #   - .githooks/post-checkout: Avisa ao entrar em branch protegido ou com nome fora da convenção
-#   - protect-branches.yml: Revert automático se bypass local ocorrer
-#   - check-pr-direction.yml: Bloqueia PR para master fora de qa, e PR para qa vindo de master
+#   - bootstrap master/qa: commita o setup acima, envia master e qa ao
+#     remoto, e só então ativa core.hooksPath
+#   - protect-branches.yml + check-pr-direction.yml: adicionados depois,
+#     numa branch chore/, com instrução para abrir o PR
 # camadas_de_protecao: |
 #   checkout local  ->  .githooks/post-checkout      (aviso: branch protegido ou nome inválido)
 #   commit local    ->  .githooks/pre-commit          (bloqueia na origem)
@@ -30,23 +28,18 @@
 #   Os hooks locais podem ser burlados com --no-verify. O GitHub Actions é a
 #   camada que não tem bypass local.
 #
-#   A branch qa é criada (vazia) e enviada ao remoto ANTES dessas camadas
-#   existirem — é o único push direto em qa que nunca será bloqueado nem
-#   revertido, porque nem o hook nem o workflow existem ainda nesse ponto.
+# ordem_de_bootstrap: |
+#   master e qa recebem o commit inicial (uv init, .pre-commit.yaml,
+#   .githooks) e são enviados ao remoto ANTES de existir qualquer arquivo em
+#   .github/workflows e ANTES de core.hooksPath ser configurado. Isso é
+#   garantido, não probabilístico: o GitHub só avalia um workflow de `push`
+#   se o arquivo .yml existir na ref que está sendo enviada — se
+#   protect-branches.yml não está no commit, não há o que avaliar, ponto.
+#   Só depois desse push os workflows são escritos e adicionados via uma
+#   branch chore/, porque a essa altura master/qa já estão protegidas
+#   localmente (core.hooksPath ativo) e não aceitam mais commit direto.
 # ---
 set -euo pipefail
-
-# Bootstrap da branch qa: orfa, sem nenhum arquivo, criada e enviada antes
-# de qualquer hook ou workflow existir. Como a arvore esta vazia, o push
-# nao carrega protect-branches.yml — o GitHub nao tem o que avaliar, logo
-# nao ha revert. E como .githooks/pre-push ainda nao existe (nem
-# core.hooksPath foi configurado), o push local tambem nao e bloqueado.
-# Depois desse ponto, qa so recebe conteudo via PR (Merge pull request #).
-empty_tree=$(git hash-object -t tree /dev/null)
-qa_commit=$(git commit-tree "$empty_tree" -m "chore: bootstrap qa branch")
-git branch qa "$qa_commit"
-git push -u origin qa
-git checkout qa
 
 uv init
 
@@ -60,6 +53,10 @@ uv sync
 
 source .venv/bin/activate
 
+# uv init já cria um .gitignore minimo; remove antes pra ignr nao cair no
+# prompt interativo de overwrite (que quebra com EOF quando rodado via
+# curl | bash, sem stdin).
+rm -f .gitignore
 ignr -n python
 
 cat << 'EOF' >> .gitignore
@@ -137,6 +134,20 @@ fi
 EOF
 
 chmod +x .githooks/pre-commit .githooks/pre-push .githooks/post-checkout
+
+# Bootstrap de master e qa: commita e envia ANTES de existir qualquer
+# workflow em .github e ANTES de ativar core.hooksPath. Garantido sem
+# disparo do protect-branches.yml, porque o arquivo simplesmente nao
+# existe na ref enviada neste momento.
+git add -A
+git commit -m "chore: bootstrap project setup"
+git push -u origin master
+
+git checkout -b qa
+git push -u origin qa
+
+# A partir daqui master e qa ja existem local e remoto. So agora ativa a
+# proteção local — commits/pushes diretos passam a ser bloqueados.
 git config core.hooksPath .githooks
 
 mkdir -p .github/workflows
@@ -198,4 +209,15 @@ jobs:
           fi
 EOF
 
-printf '\nRepo configurado com sucesso.\n'
+# qa ja esta protegida (core.hooksPath ativo): os workflows precisam entrar
+# por uma branch chore/ + PR, igual qualquer outra mudança.
+git checkout -b chore/branch-protection-workflows
+git add .github
+git commit -m "ci: add branch protection workflows"
+git push -u origin chore/branch-protection-workflows
+
+git checkout qa
+
+printf '\nRepo configurado: master e qa criados local e remoto.\n'
+printf 'Abra o PR dos workflows:  gh pr create --base qa --head chore/branch-protection-workflows\n'
+printf 'Depois de mergeado, abra o PR de qa para master.\n'
