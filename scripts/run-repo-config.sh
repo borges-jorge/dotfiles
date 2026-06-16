@@ -7,6 +7,10 @@
 # uso: |
 #   curl -fsSL https://raw.githubusercontent.com/borges-jorge/dotfiles/master/scripts/run-repo-config.sh | bash
 # o_que_faz:
+#   - bootstrap qa: Cria a branch qa (orfa, vazia), envia ao remoto antes de
+#     qualquer hook/workflow existir (evitando o problema do ovo e da
+#     galinha) e faz checkout nela, deixando o restante do setup pronto
+#     para ser commitado depois numa branch feature/fix/chore/...
 #   - uv init: Cria estrutura do projeto
 #   - uv add: Adiciona ignr, commitizen, pre-commit
 #   - ignr -n python: Gera .gitignore completo para Python
@@ -25,8 +29,24 @@
 #
 #   Os hooks locais podem ser burlados com --no-verify. O GitHub Actions é a
 #   camada que não tem bypass local.
+#
+#   A branch qa é criada (vazia) e enviada ao remoto ANTES dessas camadas
+#   existirem — é o único push direto em qa que nunca será bloqueado nem
+#   revertido, porque nem o hook nem o workflow existem ainda nesse ponto.
 # ---
 set -euo pipefail
+
+# Bootstrap da branch qa: orfa, sem nenhum arquivo, criada e enviada antes
+# de qualquer hook ou workflow existir. Como a arvore esta vazia, o push
+# nao carrega protect-branches.yml — o GitHub nao tem o que avaliar, logo
+# nao ha revert. E como .githooks/pre-push ainda nao existe (nem
+# core.hooksPath foi configurado), o push local tambem nao e bloqueado.
+# Depois desse ponto, qa so recebe conteudo via PR (Merge pull request #).
+empty_tree=$(git hash-object -t tree /dev/null)
+qa_commit=$(git commit-tree "$empty_tree" -m "chore: bootstrap qa branch")
+git branch qa "$qa_commit"
+git push -u origin qa
+git checkout qa
 
 uv init
 
