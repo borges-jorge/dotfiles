@@ -5,9 +5,7 @@
 #   de código e branch protection. Deve ser executado dentro do repo já
 #   criado e clonado via `gh repo create`.
 # uso: |
-#   gh repo create meu-projeto --private --clone
-#   cd meu-projeto
-#   run-repo-config.sh
+#   curl -fsSL https://raw.githubusercontent.com/borges-jorge/dotfiles/master/scripts/run-repo-config.sh | bash
 # o_que_faz:
 #   - uv init: Cria estrutura do projeto
 #   - uv add: Adiciona ignr, commitizen, pre-commit
