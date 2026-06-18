@@ -1,22 +1,30 @@
 #!/usr/bin/env bash
 # ---
 # description: >
-#   Script de retrofit para adicionar uv, hooks de qualidade de código e
-#   branch protection a um repositório Python já existente. Idempotente:
-#   só cria o que ainda não existe e nunca sobrescreve config já presente
-#   (exceto os .githooks/, que são seguros de regerar).
+#   Retrofit idempotente: aplica a um repositório Python já existente o MESMO
+#   setup do run-repo-config.sh (uv, .gitignore, pre-commit, .githooks,
+#   branches master/qa e workflows de branch protection). A diferença é que
+#   só cria o que ainda não existe — nada presente é sobrescrito — e ao final
+#   lista tudo que foi pulado por já existir.
 # uso: |
 #   cd meu-repo-existente
 #   curl -fsSL https://raw.githubusercontent.com/borges-jorge/dotfiles/master/scripts/retrofit-repo.sh | bash
 # o_que_faz:
-#   - uv add: Adiciona ignr, commitizen, pre-commit (só se pyproject.toml existir)
-#   - .gitignore: Adiciona apenas as entradas ausentes (.idea/, __pycache__/, .venv/, .env)
-#   - .pre-commit.yaml: Criado se não existir (check-yaml, black, large-files, commitizen)
-#   - .githooks/pre-commit: Bloqueia commits diretos em master/qa (sempre regerado)
-#   - .githooks/pre-push: Bloqueia pushes diretos em master/qa (sempre regerado)
-#   - .githooks/post-checkout: Avisa ao entrar em branch protegido ou com nome fora da convenção (sempre regerado)
-#   - protect-branches.yml: Revert automático se bypass local ocorrer (criado se não existir)
-#   - check-pr-direction.yml: Bloqueia PR para master fora de qa, e PR para qa vindo de master (criado se não existir)
+#   - uv init: Cria estrutura do projeto (só se não houver pyproject.toml)
+#   - uv add: Adiciona ignr, commitizen, pre-commit (só os que faltarem)
+#   - uv venv + uv sync: Cria o ambiente (só se .venv não existir)
+#   - .gitignore: Gera via ignr -n python se ausente; garante .idea/ .venv
+#     __pycache__/ .env (adiciona só as entradas que faltarem)
+#   - .pre-commit.yaml: Criado se não existir
+#   - .githooks/pre-commit, pre-push, post-checkout: cada um criado se faltar
+#   - commit + push master: versiona o que foi adicionado (antes de ativar
+#     core.hooksPath, para os hooks não bloquearem o próprio bootstrap)
+#   - branch qa: criada e enviada se ainda não existir
+#   - core.hooksPath: ativado se ainda não apontar para .githooks
+#   - protect-branches.yml + check-pr-direction.yml: criados se faltarem e,
+#     quando novos, adicionados via PR (chore/branch-protection-workflows ->
+#     qa -> master) com merge automático via gh
+#   - Ao final: imprime tudo que foi pulado (já existia)
 # camadas_de_protecao: |
 #   checkout local  ->  .githooks/post-checkout      (aviso: branch protegido ou nome inválido)
 #   commit local    ->  .githooks/pre-commit          (bloqueia na origem)
@@ -34,33 +42,74 @@ ok()   { printf '\033[0;32m[OK]\033[0m    %s\n' "$*"; }
 skip() { printf '\033[0;33m[SKIP]\033[0m  %s\n' "$*"; }
 warn() { printf '\033[0;31m[WARN]\033[0m  %s\n' "$*" >&2; }
 
+# Acumula o que foi pulado para o resumo final.
+SKIPPED=()
+record_skip() { SKIPPED+=("$1"); skip "$1"; }
+
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
     warn "Nao e um repositorio git. Execute dentro de um repo."
     exit 1
 fi
 
-# --- uv deps ---
-if [ -f pyproject.toml ]; then
-    info "pyproject.toml encontrado — adicionando ignr, commitizen, pre-commit..."
-    uv add ignr commitizen pre-commit
-    ok "uv deps adicionados"
-else
-    skip "pyproject.toml nao encontrado — pulando uv add"
+tem_remoto() { git remote get-url origin > /dev/null 2>&1; }
+
+branch_base=$(git symbolic-ref --short HEAD 2>/dev/null || echo "master")
+if [ "$branch_base" != "master" ]; then
+    warn "Branch atual e '$branch_base' (esperado 'master'). O esquema assume master/qa."
 fi
 
-# --- .gitignore: append apenas entradas ausentes ---
-for entry in ".idea/" "__pycache__/" ".venv/" ".env"; do
-    if [ -f .gitignore ] && grep -qF "$entry" .gitignore; then
-        skip ".gitignore ja contem '$entry'"
+# --- 1. Projeto uv --------------------------------------------------------
+if [ -f pyproject.toml ]; then
+    record_skip "pyproject.toml (projeto uv ja iniciado)"
+else
+    info "uv init..."
+    uv init
+    rm -f main.py
+    ok "uv init"
+fi
+
+# --- 2. Dependencias (so as que faltarem) --------------------------------
+for dep in ignr commitizen pre-commit; do
+    if grep -qi "$dep" pyproject.toml 2>/dev/null; then
+        record_skip "dependencia $dep"
+    else
+        info "uv add $dep..."
+        uv add "$dep"
+        ok "dependencia $dep adicionada"
+    fi
+done
+
+# --- 3. Ambiente virtual --------------------------------------------------
+if [ -d .venv ]; then
+    record_skip ".venv (ambiente virtual)"
+else
+    info "uv venv..."
+    uv venv
+    ok ".venv criado"
+fi
+uv sync
+
+# --- 4. .gitignore --------------------------------------------------------
+if [ -f .gitignore ]; then
+    record_skip ".gitignore (mantido; nao regenerado)"
+else
+    info "gerando .gitignore (ignr -n python)..."
+    uv run ignr -n python
+    ok ".gitignore criado"
+fi
+# Garante as entradas essenciais (impede que git add -A versione o .venv).
+for entry in ".idea/" ".venv" "__pycache__/" ".env"; do
+    if grep -qxF "$entry" .gitignore 2>/dev/null; then
+        record_skip ".gitignore entrada '$entry'"
     else
         printf '%s\n' "$entry" >> .gitignore
         ok ".gitignore: '$entry' adicionado"
     fi
 done
 
-# --- .pre-commit.yaml ---
+# --- 5. .pre-commit.yaml --------------------------------------------------
 if [ -f .pre-commit.yaml ]; then
-    skip ".pre-commit.yaml ja existe — nao sobrescrito"
+    record_skip ".pre-commit.yaml"
 else
     cat << 'EOF' > .pre-commit.yaml
 repos: # See more at https://pre-commit.com/
@@ -86,10 +135,13 @@ EOF
     ok ".pre-commit.yaml criado"
 fi
 
-# --- .githooks/ (sempre atualiza — hooks sao seguros de sobrescrever) ---
+# --- 6. .githooks/ (cada hook so se faltar) ------------------------------
 mkdir -p .githooks
 
-cat << 'EOF' > .githooks/pre-commit
+if [ -f .githooks/pre-commit ]; then
+    record_skip ".githooks/pre-commit"
+else
+    cat << 'EOF' > .githooks/pre-commit
 #!/usr/bin/env bash
 protected='^(master|qa)$'
 branch=$(git symbolic-ref --short HEAD 2>/dev/null)
@@ -100,8 +152,13 @@ if printf '%s' "$branch" | grep -Eq "$protected"; then
     exit 1
 fi
 EOF
+    ok ".githooks/pre-commit criado"
+fi
 
-cat << 'EOF' > .githooks/pre-push
+if [ -f .githooks/pre-push ]; then
+    record_skip ".githooks/pre-push"
+else
+    cat << 'EOF' > .githooks/pre-push
 #!/usr/bin/env bash
 protected='^refs/heads/(master|qa)$'
 blocked=0
@@ -117,9 +174,15 @@ done
 
 exit "$blocked"
 EOF
+    ok ".githooks/pre-push criado"
+fi
 
-cat << 'EOF' > .githooks/post-checkout
+if [ -f .githooks/post-checkout ]; then
+    record_skip ".githooks/post-checkout"
+else
+    cat << 'EOF' > .githooks/post-checkout
 #!/usr/bin/env bash
+# $1 = sha anterior, $2 = sha novo, $3 = 1 se branch checkout / 0 se file checkout
 [ "$3" = "1" ] || exit 0
 
 branch=$(git symbolic-ref --short HEAD 2>/dev/null)
@@ -133,16 +196,49 @@ elif ! printf '%s' "$branch" | grep -Eq "$convention"; then
     printf 'Tipos aceitos: feature, fix, chore, docs, refactor, test\n' >&2
 fi
 EOF
+    ok ".githooks/post-checkout criado"
+fi
 
-chmod +x .githooks/pre-commit .githooks/pre-push .githooks/post-checkout
-git config core.hooksPath .githooks
-ok ".githooks/ configurado"
+chmod +x .githooks/pre-commit .githooks/pre-push .githooks/post-checkout 2>/dev/null || true
 
-# --- .github/workflows/ ---
+# --- 7. Commit + push do que foi adicionado (antes do hooksPath) ---------
+git add -A
+if git diff --cached --quiet; then
+    record_skip "commit (nada novo para versionar)"
+else
+    git commit -m "chore: retrofit uv + branch protection config"
+    ok "mudancas commitadas"
+    if tem_remoto; then
+        git push -u origin "$branch_base" \
+            || warn "push em $branch_base falhou (protecao ja ativa?); envie via PR."
+    fi
+fi
+
+# --- 8. Branch qa ---------------------------------------------------------
+if git show-ref --verify --quiet refs/heads/qa \
+   || ( tem_remoto && git ls-remote --exit-code --heads origin qa > /dev/null 2>&1 ); then
+    record_skip "branch qa"
+else
+    git checkout -b qa
+    tem_remoto && git push -u origin qa || true
+    git checkout "$branch_base"
+    ok "branch qa criada"
+fi
+
+# --- 9. core.hooksPath ----------------------------------------------------
+if [ "$(git config --local core.hooksPath 2>/dev/null || true)" = ".githooks" ]; then
+    record_skip "core.hooksPath (ja aponta para .githooks)"
+else
+    git config core.hooksPath .githooks
+    ok "core.hooksPath ativado"
+fi
+
+# --- 10. Workflows (criados se faltarem; landados via PR se novos) --------
 mkdir -p .github/workflows
+wf_novo=0
 
 if [ -f .github/workflows/protect-branches.yml ]; then
-    skip "protect-branches.yml ja existe"
+    record_skip ".github/workflows/protect-branches.yml"
 else
     cat << 'EOF' > .github/workflows/protect-branches.yml
 name: protect-branches
@@ -173,11 +269,12 @@ jobs:
             exit 1
           fi
 EOF
+    wf_novo=1
     ok "protect-branches.yml criado"
 fi
 
 if [ -f .github/workflows/check-pr-direction.yml ]; then
-    skip "check-pr-direction.yml ja existe"
+    record_skip ".github/workflows/check-pr-direction.yml"
 else
     cat << 'EOF' > .github/workflows/check-pr-direction.yml
 name: check-pr-direction
@@ -205,7 +302,43 @@ jobs:
             exit 1
           fi
 EOF
+    wf_novo=1
     ok "check-pr-direction.yml criado"
 fi
 
+if [ "$wf_novo" = "1" ] && tem_remoto; then
+    # qa esta protegida: os workflows entram por uma branch chore/ + PR.
+    # Merge com --merge (nunca squash/rebase): "Merge pull request #" e o
+    # formato que o protect-branches.yml aceita sem reverter.
+    info "adicionando workflows via PR (chore -> qa -> master)..."
+    git checkout -b chore/branch-protection-workflows
+    git add .github
+    git commit -m "ci: add branch protection workflows"
+    git push -u origin chore/branch-protection-workflows
+    gh pr create --base qa --head chore/branch-protection-workflows --fill \
+        || warn "gh pr create (->qa) falhou (PR ja existe?)"
+    gh pr merge chore/branch-protection-workflows --merge --delete-branch \
+        || warn "gh pr merge (chore->qa) falhou"
+    git checkout qa
+    git pull --ff-only origin qa
+    git branch -D chore/branch-protection-workflows 2>/dev/null || true
+    gh pr create --base master --head qa --fill \
+        || warn "gh pr create (->master) falhou (PR ja existe?)"
+    gh pr merge qa --merge || warn "gh pr merge (qa->master) falhou"
+    git fetch origin master:master
+    git checkout "$branch_base" 2>/dev/null || true
+    ok "workflows adicionados via PR"
+elif [ "$wf_novo" = "0" ]; then
+    record_skip "fluxo de PR dos workflows (workflows ja presentes)"
+fi
+
+# --- Resumo ---------------------------------------------------------------
 printf '\nRetrofit concluido.\n'
+if [ "${#SKIPPED[@]}" -eq 0 ]; then
+    printf 'Nada foi pulado — tudo foi criado do zero.\n'
+else
+    printf '\nNao criado (ja existia):\n'
+    for item in "${SKIPPED[@]}"; do
+        printf '  - %s\n' "$item"
+    done
+fi
