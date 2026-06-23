@@ -1,0 +1,38 @@
+{
+  "model": "claude-opus-4-8",
+  "respondToBashCommands": false,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"\nimport sys, json, subprocess, os\ntry:\n    data = json.load(sys.stdin)\n    inp = data.get('tool_input', {})\n    if not inp.get('file_path'):\n        sys.exit(0)\n    check_dir = os.path.dirname(inp['file_path'])\n    result = subprocess.run(['git', 'rev-parse', '--abbrev-ref', 'HEAD'], cwd=check_dir, capture_output=True, text=True)\n    branch = result.stdout.strip()\n    if branch in ('qa', 'master'):\n        print(f'BLOQUEADO: branch atual eh \\\"{branch}\\\". Crie uma feature branch antes de editar. Ex: git checkout -b feature/nome-descritivo', file=sys.stderr)\n        sys.exit(1)\nexcept Exception:\n    pass\n\""
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/block-ai-coauthor.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "agentspec@agentspec": true
+  },
+  "extraKnownMarketplaces": {
+    "agentspec": {
+      "source": {
+        "source": "github",
+        "repo": "luanmorenommaciel/agentspec"
+      }
+    }
+  },
+  "effortLevel": "low"
+}
