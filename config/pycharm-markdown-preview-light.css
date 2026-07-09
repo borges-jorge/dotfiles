@@ -1,0 +1,71 @@
+/* Forces GitHub-light appearance on the JetBrains Markdown preview,
+   independent of the IDE color scheme (Darcula/dark themes). */
+
+html, body {
+  background-color: #ffffff !important;
+  color: #1f2328 !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #1f2328 !important;
+  border-bottom-color: #d1d9e0 !important;
+}
+
+p, li, td, th, span, div {
+  color: #1f2328 !important;
+}
+
+a, a:visited {
+  color: #0969da !important;
+}
+
+a:hover {
+  color: #0550ae !important;
+}
+
+code, tt {
+  background-color: rgba(175, 184, 193, 0.2) !important;
+  color: #1f2328 !important;
+}
+
+pre {
+  background-color: #f6f8fa !important;
+  border: 1px solid #d1d9e0 !important;
+}
+
+pre code {
+  background-color: transparent !important;
+  color: #1f2328 !important;
+}
+
+blockquote {
+  color: #59636e !important;
+  border-left: 0.25em solid #d1d9e0 !important;
+}
+
+table {
+  border-color: #d1d9e0 !important;
+}
+
+table th, table td {
+  border-color: #d1d9e0 !important;
+  background-color: #ffffff !important;
+}
+
+table tr:nth-child(2n) td {
+  background-color: #f6f8fa !important;
+}
+
+hr {
+  background-color: #d1d9e0 !important;
+  border: none !important;
+  height: 1px !important;
+}
+
+img {
+  background-color: #ffffff !important;
+}
+
+::selection {
+  background-color: #b6e3ff !important;
+}
