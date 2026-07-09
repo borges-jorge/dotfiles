@@ -1,5 +1,5 @@
 ---
-name: valide-pos-tim
+name: check-qty-pos-tim
 description: >-
   Valida se todos os PDFs de purchase orders referenciados num e-mail .msg estão
   salvos num diretório. Compara os números de PO extraídos dos nomes de arquivo
@@ -9,7 +9,7 @@ description: >-
   de seus compradores" (ou similar) para checagem.
 ---
 
-# valide-pos-tim — Validar PDFs de Purchase Orders (Tim) contra .msg
+# check-qty-pos-tim — Validar PDFs de Purchase Orders (Tim) contra .msg
 
 > **Contexto:** o processo `purchase-orders-processor` recebe e-mails Outlook (`.msg`)
 > com pedidos de compra a confirmar, cujos PDFs anexos (nomeados pelo número da PO,
