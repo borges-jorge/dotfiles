@@ -33,6 +33,16 @@ resolve tudo lendo o `AGENTS.md` do projeto onde roda. Opera por **classes de fa
 
 ## Postura (INVARIANTE)
 
+- **Aplicar a skill LITERALMENTE — ignorar o contexto externo.** Rodar esta skill = executar
+  **exatamente** os passos abaixo, sobre os **artefatos e o código**, e nada mais. O agente
+  **NÃO** traz comportamento, julgamento, conclusão, severidade nem veredito da conversa que
+  precede a invocação — nem que ele mesmo tenha acabado de "achar" algo. O que já foi dito no
+  chat (análises anteriores, `/analyze`, hipóteses, o que "parece" ok/quebrado) **não é entrada**:
+  não confirma, não dispensa e não pré-classifica nada. Cada finding renasce **só** da evidência
+  que ESTE run coletar. A **única** entrada externa admitida é o **argumento objetivamente
+  injetado** na invocação (`readiness`/`conformance` + escopo explícito, quando houver); ausente o
+  argumento, a varredura é neutra e completa. Se um fato do contexto for relevante, ele **tem de
+  ser re-derivado do artefato/código aqui** para contar — citação de memória do chat não é prova.
 - **Read-only.** NÃO modifica nenhum arquivo. Nunca aplica correção. Se propõe remediação, é
   como **texto** — e a correção real entra **pelo fluxo** (corrige o artefato-fonte a montante e
   re-roda o comando para cascatear), NUNCA ad hoc.
