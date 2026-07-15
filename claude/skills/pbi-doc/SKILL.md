@@ -125,7 +125,7 @@ Ler templates em `templates/` e preencher com dados reais. Salvar em `./_docs/` 
 
 3. **PROIBIDO:**
    - ❌ Trocar o CSS por outro
-   - ❌ Inventar nova paleta de cores (usar SÓ os tokens do template: `--accent-gold-bright #E8C9A0`, `--accent-glow #7099FF`, `--neon-magenta #C47FFF`, etc.)
+   - ❌ Inventar nova paleta de cores (usar SÓ os tokens do template: `--accent-gold-bright #9C6B2E`, `--accent-glow #4668D4`, `--neon-magenta #9A3FD1`, etc.)
    - ❌ Mudar fontes (DS v4 usa Bebas Neue + Barlow Condensed + Outfit + JetBrains Mono — nada de Segoe UI, Arial, system-ui)
    - ❌ Remover o `<div class="gold-grid">`, os `<div class="section-orb">`, ou qualquer ornamento decorativo do template
    - ❌ Gerar HTML "do zero" porque parece mais fácil — **isso queima toda a identidade visual do template**
@@ -140,7 +140,7 @@ Ler templates em `templates/` e preencher com dados reais. Salvar em `./_docs/` 
 
 5. **SALVAR** em `./_docs/index.html` (modo Code) ou retornar como artifact (modo Web).
 
-6. **Como deve parecer:** fundo `#0D0C0E` quase preto · gold-grid de papel pautado dourado animado caindo · orbs azul/roxo em cada seção · risca dourada entre seções · cards `var(--gradient-surface)` com border `--border-faint` · números em Bebas Neue gold · DAX com syntax highlight via spans `.k .f .s .c`. Estilo "editorial premium dark" — não dashboard genérico tipo Vercel/Stripe.
+6. **Como deve parecer:** fundo claro (`--bg-deepest #FBFAF8`) · gold-grid de papel pautado dourado animado caindo · orbs azul/roxo suaves em cada seção · risca dourada entre seções · cards `var(--gradient-surface)` branco com border `--border-faint` · números em Bebas Neue em tom bronze/dourado escuro (`--accent-gold-bright #9C6B2E`) · blocos de código (DAX, árvore de dependências, diagrama de relacionamentos) mantêm chip escuro interno de propósito (`#1B1A20`), com syntax highlight via spans `.k .f .s .c` em tons claros sobre esse fundo. Estilo "editorial premium light" — não dashboard genérico tipo Vercel/Stripe.
 
 7. **Sintomas de erro:**
    - Cores como `#f5a623` (laranja) ou `#7c6af7` (roxo genérico), ou fonte `'Segoe UI'` → ignorou o template, refaz.
