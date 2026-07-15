@@ -1,8 +1,8 @@
-# Design Tokens · /pbi-doc (Xperiun v4)
+# Design Tokens · /pbi-doc
 
-Tokens canônicos do **Xperiun v4** (`design/xperiun-v4/design-system-manual-cultura.html`) usados pelo template HTML desta skill. Cópia local pra garantir que a skill é **standalone** (regra inviolável do CLAUDE.md raiz).
+Tokens canônicos do design system v4 usados pelo template HTML desta skill. Cópia local pra garantir que a skill é **standalone**.
 
-Mesmo conjunto de tokens da `/pbi-modelo-review` — vibe Xperiun v4 unificada nas skills Power BI. O que muda são os **componentes** específicos (sidebar, table-card, measure-card, etc.).
+Mesmo conjunto de tokens da `/pbi-modelo-review`. O que muda são os **componentes** específicos (sidebar, table-card, measure-card, etc.).
 
 ---
 
@@ -236,8 +236,7 @@ Badges pequenos pra indicar tipo de tabela. Cor segue mapeamento acima.
 4. **Responsive** — sidebar vira hamburger em <780px
 5. **Print stylesheet sempre presente**
 6. **Nunca inventar cores fora dos tokens**
-7. **Footer Xperiun obrigatório**
 
 ## Versão
 
-Tokens extraídos de `design/xperiun-v4/design-system-manual-cultura.html` em 2026-04-26. Última verificação de sincronia: 2026-04-26.
+Tokens do design system v4. Última verificação de sincronia: 2026-04-26.
