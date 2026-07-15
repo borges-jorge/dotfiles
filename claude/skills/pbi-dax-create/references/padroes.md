@@ -275,7 +275,7 @@ Sempre devolver 3 nomes em ordem de preferência:
 3. **Alternativa enxuta** — variação mais curta (acrônimo se aplicável)
 
 Exemplo: pedido "% margem bruta vs ano passado"
-1. `% Margem Bruta YoY` (padrão Xperiun/SQLBI — recomendado)
+1. `% Margem Bruta YoY` (padrão SQLBI, recomendado)
 2. `Variação Margem Bruta vs Ano Anterior` (mais explícito)
 3. `Δ MB YoY` (mais curto, requer leitor saber MB = Margem Bruta)
 
@@ -316,4 +316,4 @@ Description ideal:
 
 ## Versão
 
-Padrões consolidados em 2026-04-26. Baseado em SQLBI best practices + experiência Xperiun com modelos brasileiros.
+Padrões consolidados em 2026-04-26. Baseado em SQLBI best practices + experiência com modelos brasileiros.
