@@ -62,16 +62,6 @@ body::before {
 .project-name { font-family: var(--font-body); font-size: 18px; color: var(--text-secondary); }
 .project-name strong { color: var(--text-white); font-weight: 600; }
 
-.search-wrap { position: relative; }
-.search-input {
-  width: 320px; padding: 9px 16px 9px 38px; font-family: var(--font-body); font-size: 17px;
-  background: rgba(20,15,10,0.03); border: 1px solid var(--border-faint); border-radius: 999px;
-  color: var(--text-white); transition: all 0.2s;
-}
-.search-input::placeholder { color: var(--text-muted); }
-.search-input:focus { outline: none; border-color: var(--border-accent); background: rgba(20,15,10,0.05); }
-.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 18px; pointer-events: none; }
-
 .menu-btn { display: none; background: transparent; border: 1px solid var(--border-mid); color: var(--text-white); font-family: var(--font-condensed); font-size: 16px; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
 
 /* ── Sidebar ── */
@@ -575,7 +565,6 @@ body::before { animation: ambientBreathe 12s ease-in-out infinite; }
   .sidebar.open { transform: translateX(0); box-shadow: 0 0 50px rgba(0,0,0,0.6); }
   .main { margin-left: 0; }
   .main-inner { padding: 32px 20px 64px; }
-  .search-input { width: 180px; }
   .project-name { display: none; }
 }
 
@@ -621,10 +610,6 @@ body::before { animation: ambientBreathe 12s ease-in-out infinite; }
 <!-- Topbar -->
 <div class="topbar">
   <div class="project-name">{{PROJECT_FILENAME}}</div>
-  <div class="search-wrap">
-    <span class="search-icon">⌕</span>
-    <input class="search-input" type="text" placeholder="Buscar tabela ou medida..." id="search">
-  </div>
   <button class="menu-btn" id="menu-toggle">≡</button>
 </div>
 
@@ -812,31 +797,6 @@ body::before { animation: ambientBreathe 12s ease-in-out infinite; }
   }
   window.addEventListener('scroll', updateActive, { passive: true });
   updateActive();
-
-  // ── Search (filtra cards por nome + rola até o primeiro resultado) ──
-  const search = document.getElementById('search');
-  const tableCards = document.querySelectorAll('.table-card');
-  const measureCards = document.querySelectorAll('.measure-card, .measure-mini');
-  let searchScrollTimer = null;
-  search.addEventListener('input', () => {
-    const q = search.value.trim().toLowerCase();
-    let firstMatch = null;
-    [...tableCards, ...measureCards].forEach(card => {
-      const text = card.textContent.toLowerCase();
-      const matches = q === '' || text.includes(q);
-      card.style.display = matches ? '' : 'none';
-      if (matches && q !== '' && !firstMatch) firstMatch = card;
-      if (matches && card.tagName === 'DETAILS') card.open = q !== '' ? true : card.open;
-    });
-    clearTimeout(searchScrollTimer);
-    if (firstMatch) {
-      searchScrollTimer = setTimeout(() => {
-        const topOffset = (document.querySelector('.topbar')?.offsetHeight || 0) + 16;
-        const y = firstMatch.getBoundingClientRect().top + window.scrollY - topOffset;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      }, 220);
-    }
-  });
 
   // ── Particle field · pontos dourado/azul flutuando ──
   (function initParticles(){
