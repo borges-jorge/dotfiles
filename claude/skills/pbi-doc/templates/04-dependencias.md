@@ -76,7 +76,3 @@ Sinaliza onde mora a "carne" do modelo — tabelas usadas por mais medidas têm 
 - **Antes de refatorar uma medida-base** (ex: `Faturamento`), checa quem depende dela aqui — você pode estar quebrando 6 outras sem perceber
 - **Em revisão de PR** que muda DAX, esse arquivo serve de "blast radius check"
 - **Pra onboarding**, a árvore ajuda a entender o "esqueleto" de cálculo do modelo
-
----
-
-*Gerado por `/pbi-doc`*

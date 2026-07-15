@@ -14,7 +14,7 @@
 # Auditoria · {{PROJECT_NAME}}
 
 > **Score: {{SCORE}}/100 — {{SCORE_LABEL}}**
-> Gerado por Claude Code + `/pbi-modelo-review` em {{TIMESTAMP}}
+> Gerado em {{TIMESTAMP}}
 
 **Modelo:** {{TABLES_COUNT}} tabelas · {{MEASURES_COUNT}} medidas · {{RELATIONSHIPS_COUNT}} relacionamentos · {{SIZE}}
 
@@ -100,9 +100,7 @@ A skill **sobrescreve** este relatório a cada execução. Pra acompanhar evolu�
 
 ---
 
-## Sobre essa skill
-
-Auditoria gerada por **`/pbi-modelo-review`**.
+## Sobre essa auditoria
 
 - Operação 100% local · zero rede · zero XMLA · LGPD-compatível
 - Lê apenas arquivos `.tmdl` (texto puro do PBIP)

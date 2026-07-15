@@ -55,7 +55,3 @@ Mapa visual + lista detalhada de relacionamentos entre tabelas.
 {{REL_ANALYSIS}}
 
 > **Tom:** descrever, não opinar. Pra auditoria de qualidade dos relacionamentos (anti-patterns, bi-direcional desnecessário, etc.), use `/pbi-modelo-review`.
-
----
-
-*Gerado por `/pbi-doc`*

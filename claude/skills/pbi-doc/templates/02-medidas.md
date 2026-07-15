@@ -50,7 +50,3 @@ Catálogo de todas as medidas DAX do modelo, agrupadas pelos displayFolders.
 ---
 
 {{MEASURE_GROUPS_MD}}
-
----
-
-*Gerado por `/pbi-doc`*

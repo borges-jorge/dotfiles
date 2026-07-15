@@ -51,7 +51,3 @@ Catálogo de tabelas do modelo. Cada uma com descrição, granularidade, colunas
 ---
 
 {{TABLES_BLOCKS_MD}}
-
----
-
-*Gerado por `/pbi-doc`*
