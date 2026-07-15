@@ -42,7 +42,7 @@ A skill detecta automaticamente o ambiente e adapta input/output:
 ### Modo Code (Claude Code · Desktop · file-based)
 - **Detecção**: tenho acesso a filesystem do usuário e a pasta atual contém `.SemanticModel/`
 - **Input**: leio automaticamente os `.tmdl` da pasta `./SemanticModel/`
-- **Output**: salvo em `./_review/index.html` + `./_review/relatorio.md` na raiz do projeto Power BI
+- **Output**: salvo em `../docs/powerbi/review/index.html` + `../docs/powerbi/review/relatorio.md` — a pasta `docs/powerbi/review/` fica na **raiz do repositório do projeto**, um nível acima da pasta PBIP (`pbip/`). Se `../docs/` não existir, criar.
 - **Idempotente**: rodar 2x sobrescreve
 
 ### Modo Web (Claude.ai · upload-based)
@@ -132,7 +132,7 @@ Filtrar issues conforme severidade mínima escolhida e gerar **dois arquivos**:
 **A. Markdown** (versionável Git):
 - Ler `templates/relatorio.md`
 - Substituir placeholders pelos dados reais
-- Salvar em `./_review/relatorio.md` na raiz do projeto Power BI
+- Salvar em `docs/powerbi/review/relatorio.md` na raiz do repositório
 
 **B. HTML standalone** (visual):
 
@@ -155,7 +155,7 @@ Filtrar issues conforme severidade mínima escolhida e gerar **dois arquivos**:
    - **Sintoma:** se algum acento aparece como sequência de 2-3 chars estranhos, parser HTML pode quebrar e o resto da página renderiza como texto cru. Refaz com UTF-8.
 
 5. **Garantir que CSS continua inline** (sem dependências externas além das fontes Google).
-6. **SALVAR** em `./_review/index.html` (modo Code) ou retornar como artifact (modo Web).
+6. **SALVAR** em `docs/powerbi/review/index.html` na raiz do repositório (modo Code) ou retornar como artifact (modo Web).
 7. **Sintomas de erro:**
    - Cores `#f5a623` (laranja) ou `#7c6af7` (roxo), ou fonte `'Segoe UI'` → ignorou template, refaz.
    - Acentos como `Ã£` ou `â` → encoding quebrado, refaz UTF-8.
@@ -167,17 +167,20 @@ Devolver mensagem curta no chat com:
 - Score + label
 - Top 3 issues críticos (apenas títulos)
 - Path dos 2 arquivos gerados
-- Sugestão: "Abre `_review/index.html` no navegador pra ver completo"
+- Sugestão: "Abre `docs/powerbi/review/index.html` no navegador pra ver completo"
 
 ## Outputs
 
 ```
-[raiz do projeto Power BI do usuário]/
-├── SemanticModel/                  ← input (não tocar)
-├── Report/                         ← input (não tocar)
-└── _review/                        ← OUTPUT da skill
-    ├── relatorio.md                ← versão markdown (commitável)
-    └── index.html                  ← versão visual standalone
+[raiz do repositório do usuário]/
+├── pbip/                            ← pasta do projeto Power BI
+│   ├── SemanticModel/               ← input (não tocar)
+│   └── Report/                      ← input (não tocar)
+└── docs/
+    └── powerbi/
+        └── review/                  ← OUTPUT da skill
+            ├── relatorio.md         ← versão markdown (commitável)
+            └── index.html           ← versão visual standalone
 ```
 
 ## Edge cases
@@ -185,7 +188,8 @@ Devolver mensagem curta no chat com:
 | Cenário | O que fazer |
 |---|---|
 | Modelo sem `.SemanticModel/` | Mensagem de pré-requisito (PBIP), encerra |
-| Pasta `_review/` já existe | **Sobrescrever** (skill é idempotente) — mas avisar no chat |
+| Pasta `docs/powerbi/review/` já existe | **Sobrescrever** (skill é idempotente) — mas avisar no chat |
+| Projeto ainda tem `_review/` dentro da pasta PBIP (convenção antiga) | Migrar: mover o conteúdo pra `docs/powerbi/review/` na raiz e remover `_review/`, avisando no chat |
 | Modelo perfeito (zero issues) | Score 100 + celebrar + listar 3 melhores patterns encontrados (já que não tem o que reclamar) |
 | Modelo apocalíptico (>50 críticos) | Truncar relatório nos top 30 críticos + linha "+ N issues não listados — começa por aqui antes" |
 | Erro lendo um `.tmdl` específico (corrupção) | Reportar arquivo problemático no chat, seguir com os demais |
@@ -193,14 +197,14 @@ Devolver mensagem curta no chat com:
 
 ## Idempotência
 
-- Rodar 2x no mesmo projeto **sobrescreve** `_review/`
+- Rodar 2x no mesmo projeto **sobrescreve** `docs/powerbi/review/`
 - Não cria backups, não acumula histórico (versionamento é via Git do usuário)
 - Não modifica nada em `.SemanticModel/` ou `.Report/` — **somente leitura nesses**
 
 ## Segurança / Blast radius
 
 - **Lê** arquivos do projeto Power BI (TMDL puro, texto)
-- **Escreve** somente em `./_review/` (cria se não existe, sobrescreve se existe)
+- **Escreve** somente em `docs/powerbi/review/` na raiz do repositório (cria se não existe, sobrescreve se existe)
 - **NÃO toca** em `.SemanticModel/`, `.Report/`, ou qualquer arquivo binário
 - **NÃO commita** nada (segue regra inviolável git do CLAUDE.md raiz)
 - **NÃO faz rede** — operação 100% local

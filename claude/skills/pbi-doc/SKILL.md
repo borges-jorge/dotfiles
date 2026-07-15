@@ -42,7 +42,7 @@ A skill detecta automaticamente o ambiente e adapta input/output:
 ### Modo Code (Claude Code · Desktop · file-based)
 - **Detecção**: tenho acesso a filesystem e a pasta atual contém `.SemanticModel/`
 - **Input**: leio automaticamente os `.tmdl` de `./SemanticModel/`
-- **Output**: salvo em `./_docs/index.html` + 5 markdowns (`00-overview.md` a `04-dependencias.md`) na raiz do projeto Power BI
+- **Output**: salvo em `../docs/powerbi/doc/index.html` + 5 markdowns (`00-overview.md` a `04-dependencias.md`) — a pasta `docs/powerbi/doc/` fica na **raiz do repositório do projeto**, um nível acima da pasta PBIP (`pbip/`). Se `../docs/` não existir, criar.
 - **Idempotente**: rodar 2x sobrescreve
 
 ### Modo Web (Claude.ai · upload-based)
@@ -105,15 +105,15 @@ Se não especificado, perguntar **uma vez**:
 
 ### 2. Gerar 5 arquivos markdown
 
-Ler templates em `templates/` e preencher com dados reais. Salvar em `./_docs/` na raiz do projeto Power BI:
+Ler templates em `templates/` e preencher com dados reais. Salvar em `docs/powerbi/doc/` na **raiz do repositório** (um nível acima da pasta PBIP — ex: se o PBIP é `pbip/`, a saída vai em `../docs/powerbi/doc/` a partir de lá):
 
 | Arquivo | Conteúdo |
 |---|---|
-| `_docs/00-overview.md` | Sumário (N tabelas, N medidas, N relacionamentos, fontes, propósito inferido) |
-| `_docs/01-tabelas.md` | Cada tabela: descrição, granularidade, colunas tipadas, source M (resumo) |
-| `_docs/02-medidas.md` | Agrupadas por displayFolder. Cada uma: nome, DAX, explicação PT linha-a-linha |
-| `_docs/03-relacionamentos.md` | Lista detalhada + diagrama em ASCII art (matriz simples) |
-| `_docs/04-dependencias.md` | Grafo: árvore "medida X → usa Y → usa Z" + lista reverse "Y é usada por: A, B, C" |
+| `docs/powerbi/doc/00-overview.md` | Sumário (N tabelas, N medidas, N relacionamentos, fontes, propósito inferido) |
+| `docs/powerbi/doc/01-tabelas.md` | Cada tabela: descrição, granularidade, colunas tipadas, source M (resumo) |
+| `docs/powerbi/doc/02-medidas.md` | Agrupadas por displayFolder. Cada uma: nome, DAX, explicação PT linha-a-linha |
+| `docs/powerbi/doc/03-relacionamentos.md` | Lista detalhada + diagrama em ASCII art (matriz simples) |
+| `docs/powerbi/doc/04-dependencias.md` | Grafo: árvore "medida X → usa Y → usa Z" + lista reverse "Y é usada por: A, B, C" |
 
 ### 3. Gerar HTML standalone
 
@@ -138,7 +138,7 @@ Ler templates em `templates/` e preencher com dados reais. Salvar em `./_docs/` 
    - ❌ Errado (entities desnecessárias): `depend&ecirc;ncias`
    - **Sintoma de erro:** se algum acento aparece como sequência de 2-3 chars estranhos (`Ã£`, `â`, `Ã©`), o parser HTML pode quebrar e o resto da página renderiza como texto cru. Refaz garantindo UTF-8.
 
-5. **SALVAR** em `./_docs/index.html` (modo Code) ou retornar como artifact (modo Web).
+5. **SALVAR** em `docs/powerbi/doc/index.html` na raiz do repositório (modo Code) ou retornar como artifact (modo Web).
 
 6. **Como deve parecer:** fundo claro (`--bg-deepest #FBFAF8`) · gold-grid de papel pautado dourado animado caindo · orbs azul/roxo suaves em cada seção · risca dourada entre seções · cards `var(--gradient-surface)` branco com border `--border-faint` · números em Bebas Neue em tom bronze/dourado escuro (`--accent-gold-bright #9C6B2E`) · blocos de código (DAX, árvore de dependências, diagrama de relacionamentos) mantêm chip escuro interno de propósito (`#1B1A20`), com syntax highlight via spans `.k .f .s .c` em tons claros sobre esse fundo. Estilo "editorial premium light" — não dashboard genérico tipo Vercel/Stripe.
 
@@ -152,21 +152,24 @@ Ler templates em `templates/` e preencher com dados reais. Salvar em `./_docs/` 
 Mensagem curta:
 - Quantidade do que foi documentado (5 tabelas, 19 medidas, 4 relacionamentos)
 - Path dos arquivos gerados
-- Sugestão: "Abre `_docs/index.html` pra ver navegável"
+- Sugestão: "Abre `docs/powerbi/doc/index.html` pra ver navegável"
 
 ## Outputs
 
 ```
-[raiz do projeto Power BI do usuário]/
-├── SemanticModel/                  ← input (não tocar)
-├── Report/                         ← input (não tocar)
-└── _docs/                          ← OUTPUT da skill
-    ├── 00-overview.md
-    ├── 01-tabelas.md
-    ├── 02-medidas.md
-    ├── 03-relacionamentos.md
-    ├── 04-dependencias.md
-    └── index.html                  ← versão visual standalone
+[raiz do repositório do usuário]/
+├── pbip/                            ← pasta do projeto Power BI
+│   ├── SemanticModel/               ← input (não tocar)
+│   └── Report/                      ← input (não tocar)
+└── docs/
+    └── powerbi/
+        └── doc/                     ← OUTPUT da skill
+            ├── 00-overview.md
+            ├── 01-tabelas.md
+            ├── 02-medidas.md
+            ├── 03-relacionamentos.md
+            ├── 04-dependencias.md
+            └── index.html           ← versão visual standalone
 ```
 
 ## Edge cases
@@ -174,7 +177,8 @@ Mensagem curta:
 | Cenário | O que fazer |
 |---|---|
 | Sem `.SemanticModel/` | Mensagem de pré-requisito (PBIP), encerra |
-| Pasta `_docs/` já existe | **Sobrescrever** (idempotente) — avisar no chat |
+| Pasta `docs/powerbi/doc/` já existe | **Sobrescrever** (idempotente) — avisar no chat |
+| Projeto ainda tem `_docs/` dentro da pasta PBIP (convenção antiga) | Migrar: mover o conteúdo pra `docs/powerbi/doc/` na raiz e remover `_docs/`, avisando no chat |
 | Modelo gigante (>200 medidas) | Avisar tempo + processar em chunks |
 | Tabelas auto-date (`LocalDateTable_*`, `DateTableTemplate_*`) | **Excluir da doc** — são tabelas-fantasma, não fazem parte do modelo intencional |
 | Medida com DAX muito complexo (>30 linhas) | Mostrar DAX completo + explicar em **blocos** (se / agg / contexto) |
@@ -195,7 +199,7 @@ Exemplos de **bom** vs **ruim**:
 
 ## Idempotência e segurança
 
-- Rodar 2x **sobrescreve** `_docs/`
+- Rodar 2x **sobrescreve** `docs/powerbi/doc/`
 - Não modifica nada em `.SemanticModel/` ou `.Report/` — somente leitura
 - Não commita nada (segue regra git inviolável CLAUDE.md)
 - Operação 100% local — zero rede, zero XMLA
