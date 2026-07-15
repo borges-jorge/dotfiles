@@ -219,10 +219,6 @@ Exemplos de **bom** vs **ruim**:
 
 ✅ Bom: "Bi-direcional em N:1 com calendário causa ambiguidade de filtro e duplica scan no engine. Em modelo de 1.4GB você está pagando ~30% de overhead por refresh sem ganhar nada."
 
-## Footer do HTML
-
-O relatório HTML tem footer fixo: "Relatório gerado por Claude Code + /pbi-modelo-review".
-
 ## Tempo típico
 
 - Modelo pequeno (≤30 tabelas, ≤80 medidas): **1–2 min**

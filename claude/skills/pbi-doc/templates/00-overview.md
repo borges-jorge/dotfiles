@@ -16,7 +16,7 @@
 # {{PROJECT_NAME}} — Overview
 
 > **{{PROJECT_TAGLINE}}**
-> Documentação gerada por Claude Code + `/pbi-doc` em {{TIMESTAMP}}
+> Gerado em {{TIMESTAMP}}
 
 **Arquivo:** `{{PROJECT_FILENAME}}`
 
@@ -64,7 +64,3 @@
 - [02 · Medidas](02-medidas.md) — DAX completo + explicação PT de cada medida
 - [03 · Relacionamentos](03-relacionamentos.md) — mapa visual + tabela detalhada
 - [04 · Dependências](04-dependencias.md) — quem depende de quem entre as medidas
-
----
-
-*Gerado por `/pbi-doc`*
