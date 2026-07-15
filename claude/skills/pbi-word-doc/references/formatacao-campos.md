@@ -52,6 +52,22 @@ Quando o item do template lista várias entradas do mesmo tipo (ex: item 5 "Indi
 - Os campos internos (Fórmula, Meta, Responsável, Descrição) seguindo as Regras 1 e 2
 - Espaçamento (`w:spacing w:before`/`w:after`) entre uma entrada e a próxima, para o olho conseguir separar onde uma medida termina e a outra começa — nunca todas coladas sem respiro
 
+## Regra 4 — mini-heading de cada entrada leva o rótulo do campo, não só o nome solto
+
+O mini-heading da Regra 3 não pode ser só o nome em negrito (`**Overall**`) — isso obriga quem lê a inferir que aquele texto é "o nome da página" pelo contexto. Usar sempre `Rótulo: Nome`, com o rótulo em negrito seguido do valor, igual à Regra 1:
+
+```
+Página: Overall
+```
+
+Nunca:
+
+```
+Overall
+```
+
+Vale pra qualquer item do template que repete entradas do mesmo tipo: `Página:` (item 4), `Indicador:` (item 5, se o nome do indicador não já estiver como primeiro campo do bloco), `Visualização:` (item 6), `Fonte:` (item 8), etc. — sempre nomeando explicitamente o tipo de entrada antes do valor, não deixando o nome "pelado" no heading.
+
 ## Como implementar no XML
 
 Usar runs com negrito (`<w:b/>`) dentro do mesmo `<w:p>` do rótulo + valor, e uma função helper específica (ver `edicao-docx-xml.md`, seção "Campo rótulo:valor com negrito") em vez de gerar tudo com `plain_para` genérico sem negrito.
@@ -62,4 +78,5 @@ Usar runs com negrito (`<w:b/>`) dentro do mesmo `<w:p>` do rótulo + valor, e u
 - [ ] Rótulos estão em negrito, não em texto plano igual ao valor
 - [ ] Fórmulas DAX/código têm indentação e, se o template tiver um estilo de código disponível, usam fonte monoespaçada
 - [ ] Ao rolar o documento, dá pra distinguir visualmente onde uma entrada (medida, página, fonte) termina e a próxima começa, sem precisar ler o texto
+- [ ] O mini-heading de cada entrada repetida usa `Rótulo: Nome` (ex: `Página: Overall`), nunca o nome sozinho sem indicar o tipo de campo
 - [ ] Reabrir o parágrafo gerado e perguntar: "isso parece um `.txt` colado no Word, ou um documento formatado de verdade?" — se parecer `.txt`, refazer
