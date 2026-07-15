@@ -58,4 +58,4 @@ Mapa visual + lista detalhada de relacionamentos entre tabelas.
 
 ---
 
-*XPERIUN · `/pbi-doc`*
+*Gerado por `/pbi-doc`*

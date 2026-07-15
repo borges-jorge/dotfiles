@@ -67,4 +67,4 @@
 
 ---
 
-*XPERIUN · O Sistema Operacional dos Incomparáveis · `/pbi-doc`*
+*Gerado por `/pbi-doc`*

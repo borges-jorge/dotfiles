@@ -5,8 +5,6 @@ description: Documenta projeto Power BI (PBIP) inteiro em markdown estruturado +
 
 # /pbi-doc — Documentação automática de Power BI
 
-> **📦 Distribuída publicamente:** [github.com/xperiun/claude-code-powerbi-skills](https://github.com/xperiun/claude-code-powerbi-skills) — pasta `claude-code/pbi-doc/` (skill nativa) + `claude-web/pbi-doc.zip` (upload no Claude.ai). Mudança aqui exige sincronizar lá: atualizar pasta + regenerar ZIP (Python `zipfile`, ver CLAUDE.md) + commit + bump CHANGELOG. Repo é open-source, leiame público — evitar referências internas (Xperiun-only) na SKILL.md.
-
 Gera documentação completa de um projeto Power BI (formato PBIP) em duas formas:
 - **Markdown** versionável Git (5 arquivos: overview, tabelas, medidas, relacionamentos, dependências)
 - **HTML standalone** navegável (mini-site com sidebar fixa, busca, syntax highlight em DAX)
@@ -130,7 +128,7 @@ Ler templates em `templates/` e preencher com dados reais. Salvar em `./_docs/` 
    - ❌ Inventar nova paleta de cores (usar SÓ os tokens do template: `--accent-gold-bright #E8C9A0`, `--accent-glow #7099FF`, `--neon-magenta #C47FFF`, etc.)
    - ❌ Mudar fontes (DS v4 usa Bebas Neue + Barlow Condensed + Outfit + JetBrains Mono — nada de Segoe UI, Arial, system-ui)
    - ❌ Remover o `<div class="gold-grid">`, os `<div class="section-orb">`, ou qualquer ornamento decorativo do template
-   - ❌ Gerar HTML "do zero" porque parece mais fácil — **isso queima toda a identidade visual Xperiun**
+   - ❌ Gerar HTML "do zero" porque parece mais fácil — **isso queima toda a identidade visual do template**
    - ❌ **Tocar em qualquer coisa dentro de comentários `<!-- ... -->`** — comentários são instruções pra você, não conteúdo a substituir. Mantém como tá.
    - ❌ **Tocar em `<style>...</style>` ou `<script>...</script>`** — CSS e JS ficam intocados.
 
@@ -184,7 +182,6 @@ Mensagem curta:
 
 ## Tom da documentação
 
-Estilo Xperiun:
 - **PT-BR direto, não robótico**. Em vez de "A tabela X possui Y colunas", escrever "Vendas — fato principal do modelo, 1 linha = 1 item de NFe, 12 colunas (5 chaves + 7 atributos)"
 - Pode usar metáforas concretas pra explicar DAX complexo
 - Manter tom de "colega sênior explicando o modelo pro novo membro do time"
@@ -203,15 +200,6 @@ Exemplos de **bom** vs **ruim**:
 - Não commita nada (segue regra git inviolável CLAUDE.md)
 - Operação 100% local — zero rede, zero XMLA
 
-## Branding
-
-HTML tem footer fixo:
-- "Doc gerada por Claude Code + /pbi-doc · Xperiun"
-- CTA: "Quero usar esse skill no meu Power BI →"
-- Meta: "XPERIUN · O Sistema Operacional dos Incomparáveis · pages.xperiun.com"
-
-Branding sempre Xperiun.
-
 ## Tempo típico
 
 - Modelo pequeno (≤30 tabelas, ≤80 medidas): **2–4 min**
@@ -222,4 +210,4 @@ Avisar se >5min esperados.
 
 ## Versão atual
 
-`v0.1` — protótipo interno Xperiun OS. Quando estabilizar, vira pacote no repo público `xperiun/claude-code-powerbi-skills` (lead magnet).
+`v0.1` — protótipo interno.

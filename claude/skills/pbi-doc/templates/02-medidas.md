@@ -53,4 +53,4 @@ Catálogo de todas as medidas DAX do modelo, agrupadas pelos displayFolders.
 
 ---
 
-*XPERIUN · `/pbi-doc`*
+*Gerado por `/pbi-doc`*
