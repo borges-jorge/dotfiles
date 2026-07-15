@@ -1,6 +1,6 @@
-# Design Tokens · /pbi-modelo-review (Xperiun v4)
+# Design Tokens · /pbi-modelo-review
 
-Tokens canônicos do **Xperiun v4** (`design/xperiun-v4/design-system-manual-cultura.html`) usados pelo template HTML desta skill. Cópia local pra garantir que a skill é **standalone** (regra inviolável do CLAUDE.md raiz).
+Tokens canônicos do design system v4 usados pelo template HTML desta skill. Cópia local pra garantir que a skill é **standalone**.
 
 Se mudar tokens aqui sem mudar no template, fica inconsistente — sempre alterar nos dois lugares ou (melhor) re-extrair do canonical.
 
@@ -235,8 +235,7 @@ Garante que ao imprimir/exportar PDF, o relatório vira light mode legível. Cr�
 4. **Mobile-friendly** — testar em 375px (iPhone padrão) sem quebrar layout
 5. **Print stylesheet sempre presente** — se faltar, relatório é inútil em ambiente corporativo
 6. **Nunca inventar cores fora dos tokens** — se precisar de tom novo, derivar via `rgba()` dos tokens existentes
-7. **Footer Xperiun obrigatório** — branding institucional não-negociável
 
 ## Versão
 
-Tokens extraídos de `design/xperiun-v4/design-system-manual-cultura.html` em 2026-04-26. Última verificação de sincronia com o canonical: 2026-04-26.
+Tokens do design system v4. Última verificação de sincronia: 2026-04-26.

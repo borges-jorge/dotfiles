@@ -5,8 +5,6 @@ description: Cria medida DAX a partir de descrição em PT, respeitando o modelo
 
 # /pbi-dax-create — Criação de medida DAX
 
-> **📦 Distribuída publicamente:** [github.com/xperiun/claude-code-powerbi-skills](https://github.com/xperiun/claude-code-powerbi-skills) — pasta `claude-code/pbi-dax-create/` (skill nativa) + `claude-web/pbi-dax-create.zip` (upload no Claude.ai). Mudança aqui exige sincronizar lá: atualizar pasta + regenerar ZIP (Python `zipfile`, ver CLAUDE.md) + commit + bump CHANGELOG. Repo é open-source, leiame público — evitar referências internas (Xperiun-only) na SKILL.md.
-
 Gera medidas DAX a partir de descrição em linguagem natural, **respeitando o modelo existente**:
 - Usa as colunas e tabelas que **realmente existem** (sem inventar)
 - Detecta o **padrão de nomenclatura** do projeto (Title Case, camelCase, com prefixos, etc.) e segue
@@ -173,7 +171,6 @@ Se aplicar:
 
 ## Tom
 
-Estilo Xperiun:
 - **Direto**: vai pra fórmula sem rodeio teórico
 - **Didático mas não condescendente**: explica linha-a-linha em PT, mas no nível de quem já sabe DAX
 - **Provocativo quando útil**: se o pedido tem antipattern óbvio, sinaliza ("você quer SUMX direto em fato de 5M linhas? Pode dar trabalho — alternativa: ...")
@@ -207,4 +204,4 @@ Quando aplicar direto:
 
 ## Versão
 
-`v0.1` — protótipo interno Xperiun OS. Faz parte do trio do lead magnet (`/pbi-modelo-review` · `/pbi-doc` · `/pbi-dax-create`).
+`v0.1` — protótipo interno. Faz parte do trio `/pbi-modelo-review` · `/pbi-doc` · `/pbi-dax-create`.

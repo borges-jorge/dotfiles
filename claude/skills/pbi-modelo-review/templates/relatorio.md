@@ -102,14 +102,8 @@ A skill **sobrescreve** este relatório a cada execução. Pra acompanhar evolu�
 
 ## Sobre essa skill
 
-Auditoria gerada por **`/pbi-modelo-review`** — uma skill open-source da **Xperiun**, parte do toolkit Claude Code para Power BI.
+Auditoria gerada por **`/pbi-modelo-review`**.
 
 - Operação 100% local · zero rede · zero XMLA · LGPD-compatível
 - Lê apenas arquivos `.tmdl` (texto puro do PBIP)
 - Não modifica nada em `SemanticModel/` ou `Report/` — somente leitura
-
-Saiba mais: **[pages.xperiun.com](https://pages.xperiun.com)**
-
----
-
-*XPERIUN · O Sistema Operacional dos Incomparáveis*

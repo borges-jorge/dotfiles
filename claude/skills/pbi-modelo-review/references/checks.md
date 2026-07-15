@@ -5,7 +5,7 @@ Spec completa dos checks rodados pela skill. Cada check tem:
 - **Categoria** (uma das 6 famílias)
 - **Severidade** (`critical` | `medium` | `light`)
 - **Como detectar** (heurística aplicada nos `.tmdl`)
-- **Por que importa** (vai pro relatório, tom Xperiun)
+- **Por que importa** (vai pro relatório)
 - **Como corrigir** (recomendação prática + snippet quando faz sentido)
 
 ---
@@ -267,7 +267,7 @@ Os textos de "por que importa" e "como corrigir" acima são **base canônica** m
 
 - Substituir números genéricos pelos reais ("4M linhas em Vendas" se a tabela tem mesmo 4M)
 - Mencionar nomes reais das tabelas/colunas/medidas afetadas
-- Manter tom Xperiun (provocativo, direto, com metáforas concretas)
+- Manter tom provocativo, direto, com metáforas concretas
 
 Exemplo de adaptação:
 - **Genérico**: "Coluna calculada com cálculo trivial é materializada em memória"

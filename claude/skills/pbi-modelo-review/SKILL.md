@@ -5,8 +5,6 @@ description: Audita modelo Power BI (PBIP) e gera relatório priorizado com anti
 
 # /pbi-modelo-review — Auditoria de modelo Power BI
 
-> **📦 Distribuída publicamente:** [github.com/xperiun/claude-code-powerbi-skills](https://github.com/xperiun/claude-code-powerbi-skills) — pasta `claude-code/pbi-modelo-review/` (skill nativa) + `claude-web/pbi-modelo-review.zip` (upload no Claude.ai). Mudança aqui exige sincronizar lá: atualizar pasta + regenerar ZIP (Python `zipfile`, ver CLAUDE.md) + commit + bump CHANGELOG. Repo é open-source, leiame público — evitar referências internas (Xperiun-only) na SKILL.md.
-
 Audita um projeto Power BI (formato PBIP) e devolve relatório priorizado com:
 - Score geral (0–100)
 - Issues agrupados por severidade (crítico / médio / leve)
@@ -147,7 +145,7 @@ Filtrar issues conforme severidade mínima escolhida e gerar **dois arquivos**:
    - ❌ Inventar nova paleta (usar SÓ tokens do template: `--accent-gold-bright #E8C9A0`, `--accent-glow #7099FF`, `--neon-magenta #C47FFF`)
    - ❌ Mudar fontes (DS v4 = Bebas Neue + Barlow Condensed + Outfit + JetBrains Mono — nada de Segoe UI)
    - ❌ Remover `<div class="gold-grid">`, `<div class="section-orb">`, ou ornamentos do template
-   - ❌ Gerar HTML "do zero" porque parece mais fácil — **isso queima toda a identidade visual Xperiun**
+   - ❌ Gerar HTML "do zero" porque parece mais fácil — **isso queima toda a identidade visual do template**
    - ❌ **Tocar em qualquer coisa dentro de comentários `<!-- ... -->`** — comentários são instruções pra você, não conteúdo a substituir.
    - ❌ **Tocar em `<style>...</style>` ou `<script>...</script>`** — CSS e JS ficam intocados.
 
@@ -209,7 +207,6 @@ Devolver mensagem curta no chat com:
 
 ## Tom do relatório
 
-Estilo Xperiun (declarado em `contexto/posicionamento.md`):
 - Direto, sem rodeio. Verdade > conveniência
 - Tom de "colega sênior revisando código", não consultor formal
 - Pode ser provocativo ("isso vai cobrar juros", "modelo plano é o anti-pattern #1")
@@ -222,14 +219,9 @@ Exemplos de **bom** vs **ruim**:
 
 ✅ Bom: "Bi-direcional em N:1 com calendário causa ambiguidade de filtro e duplica scan no engine. Em modelo de 1.4GB você está pagando ~30% de overhead por refresh sem ganhar nada."
 
-## Branding (footer e CTA do HTML)
+## Footer do HTML
 
-O relatório HTML tem footer fixo:
-- Linha: "Relatório gerado em 4 minutos por Claude Code + /pbi-modelo-review"
-- CTA: "Quero usar esse skill no meu Power BI →" (link placeholder por enquanto)
-- Meta: "XPERIUN · O Sistema Operacional dos Incomparáveis · pages.xperiun.com"
-
-Branding é **sempre** Xperiun (não @leokarpa) — a skill faz parte do posicionamento institucional. Mesmo se o usuário rodar a skill no projeto dele, o footer mantém referência Xperiun (é nossa skill, ele só tá usando).
+O relatório HTML tem footer fixo: "Relatório gerado por Claude Code + /pbi-modelo-review".
 
 ## Tempo típico
 
@@ -241,5 +233,4 @@ Avisar ao usuário se > 3min esperados.
 
 ## Versão atual
 
-`v0.1` — protótipo interno Xperiun OS. Ainda não distribuído publicamente.
-Quando estabilizar, vira pacote no repo `xperiun/claude-code-powerbi-skills` (lead magnet).
+`v0.1` — protótipo interno. Ainda não distribuído publicamente.
