@@ -813,16 +813,27 @@ body::before { animation: ambientBreathe 12s ease-in-out infinite; }
   window.addEventListener('scroll', updateActive, { passive: true });
   updateActive();
 
-  // ── Search (filtra cards por nome) ──
+  // ── Search (filtra cards por nome + rola até o primeiro resultado) ──
   const search = document.getElementById('search');
   const tableCards = document.querySelectorAll('.table-card');
   const measureCards = document.querySelectorAll('.measure-card, .measure-mini');
+  let searchScrollTimer = null;
   search.addEventListener('input', () => {
     const q = search.value.trim().toLowerCase();
+    let firstMatch = null;
     [...tableCards, ...measureCards].forEach(card => {
       const text = card.textContent.toLowerCase();
-      card.style.display = (q === '' || text.includes(q)) ? '' : 'none';
+      const matches = q === '' || text.includes(q);
+      card.style.display = matches ? '' : 'none';
+      if (matches && q !== '' && !firstMatch) firstMatch = card;
+      if (matches && card.tagName === 'DETAILS') card.open = q !== '' ? true : card.open;
     });
+    clearTimeout(searchScrollTimer);
+    if (firstMatch) {
+      searchScrollTimer = setTimeout(() => {
+        firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 220);
+    }
   });
 
   // ── Particle field · pontos dourado/azul flutuando ──
