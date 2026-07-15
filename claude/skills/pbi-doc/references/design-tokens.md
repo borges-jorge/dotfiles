@@ -170,13 +170,10 @@ Em mobile (<780px): sidebar vira topbar dropdown ou hamburger.
 ## Componentes específicos da /pbi-doc
 
 ### `.topbar`
-Fixed top, full-width. Brand esquerda + nome do projeto centro + busca direita.
+Fixed top, full-width. Brand esquerda + nome do projeto centro.
 
 ### `.sidebar`
 Fixed left, 260px. Background `--bg-elevated`, scrollable. 5 seções principais (Overview/Tabelas/Medidas/Relacionamentos/Dependências) + sub-listas de tabelas/medidas (clicáveis pra anchor scroll).
-
-### `.search-input`
-Input no topbar. JS filtra cards por nome (busca client-side).
 
 ### `.metric-row` (overview)
 Linha horizontal com 4-5 mini-cards: N tabelas | N medidas | N relacionamentos | N colunas | tamanho.
@@ -222,7 +219,6 @@ Badges pequenos pra indicar tipo de tabela. Cor segue mapeamento acima.
   .table-card, .measure-card { box-shadow: none; background: white !important; border: 1px solid #ddd !important; break-inside: avoid; }
   .dax-block { background: #f5f5f5 !important; color: #1A1A1A !important; }
   .section-title, .card-title { color: #1A1A1A !important; }
-  .search-input { display: none; }
 }
 ```
 
@@ -231,7 +227,7 @@ Badges pequenos pra indicar tipo de tabela. Cor segue mapeamento acima.
 ## Regras invioláveis ao gerar HTML
 
 1. **CSS sempre inline** no `<head>` — sem arquivos externos
-2. **JS mínimo (vanilla)** — busca client-side + scroll spy + collapse de DAX longo (~40 linhas IIFE no fim do `<body>`). Sem framework.
+2. **JS mínimo (vanilla)** — scroll spy + collapse de DAX longo (~40 linhas IIFE no fim do `<body>`). Sem framework.
 3. **Fontes via Google Fonts CDN** — única exceção
 4. **Responsive** — sidebar vira hamburger em <780px
 5. **Print stylesheet sempre presente**

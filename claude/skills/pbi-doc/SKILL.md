@@ -7,7 +7,7 @@ description: Documenta projeto Power BI (PBIP) inteiro em markdown estruturado +
 
 Gera documentação completa de um projeto Power BI (formato PBIP) em duas formas:
 - **Markdown** versionável Git (5 arquivos: overview, tabelas, medidas, relacionamentos, dependências)
-- **HTML standalone** navegável (mini-site com sidebar fixa, busca, syntax highlight em DAX)
+- **HTML standalone** navegável (mini-site com sidebar fixa, syntax highlight em DAX)
 
 A doc descreve o que **existe** no modelo — tabelas, colunas tipadas, medidas com DAX explicadas em PT, relacionamentos com cardinalidade, grafo de dependências entre medidas. **Não opina sobre qualidade** (essa é função da `/pbi-modelo-review`).
 
@@ -119,7 +119,7 @@ Ler templates em `templates/` e preencher com dados reais. Salvar em `./_docs/` 
 
 **🚨 REGRA INVIOLÁVEL — usar templates/relatorio.html LITERAL:**
 
-1. **LER** `templates/relatorio.html` — esse arquivo já tem **todo o CSS, todo o HTML estrutural, todos os tokens DS v4 (Bebas Neue, accent-gold, gold-grid + beams animados, orb-v2 elipses blue/purple, riscas section+section::before, brackets), todo o JS de scroll spy/busca**. CSS são ~600 linhas inline + HTML completo com gold-grid, sidebar, topbar, sections.
+1. **LER** `templates/relatorio.html` — esse arquivo já tem **todo o CSS, todo o HTML estrutural, todos os tokens DS v4 (Bebas Neue, accent-gold, gold-grid + beams animados, orb-v2 elipses blue/purple, riscas section+section::before, brackets), todo o JS de scroll spy**. CSS são ~600 linhas inline + HTML completo com gold-grid, sidebar, topbar, sections.
 
 2. **SUBSTITUIR APENAS os placeholders `{{...}}`** pelos valores reais derivados dos `.tmdl`. Lista completa dos placeholders está em `references/escopo.md` desta skill (seção "Placeholders do `templates/relatorio.html`"). Todos os blocos `{{...}}_HTML` são gerados pelo Claude com base no inventário do modelo.
 
