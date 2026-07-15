@@ -831,7 +831,9 @@ body::before { animation: ambientBreathe 12s ease-in-out infinite; }
     clearTimeout(searchScrollTimer);
     if (firstMatch) {
       searchScrollTimer = setTimeout(() => {
-        firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const topOffset = (document.querySelector('.topbar')?.offsetHeight || 0) + 16;
+        const y = firstMatch.getBoundingClientRect().top + window.scrollY - topOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
       }, 220);
     }
   });
