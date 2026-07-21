@@ -210,6 +210,30 @@ jobs:
           fi
 EOF
 
+mkdir -p .github/ISSUE_TEMPLATE
+cat << 'EOF' > .github/ISSUE_TEMPLATE/tech-debt.md
+---
+name: Tech-debt / deferred item
+about: A defect or improvement found and postponed to a later feature or pass
+labels: [tech-debt, deferred]
+---
+
+## Context
+Where it comes from (feature/area) and how it surfaced.
+
+## Problem
+What happens today — with evidence (measurement, screenshot, log).
+
+## Expected
+What should happen.
+
+## Proposal (optional)
+Suggested approach, if any.
+
+## References (optional)
+Links: spec/ADR/commit/screenshot.
+EOF
+
 # qa esta protegida (core.hooksPath ativo): os workflows entram por uma
 # branch chore/ + PR. Merge com --merge (nunca squash/rebase): "Merge
 # pull request #" e o formato de mensagem que o protect-branches.yml
