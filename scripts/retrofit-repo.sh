@@ -306,6 +306,37 @@ EOF
     ok "check-pr-direction.yml criado"
 fi
 
+# --- 10b. Issue template (tech-debt) -------------------------------------
+mkdir -p .github/ISSUE_TEMPLATE
+if [ -f .github/ISSUE_TEMPLATE/tech-debt.md ]; then
+    record_skip ".github/ISSUE_TEMPLATE/tech-debt.md"
+else
+    cat << 'EOF' > .github/ISSUE_TEMPLATE/tech-debt.md
+---
+name: Tech-debt / deferred item
+about: A defect or improvement found and postponed to a later feature or pass
+labels: [tech-debt, deferred]
+---
+
+## Context
+Where it comes from (feature/area) and how it surfaced.
+
+## Problem
+What happens today — with evidence (measurement, screenshot, log).
+
+## Expected
+What should happen.
+
+## Proposal (optional)
+Suggested approach, if any.
+
+## References (optional)
+Links: spec/ADR/commit/screenshot.
+EOF
+    wf_novo=1
+    ok "tech-debt.md (ISSUE_TEMPLATE) criado"
+fi
+
 if [ "$wf_novo" = "1" ] && tem_remoto; then
     # qa esta protegida: os workflows entram por uma branch chore/ + PR.
     # Merge com --merge (nunca squash/rebase): "Merge pull request #" e o
