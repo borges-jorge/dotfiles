@@ -34,5 +34,6 @@
       }
     }
   },
-  "effortLevel": "low"
+  "effortLevel": "low",
+  "feedbackDrafts": "off"
 }
