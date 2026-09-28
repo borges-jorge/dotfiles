@@ -11,7 +11,7 @@ Define **o que vai em cada arquivo da documentação**. Esse documento é a "fon
 **Conteúdo**:
 1. **Cabeçalho**
    - Nome do projeto (`.pbip`)
-   - Data/hora geração
+   - Linha de data: `{{DOC_DATE_LABEL}} {{TIMESTAMP}}` — `Gerado em <data>` na 1ª vez, `Atualizado em <data>` quando `docs/powerbi/doc/` já existe. `{{TIMESTAMP}}` é **sempre a data corrente do sistema**, nunca a que estava no doc anterior.
    - Tagline 1-linha do propósito (inferido a partir das tabelas: "modelo de vendas com análise temporal YoY", "modelo financeiro com DRE consolidado", etc.)
 
 2. **Métricas-resumo**
@@ -222,9 +222,10 @@ O template HTML usa estes placeholders `{{...}}` que devem ser substituídos com
 |---|---|
 | `{{PROJECT_NAME}}` | Nome do projeto (ex: `16 - EV16 - Dashboard Vendas`) |
 | `{{PROJECT_FILENAME}}` | Nome do arquivo `.pbip` |
-| `{{TIMESTAMP}}` | Data de geração (ex: `26 abr 2026`) |
+| `{{DOC_DATE_LABEL}}` | `Gerado em` na 1ª geração · `Atualizado em` quando `docs/powerbi/doc/` já existe |
+| `{{TIMESTAMP}}` | **Data corrente do sistema** (ex: `9 set 2026`) — nunca a data do doc anterior |
 | `{{PROJECT_TAGLINE}}` | 1 frase descrevendo o propósito do modelo (inferido) |
-| `{{PROJECT_HERO_SUB}}` | Subtítulo do hero (ex: `EV16 Power BI Week · Aula 01 · gerado em 26 abr 2026`) |
+| `{{PROJECT_HERO_SUB}}` | Subtítulo do hero — deve terminar com `· {{DOC_DATE_LABEL_minúsculo}} {{TIMESTAMP}}` (ex: `Power BI · Semantic Model · atualizado em 9 set 2026`) |
 | `{{TABLES_COUNT}}`, `{{MEASURES_COUNT}}`, `{{RELATIONSHIPS_COUNT}}`, `{{COLUMNS_COUNT}}`, `{{SIZE}}` | Métricas inteiras |
 
 ### Blocos HTML (gerados pelo Claude com base nos `.tmdl`)

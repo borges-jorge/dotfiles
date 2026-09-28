@@ -94,6 +94,10 @@ Se não especificado, perguntar **uma vez**:
 ### 1. Detectar e mapear
 
 - Confirmar `.SemanticModel/`
+- **Verificar se `docs/powerbi/doc/` já existe.** Isso define o rótulo de data do cabeçalho (`{{DOC_DATE_LABEL}}`):
+  - **não existe** → primeira geração → `Gerado em`
+  - **já existe** → é atualização → `Atualizado em`
+- **`{{TIMESTAMP}}` é sempre a data corrente do sistema** (obter de fato — ex.: `date +'%-d %b %Y'` e traduzir o mês pra PT, ou a data de hoje conhecida). **Nunca reaproveitar a data que estava no doc anterior.** Se o `00-overview.md` antigo dizia `Gerado em 24 jul 2026` e hoje é outro dia, o novo diz `Atualizado em <hoje>`.
 - Listar `.tmdl` em `./SemanticModel/tables/` (excluir `LocalDateTable_*` e `DateTableTemplate_*` — são auto-geradas, não fazem parte da doc)
 - Ler `model.tmdl`, `relationships.tmdl`, `expressions.tmdl` (se existir)
 - Ler **todos** os `.tmdl` de tabelas
@@ -177,7 +181,7 @@ Mensagem curta:
 | Cenário | O que fazer |
 |---|---|
 | Sem `.SemanticModel/` | Mensagem de pré-requisito (PBIP), encerra |
-| Pasta `docs/powerbi/doc/` já existe | **Sobrescrever** (idempotente) — avisar no chat |
+| Pasta `docs/powerbi/doc/` já existe | **Sobrescrever** (idempotente) — avisar no chat. Cabeçalho passa a `Atualizado em <data de hoje>` (não "Gerado em", não a data antiga). |
 | Projeto ainda tem `_docs/` dentro da pasta PBIP (convenção antiga) | Migrar: mover o conteúdo pra `docs/powerbi/doc/` na raiz e remover `_docs/`, avisando no chat |
 | Modelo gigante (>200 medidas) | Avisar tempo + processar em chunks |
 | Tabelas auto-date (`LocalDateTable_*`, `DateTableTemplate_*`) | **Excluir da doc** — são tabelas-fantasma, não fazem parte do modelo intencional |
@@ -199,7 +203,7 @@ Exemplos de **bom** vs **ruim**:
 
 ## Idempotência e segurança
 
-- Rodar 2x **sobrescreve** `docs/powerbi/doc/`
+- Rodar 2x **sobrescreve** `docs/powerbi/doc/` — e o cabeçalho vira `Atualizado em <data de hoje>` (a 1ª vez é `Gerado em <data>`). A data é sempre a corrente, nunca a que estava no doc anterior.
 - Não modifica nada em `.SemanticModel/` ou `.Report/` — somente leitura
 - Não commita nada (segue regra git inviolável CLAUDE.md)
 - Operação 100% local — zero rede, zero XMLA

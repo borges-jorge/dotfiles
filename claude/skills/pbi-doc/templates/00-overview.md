@@ -3,8 +3,11 @@
   Salvar como _docs/00-overview.md na raiz do projeto Power BI
 
   Placeholders globais (mesmos do template HTML):
-    {{PROJECT_NAME}} {{PROJECT_FILENAME}} {{TIMESTAMP}} {{PROJECT_TAGLINE}}
+    {{PROJECT_NAME}} {{PROJECT_FILENAME}} {{DOC_DATE_LABEL}} {{TIMESTAMP}} {{PROJECT_TAGLINE}}
     {{TABLES_COUNT}} {{MEASURES_COUNT}} {{RELATIONSHIPS_COUNT}} {{COLUMNS_COUNT}} {{SIZE}}
+
+    {{DOC_DATE_LABEL}} = "Gerado em" na 1ª geração · "Atualizado em" quando docs/powerbi/doc/ já existe.
+    {{TIMESTAMP}}      = data corrente do sistema (ex: "9 set 2026"), NUNCA a data do doc anterior.
 
   Placeholders específicos:
     {{INVENTORY_TABLE_MD}}    — linhas markdown da tabela inventário
@@ -16,7 +19,7 @@
 # {{PROJECT_NAME}} — Overview
 
 > **{{PROJECT_TAGLINE}}**
-> Gerado em {{TIMESTAMP}}
+> {{DOC_DATE_LABEL}} {{TIMESTAMP}}
 
 **Arquivo:** `{{PROJECT_FILENAME}}`
 
