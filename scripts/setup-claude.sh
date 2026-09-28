@@ -12,7 +12,7 @@
 #   - copia claude/settings.json -> ~/.claude/settings.json
 #   - copia claude/hooks/block-ai-coauthor.sh -> ~/.claude/hooks (chmod +x)
 #   - copia claude/skills/* -> ~/.claude/skills (pbi-dax-create, pbi-doc, pbi-modelo-review,
-#     conformance-gate, refine-prd-with-the-planner)
+#     conformance-gate, refine-prd-with-the-planner, decompose-requirements-with-the-planner)
 #   - remove o diretorio temporario
 # ---
 set -euo pipefail
@@ -46,7 +46,7 @@ chmod +x "${CLAUDE_DIR}/hooks/block-ai-coauthor.sh"
 ok "hook block-ai-coauthor.sh aplicado"
 
 cp -r "$tmp/df/claude/skills/." "${CLAUDE_DIR}/skills/"
-ok "skills aplicadas (pbi-dax-create, pbi-doc, pbi-modelo-review, conformance-gate, refine-prd-with-the-planner)"
+ok "skills aplicadas (pbi-dax-create, pbi-doc, pbi-modelo-review, conformance-gate, refine-prd-with-the-planner, decompose-requirements-with-the-planner)"
 
 printf '\nClaude Code configurado em %s\n' "$CLAUDE_DIR"
 printf 'Abra o Claude e rode /hooks (ou reinicie) para recarregar a config.\n'
