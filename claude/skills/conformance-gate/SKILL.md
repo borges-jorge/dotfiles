@@ -59,7 +59,8 @@ Ler o `AGENTS.md` (e/ou `CLAUDE.md`) do projeto e extrair, SEM assumir:
 
 - **Fonte-da-verdade upstream**: onde vivem requisitos, visão/arquitetura, ADRs, PRDs, constituição
   (paths + em que branch). Ex. comum: `docs/requisitos.md`, `docs/visao-geral.md` (ADRs),
-  `docs/prds/NN-*.md`, `docs/constitution/constitution.md`.
+  `docs/prds/NN-*.md` ou PRDs agrupados por épico (`docs/prds/E<n>-*/<id>-*.md`),
+  `docs/constitution/constitution.md`.
 - **Artefatos por-feature (AgentSpec)**: em `.claude/sdd/features/` (`DEFINE_{FEATURE}.md`,
   `DESIGN_{FEATURE}.md` — inclui File Manifest, ADRs inline, testing strategy) e
   `.claude/sdd/reports/` (`BUILD_REPORT_{FEATURE}.md`). Resolver a feature ativa pelo bloco
@@ -71,6 +72,10 @@ Ler o `AGENTS.md` (e/ou `CLAUDE.md`) do projeto e extrair, SEM assumir:
 - **Convenções de fluxo/branch/PR**: qual branch recebe o merge (ex.: `qa`), como o PR é aberto,
   quais gates de CI existem. Usar isso para saber **quando** o gate `conformance` é obrigatório.
 - **Idioma do relatório**: seguir o idioma de comunicação declarado no `AGENTS.md`.
+- **Limiar de bloqueio**: que severidades bloqueiam o `/build` (modo `readiness`) e o PR/"done"
+  (modo `conformance`), e o que acontece com os achados abaixo dele (ex.: "crítico e alto bloqueiam;
+  médio e baixo viram issue"). Critério de DoD **não medido ou falhando bloqueia sempre** no
+  `conformance`, qualquer que seja o limiar. Sem limiar declarado, vale o default da seção Veredito.
 
 Se o projeto **não** declarar algo, cair nos defaults do AgentSpec (`.claude/sdd/`) e **registrar a
 suposição** no relatório (classe D).
@@ -155,12 +160,14 @@ Endurecer no eixo de DoD:
 
 - **CRITICAL** — DoD/critério "sim/não" **não satisfeito** ou **NÃO-MEDIDO**; MUST funcional sem
   prova; requisito in-scope **dropado/enfraquecido**; placeholder marcado como pronto; violação de
-  princípio da constituição (constituição = CRITICAL automático). **Bloqueia "done"/PR.**
+  princípio da constituição (constituição = CRITICAL automático).
 - **HIGH** — requisito conflitante/ambíguo em atributo crítico; acceptance não exercitado; deferral
   sem justificativa explícita.
 - **MEDIUM** — drift de terminologia/enum/ordem; cobertura não-funcional faltando; edge case
   subespecificado.
 - **LOW** — redação/estilo; redundância menor; referência morta cosmética.
+
+A severidade classifica; **o que bloqueia é o limiar** resolvido no Passo 0 (seção Veredito).
 
 ## Saída (read-only)
 
@@ -180,12 +187,22 @@ evidência ao vivo para os "sim/não".
 Total de requisitos rastreados · % VERIFICADO(sim) · # NÃO-MEDIDO · # CRITICAL · # por classe.
 
 ### 4. Veredito
-- `conformance`: **APROVADO para PR/done** só se **0 CRITICAL e 0 NÃO-MEDIDO** em requisitos de DoD.
-  Caso contrário **BLOQUEADO**, listando exatamente o que falta medir/corrigir.
-- `readiness`: **PRONTO para /build** se não houver drift/enfraquecimento/contradição-na-fonte
-  pendente; senão, listar o que reconciliar **antes** de codar (via correção do upstream + re-rodar).
+Aplicar o **limiar do projeto** (Passo 0):
+- `conformance`: **APROVADO para PR/done** só se **0 FALHOU e 0 NÃO-MEDIDO** em critérios de DoD
+  (absoluto) **e** nenhum outro achado na faixa que o limiar bloqueia. Caso contrário **BLOQUEADO**,
+  listando exatamente o que falta medir/corrigir.
+- `readiness`: **PRONTO para /build** se nenhum achado estiver na faixa que o limiar bloqueia; senão
+  **NÃO PRONTO**, listando o que reconciliar **antes** de codar (via correção do upstream + re-rodar).
+- **Default, se o projeto não declarar limiar:** `conformance` bloqueia com qualquer CRITICAL;
+  `readiness` bloqueia com qualquer drift/enfraquecimento/contradição-na-fonte pendente. Registrar a
+  suposição (classe D).
 
-### 5. Remediação (proposta, não aplicada)
+### 5. Achados abaixo do limiar
+Listar como **candidatos a issue**, **um por unidade que fecha sozinha** (um estado esperado, um
+caminho de entrega) — nunca agrupados. Cada um com: título curto, onde está, o estado esperado e o
+upstream que o corrige. Não bloqueiam; a abertura das issues é decisão do responsável.
+
+### 6. Remediação (proposta, não aplicada)
 Perguntar ao responsável se quer sugestões concretas de remediação para os top-N — **sem aplicá-las**.
 Cada sugestão aponta o **artefato-fonte a corrigir** e **qual comando re-rodar** para cascatear
 (nunca "editar o downstream à mão").
@@ -198,9 +215,11 @@ Esta skill **não** registra hooks próprios. O "sempre rodar antes do PR" é en
 
 ## Done When
 
-- [ ] Contexto do projeto resolvido a partir do AGENTS.md (paths/IDs/idioma/branch de PR).
+- [ ] Contexto do projeto resolvido a partir do AGENTS.md (paths/IDs/idioma/branch de PR/limiar).
 - [ ] Taxonomia A–E rodada na matriz de confronto direcional (código incluído no modo conformance).
 - [ ] Ledger de conformidade emitido; cada DoD "sim/não" com estado + evidência (conformance) ou
       cobertura (readiness).
-- [ ] Veredito (APROVADO/BLOQUEADO ou PRONTO) com CRITICAL/NÃO-MEDIDO explicitados.
+- [ ] Veredito (APROVADO/BLOQUEADO ou PRONTO/NÃO PRONTO) pelo limiar do projeto, com DoD
+      FALHOU/NÃO-MEDIDO explicitados.
+- [ ] Achados abaixo do limiar listados como candidatos a issue, um por unidade.
 - [ ] Nenhum arquivo modificado; remediação apenas proposta.
