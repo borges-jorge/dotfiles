@@ -28,83 +28,93 @@ description: >-
 
 ## Pré-condições
 - Já existem os artefatos de planejamento (visão geral + PRDs) definidos no `AGENTS.md`.
-- As decisões a aplicar estão **escritas** como lista curta e inequívoca.
+- As decisões a aplicar estão **escritas** como lista curta e inequívoca, fornecida pelo
+  responsável (o argumento da invocação, repassado sem alteração).
 - Você está numa branch de trabalho, nunca numa branch protegida (ver `AGENTS.md`).
+
+## Papéis
+- **the-planner** — faz todo o trabalho do refino: análise de impacto, plano de estrutura,
+  edição da visão e dos PRDs.
+- **Quem invoca a skill** — orquestra: repassa as decisões, executa as operações de arquivo que o
+  the-planner não tem ferramenta para fazer (`git mv`, `git rm`), revisa o diff e reporta. Não
+  analisa, não decide e não edita os artefatos; divergência encontrada na revisão volta ao
+  the-planner.
 
 ## Procedimento
 
-1. **Consolide as decisões** numa lista clara (entrada do refino). Só decisões de escopo e de
-   negócio — o procedimento vem desta skill, não da lista.
-
-2. **Análise de impacto pela frase morta, não por ID.** Um refino raramente só adiciona um ID: ele
-   **invalida uma afirmação** que está reescrita em prosa em várias camadas (visão → PRD → DEFINE →
-   DESIGN → runbooks → código). O grafo de IDs não enxerga isso — um requisito novo não tem quem o
-   referencie. Para cada decisão:
-   a. escreva a **frase que deixou de ser verdadeira** (não o requisito novo);
-   b. procure-a, com sinônimos, em **todas** as camadas, de cima para baixo;
-   c. cada acerto é raio de alcance.
-
-   **Ponto de entrada:** o comando de entrada é o da **camada mais alta que a frase morta alcança**,
-   não o da camada onde o problema foi percebido. Acertou na visão ou em PRD → este refino
-   **primeiro**, e só depois o comando da camada de baixo (ex.: `/iterate` no DEFINE). Entrar por
-   baixo faz a cascata inteira rodar sobre um upstream que ainda mente, e tudo roda duas vezes.
-
-   **Limite:** a técnica pega o que foi **invalidado**, não restrição **criada** mais abaixo — essa é
-   pega pela pergunta, no fecho do design, sobre qual critério distingue a forma rejeitada.
-
-3. **Mudança de estrutura (desmembrar, mover, retirar) — antes de invocar o the-planner.** O
-   the-planner edita arquivos, mas não move nem apaga. Quem executa esta skill:
-   - **move** com `git mv` o PRD que muda de agrupamento, num commit só de renomeação;
-   - no **desmembramento**, o PRD de origem é movido para o nome do primeiro recorte, e o the-planner
-     cria os demais e edita todos no lugar;
-   - na **retirada**, o `git rm` vem **depois** do refino, quando a visão já registrou a saída.
-
-   Regras de ID e numeração vêm do `AGENTS.md`. Na ausência delas: IDs estáveis (desmembrado ganha
-   sufixo, nunca renumera o original) e **seções da visão não se renumeram** — outros artefatos
-   citam os números.
-
-4. **Invoque o subagente `the-planner`** (agentspec) em **modo update**, só com
+1. **Invoque o subagente `the-planner`** (agentspec) em **modo update — fase de análise**, só com
    orquestração — sem injetar escopo do projeto (ele lê os arquivos). Prompt-base:
 
-   > Tarefa de **refino** do planejamento (modo update).
-   > Entrada: a visão geral, o diretório de PRDs (caminhos no `AGENTS.md`), a lista de
-   > decisões abaixo e o raio de alcance levantado: «…».
+   > Tarefa de **refino** do planejamento (modo update), **fase de análise — não edite nada**.
+   > Entrada: a visão geral, o diretório de PRDs (caminhos no `AGENTS.md`) e a lista de decisões
+   > abaixo: «…».
    > Para cada decisão:
+   > a. **Frase morta:** escreva a afirmação que **deixa de ser verdadeira** com a decisão (não o
+   >    requisito novo). Um refino raramente só adiciona um ID; ele invalida uma afirmação
+   >    reescrita em prosa em várias camadas, e o grafo de IDs não enxerga isso.
+   > b. **Raio de alcance:** procure essa frase, com sinônimos, em **todas** as camadas, de cima
+   >    para baixo (visão → PRDs → artefatos por feature → runbooks → código). Liste cada acerto.
+   > c. **Ponto de entrada:** indique a **camada mais alta** que a frase alcança. Se ela não
+   >    alcança visão nem PRD, este refino não é a entrada — diga qual comando é.
+   > d. **Estrutura:** se a decisão desmembra, move ou retira PRD, liste as operações de arquivo
+   >    necessárias, segundo as regras de ID e numeração do `AGENTS.md` (na ausência delas: IDs
+   >    estáveis — desmembrado ganha sufixo, o original não é renumerado). No desmembramento, o PRD
+   >    de origem é renomeado para o primeiro recorte (o histórico segue o arquivo); os demais
+   >    recortes são arquivos novos. Retirada é remoção **depois** da edição, quando a visão já
+   >    registrou a saída.
+   > Retorne: frase morta, acertos e ponto de entrada por decisão; a lista de renomeações
+   > (`origem → destino`) e de remoções.
+
+2. **Execute as renomeações** listadas pelo the-planner com `git mv`, num commit só de
+   renomeação. Nada além do que ele listou.
+
+3. **Retome o mesmo the-planner** (mesmo contexto) para a **fase de edição**. Prompt-base:
+
+   > Fase de **edição**. As renomeações foram aplicadas. Para cada decisão:
    > a. Aplique-a.
    > b. Atualize as **seções afetadas da visão** (decisões/ADRs, pontos em aberto, modelo —
    >    onde existirem), **editando no lugar, sem renumerar seções**.
-   > c. **Propague** para TODOS os artefatos do raio de alcance e para os PRDs que referenciam o
-   >    item afetado (referências cruzadas: decisões/ADRs, entidades, seções da visão).
+   > c. **Propague** para todos os acertos do raio de alcance que estão na visão ou em PRD, e para
+   >    os PRDs que referenciam o item afetado. Acertos em camadas abaixo do PRD ficam como
+   >    pendência, com o comando de entrada de cada uma.
    > d. **Mantenha** o template de PRD, a hierarquia e o formato da visão definidos no `AGENTS.md`
    >    — não redefina templates nem introduza agrupamentos que ele não declare (ex.: fases).
    > e. **Altitude:** PRD e visão recebem só **problema, resultado, regra de negócio e restrição**.
    >    Mecanismo (rotas, schema, policies, formato de token, nomes de tabela) não sobe — fica no
    >    design da feature. Um `[a definir]` resolvido no design fecha com **remissão** ao design,
    >    sem copiar o mecanismo.
-   > f. Em desmembramento: cada requisito do PRD de origem vai para **exatamente um** recorte; o
-   >    que é compartilhado tem um dono, e o outro recorte declara a dependência. Registre no
-   >    Changelog de cada recorte "desmembrado de …".
+   > f. Em desmembramento: cada requisito do PRD de origem vai para os recortes conforme as
+   >    decisões; o que não tiver dono decidido fica marcado como pendência, não é atribuído por
+   >    você. Registre no Changelog de cada recorte "desmembrado de …".
    > g. Em cada PRD alterado, acrescente uma linha no rodapé **`## Changelog`** (conforme
    >    `AGENTS.md`), incrementando a versão.
    > h. Não invente além das decisões — o que continuar aberto permanece como tal.
-   > Retorne um resumo: o que mudou em cada arquivo + o que ficou pendente.
+   > Retorne: o que mudou em cada arquivo, as pendências e as remoções que continuam valendo.
 
-5. **Verifique o diff** (não confie só no resumo do agente):
+4. **Execute as remoções** confirmadas pelo the-planner com `git rm`.
+
+5. **Revise o diff e reporte** (não confie só no resumo do agente). Divergência volta ao
+   the-planner, retomado com o trecho exato — nunca correção à mão:
    - PRDs alterados mantêm template + Changelog atualizado, no idioma do projeto.
    - Nada inventado além das decisões.
    - Cabeçalhos de seção da visão **idênticos** antes e depois (numeração preservada).
    - Nenhum agrupamento que o `AGENTS.md` não declare foi reintroduzido.
-   - Em desmembramento: cada ID de requisito da origem aparece em **exatamente um** recorte.
+   - Em desmembramento: cada objetivo, requisito funcional e métrica da origem aparece em
+     **exatamente um** recorte, salvo decisão em contrário no argumento.
    - Links e remissões entre visão e PRDs resolvem para arquivo existente.
    - Nenhum mecanismo subiu ao PRD/visão (procure nomes de tabela, funções, rotas).
-   - Cada acerto da frase morta (passo 2) foi tratado ou tem comando de entrada identificado.
+   - Cada acerto da frase morta foi tratado ou está na lista de pendências com comando de entrada.
    - **Coerência cross-feature** contra a visão (modelo / dependências / decisões) e a
      `constitution`.
 
 6. **Commit por tema**, no fluxo de branch/PR e nas regras de mensagem do `AGENTS.md`. A renomeação
-   (passo 3) fica em commit próprio, para o histórico seguir o arquivo.
+   (passo 2) fica em commit próprio, para o histórico seguir o arquivo.
+
+## Limite da análise por frase morta
+Pega o que foi **invalidado**, não restrição **criada** mais abaixo — essa é pega pela pergunta, no
+fecho do design, sobre qual critério distingue a forma rejeitada da escolhida.
 
 ## Status / maturidade
 - **User-level** desde 2026-07-01 (fonte versionada no repositório de dotfiles). Executada em
   refinos reais desde 2026-07-27.
-- Desmembramento e retirada de PRD: procedimento novo, ainda não exercitado.
+- Análise em duas fases e desmembramento/retirada de PRD: procedimento novo, ainda não exercitado.
