@@ -1,120 +1,100 @@
 ---
 name: refine-prd-with-the-planner
-description: >-
-  Refina o planejamento (visão geral + PRDs) aplicando decisões de um brainstorm/refino:
-  re-invoca o the-planner em "modo update" para propagar a mudança aos artefatos pertinentes
-  — a visão geral e os PRDs afetados — sem drift de formato, versionando via Changelog. Também
-  desmembra, move e retira PRDs. Use quando uma decisão muda requisitos/arquitetura/escopo depois
-  que a visão e os PRDs já existem, ou quando uma mudança em um PRD precisa cascatear para outros.
+description: |
+  Refina o PRD de uma feature já decomposta (e a visão geral, onde a mudança alcança) invocando o
+  agente the-planner: aplica as decisões do brainstorm da feature, ou uma decisão que surgiu
+  durante o ciclo do AgentSpec, propaga a mudança aos artefatos afetados sem drift de formato e
+  versiona via Changelog. Parte da afirmação que deixou de ser verdadeira para achar o raio de
+  alcance e o ponto de entrada. Use antes do /define para levar o brainstorm ao PRD (iterando até
+  o PRD ficar adequado), ou a qualquer momento do ciclo quando uma decisão muda requisito,
+  regra de negócio ou restrição de uma feature. Não use para criar o plano nem para dividir um
+  PRD em dois ou mais — isso é decompose-requirements-with-the-planner.
 ---
 
-# Refinar PRDs com o the-planner
+# Refinar o PRD de uma feature com o the-planner
 
-> **Princípio:** um único escritor (`the-planner`) evita drift de formato; a cascata é
-> explícita pela rastreabilidade já presente nos artefatos; o Changelog é a trilha de versão.
+> **Princípio:** um único escritor (`the-planner`) evita drift de formato; a cascata segue a
+> rastreabilidade já presente nos artefatos; o Changelog é a trilha de versão.
 >
-> **Agnóstica:** caminhos dos artefatos, hierarquia (ex.: épicos), esquema de IDs, template de PRD,
-> idioma e formato do Changelog vêm do **`AGENTS.md`** do projeto — esta skill não fixa nada
-> específico de um projeto.
+> **Agnóstica:** caminhos dos artefatos, template de PRD, idioma e formato do Changelog vêm do
+> **`AGENTS.md`** do projeto — esta skill não fixa nada específico de um projeto.
 
-## Quando usar
-- Após um **brainstorm** que produziu **decisões** (resolver um ponto em aberto, um
-  `[hipótese]`, um conflito).
-- Quando uma mudança em um PRD ou na visão precisa **cascatear** para outros artefatos.
-- Quando a **decomposição** muda: desmembrar um PRD, movê-lo de agrupamento, retirá-lo do plano.
+## Entradas
 
-**Não** deixe o brainstorm escrever os PRDs direto — reintroduz drift. O brainstorm
-**decide**; esta skill **aplica** (via the-planner).
+| Situação | Entrada |
+|---|---|
+| **Antes do ciclo da feature** | O brainstorm da feature + o PRD da feature |
+| **Durante o ciclo** (define, design, build) | O PRD da feature + a decisão, com ou sem brainstorm |
 
-## Pré-condições
-- Já existem os artefatos de planejamento (visão geral + PRDs) definidos no `AGENTS.md`.
-- As decisões a aplicar estão **escritas** como lista curta e inequívoca, fornecida pelo
-  responsável (o argumento da invocação, repassado sem alteração).
-- Você está numa branch de trabalho, nunca numa branch protegida (ver `AGENTS.md`).
+Antes do ciclo, brainstorm e refino podem se alternar até o PRD ficar adequado, a critério do
+responsável. O brainstorm **decide**; esta skill **aplica** — o brainstorm não escreve o PRD.
 
 ## Papéis
-- **the-planner** — faz todo o trabalho do refino: análise de impacto, plano de estrutura,
-  edição da visão e dos PRDs.
-- **Quem invoca a skill** — orquestra: repassa as decisões, executa as operações de arquivo que o
-  the-planner não tem ferramenta para fazer (`git mv`, `git rm`), revisa o diff e reporta. Não
-  analisa, não decide e não edita os artefatos; divergência encontrada na revisão volta ao
-  the-planner.
+
+- **the-planner** — faz todo o trabalho: análise de impacto e edição.
+- **Quem invoca a skill** — orquestra: repassa a entrada sem alteração, repassa as perguntas do
+  agente ao responsável sem alteração (uma por vez), revisa o diff e reporta. Não analisa, não
+  decide e não edita os artefatos; divergência encontrada na revisão volta ao agente.
+
+## Pré-condições
+
+- O PRD da feature existe (criado pela decomposição).
+- A decisão está escrita — no brainstorm ou como texto curto e inequívoco.
+- Branch de trabalho, nunca branch protegida (ver `AGENTS.md`).
 
 ## Procedimento
 
-1. **Invoque o subagente `the-planner`** (agentspec) em **modo update — fase de análise**, só com
-   orquestração — sem injetar escopo do projeto (ele lê os arquivos). Prompt-base:
+1. **Invoque o subagente `the-planner`** (agentspec) em **modo update**, só com orquestração —
+   sem injetar escopo do projeto (ele lê os arquivos). Prompt-base:
 
-   > Tarefa de **refino** do planejamento (modo update), **fase de análise — não edite nada**.
-   > Entrada: a visão geral, o diretório de PRDs (caminhos no `AGENTS.md`) e a lista de decisões
-   > abaixo: «…».
-   > Para cada decisão:
+   > Tarefa de **refino** do PRD de uma feature (modo update).
+   > Entrada: o PRD «caminho», a visão geral (caminho no `AGENTS.md`) e «o brainstorm "caminho" |
+   > a decisão: "…"».
+   >
+   > **Análise, antes de editar.** Para cada decisão:
    > a. **Frase morta:** escreva a afirmação que **deixa de ser verdadeira** com a decisão (não o
    >    requisito novo). Um refino raramente só adiciona um ID; ele invalida uma afirmação
    >    reescrita em prosa em várias camadas, e o grafo de IDs não enxerga isso.
-   > b. **Raio de alcance:** procure essa frase, com sinônimos, em **todas** as camadas, de cima
-   >    para baixo (visão → PRDs → artefatos por feature → runbooks → código). Liste cada acerto.
-   > c. **Ponto de entrada:** indique a **camada mais alta** que a frase alcança. Se ela não
-   >    alcança visão nem PRD, este refino não é a entrada — diga qual comando é.
-   > d. **Estrutura:** se a decisão desmembra, move ou retira PRD, liste as operações de arquivo
-   >    necessárias, segundo as regras de ID e numeração do `AGENTS.md` (na ausência delas: IDs
-   >    estáveis — desmembrado ganha sufixo, o original não é renumerado). No desmembramento, o PRD
-   >    de origem é renomeado para o primeiro recorte (o histórico segue o arquivo); os demais
-   >    recortes são arquivos novos. Retirada é remoção **depois** da edição, quando a visão já
-   >    registrou a saída.
-   > Retorne: frase morta, acertos e ponto de entrada por decisão; a lista de renomeações
-   > (`origem → destino`) e de remoções.
+   > b. **Raio de alcance:** procure essa frase, com sinônimos, em todas as camadas, de cima para
+   >    baixo (visão → PRDs → artefatos da feature → runbooks → código).
+   > c. **Ponto de entrada:** a camada mais alta que a frase alcança. Se ela não alcança visão nem
+   >    PRD, este refino não é a entrada — não edite e diga qual comando é.
+   > d. **Estrutura:** se a decisão faz a feature conter duas ou mais entregas que podem ir para
+   >    produção separadas, não divida o PRD — pare e indique a
+   >    `decompose-requirements-with-the-planner` (desmembramento).
+   >
+   > **Edição.** Para cada decisão:
+   > e. Aplique-a ao PRD e às **seções afetadas da visão**, editando no lugar, sem renumerar
+   >    seções.
+   > f. **Propague** aos acertos do raio de alcance que estão na visão ou em outros PRDs. Acertos
+   >    abaixo do PRD ficam como pendência, com o comando de entrada de cada uma.
+   > g. **Mantenha** o template de PRD e o formato da visão do `AGENTS.md`.
+   > h. **Altitude:** PRD e visão recebem só **problema, resultado, regra de negócio e
+   >    restrição**. Mecanismo (rotas, schema, policies, formato de token, nomes de tabela) fica
+   >    no design da feature. Um `[a definir]` resolvido no design fecha com **remissão** ao
+   >    design, sem copiar o mecanismo.
+   > i. Em cada PRD alterado, acrescente uma linha no **`## Changelog`**, incrementando a versão.
+   > j. Não invente além das decisões: o que continuar aberto permanece marcado.
+   >
+   > Retorne: frase morta e raio por decisão, o que mudou em cada arquivo, as pendências e as
+   > perguntas ao responsável.
 
-2. **Execute as renomeações** listadas pelo the-planner com `git mv`, num commit só de
-   renomeação. Nada além do que ele listou.
+2. **Perguntas.** Repasse cada pergunta ao responsável, sem alteração e uma por vez. Com as
+   respostas, **retome o mesmo agente** para aplicá-las.
 
-3. **Retome o mesmo the-planner** (mesmo contexto) para a **fase de edição**. Prompt-base:
-
-   > Fase de **edição**. As renomeações foram aplicadas. Para cada decisão:
-   > a. Aplique-a.
-   > b. Atualize as **seções afetadas da visão** (decisões/ADRs, pontos em aberto, modelo —
-   >    onde existirem), **editando no lugar, sem renumerar seções**.
-   > c. **Propague** para todos os acertos do raio de alcance que estão na visão ou em PRD, e para
-   >    os PRDs que referenciam o item afetado. Acertos em camadas abaixo do PRD ficam como
-   >    pendência, com o comando de entrada de cada uma.
-   > d. **Mantenha** o template de PRD, a hierarquia e o formato da visão definidos no `AGENTS.md`
-   >    — não redefina templates nem introduza agrupamentos que ele não declare (ex.: fases).
-   > e. **Altitude:** PRD e visão recebem só **problema, resultado, regra de negócio e restrição**.
-   >    Mecanismo (rotas, schema, policies, formato de token, nomes de tabela) não sobe — fica no
-   >    design da feature. Um `[a definir]` resolvido no design fecha com **remissão** ao design,
-   >    sem copiar o mecanismo.
-   > f. Em desmembramento: cada requisito do PRD de origem vai para os recortes conforme as
-   >    decisões; o que não tiver dono decidido fica marcado como pendência, não é atribuído por
-   >    você. Registre no Changelog de cada recorte "desmembrado de …".
-   > g. Em cada PRD alterado, acrescente uma linha no rodapé **`## Changelog`** (conforme
-   >    `AGENTS.md`), incrementando a versão.
-   > h. Não invente além das decisões — o que continuar aberto permanece como tal.
-   > Retorne: o que mudou em cada arquivo, as pendências e as remoções que continuam valendo.
-
-4. **Execute as remoções** confirmadas pelo the-planner com `git rm`.
-
-5. **Revise o diff e reporte** (não confie só no resumo do agente). Divergência volta ao
-   the-planner, retomado com o trecho exato — nunca correção à mão:
+3. **Revise o diff e reporte** (não confie só no resumo do agente). Divergência volta ao agente,
+   com o trecho exato — nunca correção à mão:
    - PRDs alterados mantêm template + Changelog atualizado, no idioma do projeto.
    - Nada inventado além das decisões.
-   - Cabeçalhos de seção da visão **idênticos** antes e depois (numeração preservada).
-   - Nenhum agrupamento que o `AGENTS.md` não declare foi reintroduzido.
-   - Em desmembramento: cada objetivo, requisito funcional e métrica da origem aparece em
-     **exatamente um** recorte, salvo decisão em contrário no argumento.
-   - Links e remissões entre visão e PRDs resolvem para arquivo existente.
-   - Nenhum mecanismo subiu ao PRD/visão (procure nomes de tabela, funções, rotas).
-   - Cada acerto da frase morta foi tratado ou está na lista de pendências com comando de entrada.
-   - **Coerência cross-feature** contra a visão (modelo / dependências / decisões) e a
-     `constitution`.
+   - Cabeçalhos de seção da visão com a mesma numeração de antes.
+   - Nenhum mecanismo subiu ao PRD ou à visão (procure nomes de tabela, funções, rotas).
+   - Cada acerto da frase morta foi tratado ou está nas pendências com comando de entrada.
+   - **Coerência cross-feature** contra a visão (modelo, dependências, decisões) e a
+     constituição, quando houver.
 
-6. **Commit por tema**, no fluxo de branch/PR e nas regras de mensagem do `AGENTS.md`. A renomeação
-   (passo 2) fica em commit próprio, para o histórico seguir o arquivo.
+4. **Commit por tema**, no fluxo de branch/PR e nas regras de mensagem do `AGENTS.md`.
 
 ## Limite da análise por frase morta
+
 Pega o que foi **invalidado**, não restrição **criada** mais abaixo — essa é pega pela pergunta, no
 fecho do design, sobre qual critério distingue a forma rejeitada da escolhida.
-
-## Status / maturidade
-- **User-level** desde 2026-07-01 (fonte versionada no repositório de dotfiles). Executada em
-  refinos reais desde 2026-07-27.
-- Análise em duas fases e desmembramento/retirada de PRD: procedimento novo, ainda não exercitado.
