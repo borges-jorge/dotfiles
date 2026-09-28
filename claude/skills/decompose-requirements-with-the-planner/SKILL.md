@@ -21,6 +21,17 @@ description: |
 > PRD, esquema de IDs de requisito, idioma e formato do Changelog vêm do **`AGENTS.md`** do
 > projeto. O método está nesta skill.
 
+## Postura (invariante)
+
+- **Executar a skill como está escrita.** Rodar esta skill = executar **todas** as etapas do
+  procedimento, na ordem, sem pular nenhuma, sem juntar etapas e sem criar etapas novas.
+- **Só os argumentos entram.** A entrada é o que foi passado na invocação — texto ou arquivos — e
+  o que a própria skill manda ler (o `AGENTS.md` e os artefatos que ela nomeia). Nada da conversa
+  anterior entra: nem análises, nem conclusões, nem decisões que não estejam nos argumentos. Um
+  fato relevante que não está nos argumentos vira pergunta ao responsável, não contexto injetado.
+- **Repassar ao agente só o que a skill manda.** O prompt do the-planner é o prompt-base desta
+  skill preenchido com os argumentos, sem acréscimos de escopo, foco ou comportamento.
+
 ## Entradas
 
 | Modo | Entrada | Saída |
@@ -53,6 +64,7 @@ no `/define` ou no `/design` da feature. Ver a seção 2 das regras.
    de `references/regras-de-decomposicao.md` (no diretório-base desta skill). Prompt-base:
 
    > Tarefa de **decomposição** do planejamento.
+   > **Use só as entradas desta tarefa e os arquivos que ela nomeia; nenhum outro contexto.**
    > Leia as regras em «caminho absoluto de regras-de-decomposicao.md» e o `AGENTS.md` do projeto
    > (caminhos, template de PRD, esquema de IDs, idioma, Changelog). Aplique as regras à entrada:
    >

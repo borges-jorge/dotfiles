@@ -19,6 +19,17 @@ description: |
 > **Agnóstica:** caminhos dos artefatos, template de PRD, idioma e formato do Changelog vêm do
 > **`AGENTS.md`** do projeto — esta skill não fixa nada específico de um projeto.
 
+## Postura (invariante)
+
+- **Executar a skill como está escrita.** Rodar esta skill = executar **todas** as etapas do
+  procedimento, na ordem, sem pular nenhuma, sem juntar etapas e sem criar etapas novas.
+- **Só os argumentos entram.** A entrada é o que foi passado na invocação — texto ou arquivos — e
+  o que a própria skill manda ler (o `AGENTS.md` e os artefatos que ela nomeia). Nada da conversa
+  anterior entra: nem análises, nem conclusões, nem decisões que não estejam nos argumentos. Um
+  fato relevante que não está nos argumentos vira pergunta ao responsável, não contexto injetado.
+- **Repassar ao agente só o que a skill manda.** O prompt do the-planner é o prompt-base desta
+  skill preenchido com os argumentos, sem acréscimos de escopo, foco ou comportamento.
+
 ## Entradas
 
 | Situação | Entrada |
@@ -48,6 +59,7 @@ responsável. O brainstorm **decide**; esta skill **aplica** — o brainstorm n�
    sem injetar escopo do projeto (ele lê os arquivos). Prompt-base:
 
    > Tarefa de **refino** do PRD de uma feature (modo update).
+   > **Use só as entradas desta tarefa e os arquivos que ela nomeia; nenhum outro contexto.**
    > Entrada: o PRD «caminho», a visão geral (caminho no `AGENTS.md`) e «o brainstorm "caminho" |
    > a decisão: "…"».
    >
