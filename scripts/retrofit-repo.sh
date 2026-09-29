@@ -15,6 +15,9 @@
 #   - uv venv + uv sync: Cria o ambiente (só se .venv não existir)
 #   - .gitignore: Gera via ignr -n python se ausente; garante .idea/ .venv
 #     __pycache__/ .env (adiciona só as entradas que faltarem)
+#   - Power BI: garante *.pbix, *.abf e **/.pbi/localSettings.json no
+#     .gitignore e tira do índice esses arquivos se já estiverem versionados
+#     (dados do modelo semântico nunca devem ir para o git)
 #   - .pre-commit.yaml: Criado se não existir
 #   - .githooks/pre-commit, pre-push, post-checkout: cada um criado se faltar
 #   - commit + push master: versiona o que foi adicionado (antes de ativar
@@ -106,6 +109,34 @@ for entry in ".idea/" ".venv" "__pycache__/" ".env"; do
         ok ".gitignore: '$entry' adicionado"
     fi
 done
+
+# Power BI: nunca versionar dados do modelo semantico. O .pbix embute o
+# dataset importado; no PBIP o dado fica no cache .abf.
+pbi_faltando=()
+for entry in "*.pbix" "*.abf" "**/.pbi/localSettings.json"; do
+    if grep -qxF "$entry" .gitignore 2>/dev/null; then
+        record_skip ".gitignore entrada '$entry'"
+    else
+        pbi_faltando+=("$entry")
+    fi
+done
+if [ "${#pbi_faltando[@]}" -gt 0 ]; then
+    printf '\n## Power BI - nunca versionar dados do modelo semantico\n' >> .gitignore
+    for entry in "${pbi_faltando[@]}"; do
+        printf '%s\n' "$entry" >> .gitignore
+        ok ".gitignore: '$entry' adicionado"
+    done
+fi
+
+# O .gitignore nao afeta o que ja esta versionado: tira esses arquivos do
+# indice (a copia local fica). O historico antigo continua com o dado.
+if [ -n "$(git ls-files -- '*.pbix' '*.abf' '*/.pbi/localSettings.json')" ]; then
+    warn "dados do Power BI estavam versionados; removendo do indice:"
+    git ls-files -- '*.pbix' '*.abf' '*/.pbi/localSettings.json' >&2
+    git ls-files -z -- '*.pbix' '*.abf' '*/.pbi/localSettings.json' | xargs -0 git rm -q --cached --
+    warn "o historico ainda contem esses arquivos. Para apagar de todos os commits:"
+    warn "  git filter-repo --invert-paths --path-glob '*.abf' --path-glob '*.pbix'"
+fi
 
 # --- 5. .pre-commit.yaml --------------------------------------------------
 if [ -f .pre-commit.yaml ]; then

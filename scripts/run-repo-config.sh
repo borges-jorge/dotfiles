@@ -9,7 +9,9 @@
 # o_que_faz:
 #   - uv init: Cria estrutura do projeto
 #   - uv add: Adiciona ignr, commitizen, pre-commit
-#   - ignr -n python: Gera .gitignore completo para Python
+#   - ignr -n python: Gera .gitignore completo para Python, mais as regras
+#     de Power BI que impedem versionar dados do modelo semantico
+#     (*.pbix, *.abf, **/.pbi/localSettings.json)
 #   - .pre-commit.yaml: check-yaml, black, large-files, commitizen
 #   - .githooks/pre-commit, pre-push, post-checkout: bloqueiam commit/push
 #     direto em master/qa e avisam sobre convenção de nome de branch
@@ -50,6 +52,13 @@ ignr -n python
 
 cat << 'EOF' >> .gitignore
 .idea/
+
+## Power BI - nunca versionar dados do modelo semantico
+# .pbix embute o dataset importado; no PBIP o dado fica no cache .abf
+*.pbix
+*.abf
+# configuracao local da maquina (credenciais/bindings), nao e definicao do projeto
+**/.pbi/localSettings.json
 EOF
 
 cat << 'EOF' > .pre-commit.yaml
