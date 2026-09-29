@@ -142,13 +142,16 @@ git commit -m "chore: configure pre-commit hooks"
 git add .githooks
 git commit -m "chore: add git hooks for branch workflow protection"
 
-git push -u origin master
+# Pushes nao-fatais: se o remoto faltar ou recusar, o script segue e ainda
+# ativa o core.hooksPath (a proteção local nao pode depender do push remoto).
+git push -u origin master || echo "AVISO: push em master falhou; siga via PR."
 
 git checkout -b qa
-git push -u origin qa
+git push -u origin qa || echo "AVISO: push em qa falhou; siga via PR."
 
-# master e qa ja estao no remoto. Ativa a proteção local: commits/pushes
-# diretos passam a ser bloqueados.
+# Ativa a proteção local: commits/pushes diretos passam a ser bloqueados.
+# Feito apos os pushes (para nao bloquear o push inicial de master/qa) e
+# sempre alcancado, mesmo que os pushes acima falhem.
 git config core.hooksPath .githooks
 
 mkdir -p .github/workflows
