@@ -1,0 +1,22 @@
+repos: # See more at https://pre-commit.com/
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+    -   id: check-yaml
+-   repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+    -   id: black
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+    -   id: check-added-large-files
+        args: ['--maxkb=500']
+        # Exceção: base de fontes da skill vendorizada ui-ux-pro-max (728 KB,
+        # upstream intacto; não usada no fluxo de geração do design system).
+        exclude: '^\.claude/skills/ui-ux-pro-max/data/google-fonts\.csv$'
+-   repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.13.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]

@@ -1,0 +1,49 @@
+name: check-issue
+
+# Issue e objeto do servidor: hook local nao alcanca. Este workflow so existe se
+# estiver na branch DEFAULT — na branch de trabalho ele nao e lido.
+# Nao bloqueia nada: issue nao tem gate de merge. Fica vermelho e comenta o que falta.
+on:
+  issues:
+    types: [opened, edited, reopened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  enforce-body:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: valida o corpo da issue
+        id: valida
+        env:
+          CORPO: ${{ github.event.issue.body }}
+        run: |
+          printf '%s' "$CORPO" > /tmp/corpo-issue.md
+          if scripts/check_body.sh issue /tmp/corpo-issue.md 2> /tmp/falhas.txt; then
+            echo "ok=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=0" >> "$GITHUB_OUTPUT"
+            cat /tmp/falhas.txt
+          fi
+
+      - name: comenta o que falta
+        if: steps.valida.outputs.ok == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUMERO: ${{ github.event.issue.number }}
+        run: |
+          {
+            echo "This issue does not follow the template:"
+            echo
+            sed 's/^/- /' /tmp/falhas.txt
+            echo
+            echo "Templates: \`.github/ISSUE_TEMPLATE/\`"
+          } > /tmp/comentario.md
+          gh issue comment "$NUMERO" --body-file /tmp/comentario.md
+
+      - name: reprova a execução
+        if: steps.valida.outputs.ok == '0'
+        run: exit 1

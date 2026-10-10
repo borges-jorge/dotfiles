@@ -1,0 +1,79 @@
+{tipo}({escopo}): {descrição em presente do indicativo}
+
+{Por que esta mudança existe. O que mudou já está no diff — aqui vai o motivo,
+o que estava quebrado, ou a decisão que a sustenta. Uma a cinco linhas.
+Apague este bloco se o assunto já basta.}
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ASSUNTO — linha 1, o único campo obrigatório
+# ══════════════════════════════════════════════════════════════════════════════
+#
+#   FORMATO   {tipo}({escopo}): {descrição}
+#
+#   tipo      feat     capacidade nova visível para quem usa
+#             fix      correção de comportamento errado
+#             docs     só documentação
+#             chore    manutenção, sem mudar comportamento
+#             refactor muda a forma, não o comportamento
+#             test     só teste
+#             style    só formatação
+#             ci       pipeline de integração
+#             build    empacotamento, dependências
+#             perf     desempenho
+#             revert   desfaz um commit anterior
+#
+#   escopo    opcional, entre parênteses, minúsculo, nomeia o componente:
+#             api  web  deploy  infra  pipeline  ci  agents  00
+#
+#   descrição verbo primeiro, PRESENTE DO INDICATIVO, minúscula, sem ponto final
+#
+# ── AS SEIS REGRAS ────────────────────────────────────────────────────────────
+#
+#   1. PRESENTE DO INDICATIVO         "adiciona"     não "adicionar"/"adicionado"
+#      O infinitivo lê como item de backlog e confunde o que foi feito
+#      com o que falta fazer.
+#
+#   2. ATÉ 72 CARACTERES              conta o tipo e o escopo
+#      Acima disso trunca em `git log --oneline`, na listagem de PR e no blame.
+#
+#   3. SEM IDENTIFICADOR DE ARTEFATO  SC-017  FR-023  T082  R39  M0.10  US1  §8
+#      São renumerados quando o artefato é regenerado, e a mensagem passa a
+#      apontar para outra coisa. ADR-nnn é admitido: documento estável.
+#      Se precisar do identificador, ele vai no CORPO.
+#
+#   4. DIZ O QUE MUDOU, NÃO QUAL COMANDO RODOU
+#      certo   docs(00): deriva a guarda do config
+#      errado  docs(00): plan — guarda do config
+#
+#   5. TERMO TÉCNICO CORRENTE, NÃO PERÍFRASE
+#      certo   fix(infra): estende o start_period do storage para o cold start
+#      errado  fix(infra): amplia a janela de partida na subida a frio
+#      Vocabulário: start_period, healthcheck, smoke test, retry, bind address,
+#      cold start, overlay, runner, seed.
+#
+#   6. SEM CO-AUTORIA NEM MARCA DE FERRAMENTA DE IA, em nenhuma linha.
+#
+# ── EXEMPLOS COMPLETOS ────────────────────────────────────────────────────────
+#
+#   fix(deploy): aponta o smoke test para o bind address
+#
+#   As portas publicam no endereço interno do host, não no loopback. A sonda
+#   media um socket que o stack não abre: o serviço subia saudável e a
+#   verificação recusava a conexão.
+#
+#   ---
+#
+#   feat(deploy): divide o provisionamento em três scripts
+#
+#   ---
+#
+#   docs(00): regenera as tasks do zero com o gate do estado
+#
+# ── QUEM COBRA ────────────────────────────────────────────────────────────────
+#
+#   .githooks/commit-msg reprova as regras 1, 2, 3, 4 e 6 e bloqueia o commit.
+#   As regras 5 e o corpo ficam na revisão.
+#   O mesmo validador (scripts/check_subject.sh) roda sobre o título do PR.
+#
+# Linhas iniciadas por # são descartadas.
+# ══════════════════════════════════════════════════════════════════════════════

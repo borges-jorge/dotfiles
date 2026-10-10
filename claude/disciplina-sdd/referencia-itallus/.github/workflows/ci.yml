@@ -1,0 +1,478 @@
+name: CI
+
+# Dispara em PR para `qa` e `master`: a execução avalia o RESULTADO DO MERGE, que é a
+# revisão que de fato entra — evidência melhor que a ponta da branch. Empurrar a branch
+# NÃO dispara: o mesmo commit casava com os dois gatilhos e gastava duas execuções de
+# onze jobs, sem que a segunda acrescentasse informação.
+#
+# Dispara TAMBÉM no push à `master`: o commit de merge é uma revisão nova, e sem
+# execução aqui ele não ganha imagem no registry. O deploy pós-merge puxa a imagem
+# cuja tag é o SHA implantado — sem esta execução ele procura uma tag inexistente.
+#
+# Consequência aceita: branch empurrada sem PR aberto fica sem verificação até o PR existir.
+on:
+  pull_request:
+    branches: [qa, master]
+  push:
+    branches: [master]
+  workflow_dispatch: {}
+
+jobs:
+  # Publica quais fontes gateadas EXISTEM na árvore avaliada; todo job abaixo fica
+  # condicionado a esta detecção. Um job cuja fonte não existe é PULADO — estado próprio,
+  # distinto de aprovado: nunca roda para terminar em sucesso trivial.
+  #
+  # A condição é PRESENÇA da fonte, não "caminho alterado": um push que não tocasse
+  # `apps/` produziria verde vazio, e é essa evidência que os gates de contrato e de
+  # isolamento não podem aceitar.
+  detect:
+    name: detect · fontes gateadas presentes na árvore
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.scan.outputs.api }}
+      web: ${{ steps.scan.outputs.web }}
+      stack: ${{ steps.scan.outputs.stack }}
+      contracts: ${{ steps.scan.outputs.contracts }}
+      contracts01: ${{ steps.scan.outputs.contracts01 }}
+      runbook: ${{ steps.scan.outputs.runbook }}
+      overlay: ${{ steps.scan.outputs.overlay }}
+      verifiers: ${{ steps.scan.outputs.verifiers }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: scan
+        run: |
+          set -euo pipefail
+          {
+            echo "| fonte gateada | presente |"
+            echo "|---|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+          emit() {
+            if [ -e "$2" ]; then present=true; else present=false; fi
+            echo "$1=$present" >> "$GITHUB_OUTPUT"
+            echo "| \`$2\` | $present |" >> "$GITHUB_STEP_SUMMARY"
+          }
+          emit api       apps/api/pyproject.toml
+          emit web       apps/web/package.json
+          emit stack     infra/supabase/docker-compose.yml
+          emit contracts specs/001-feature-00-funda/contracts/openapi.yaml
+          emit contracts01 specs/01-controle-acesso/contracts/openapi.yaml
+          emit runbook   DEPLOY.md
+          emit overlay   docker-compose.prod.yml
+          emit verifiers scripts/check_contract_conformance.py
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Jobs sem fonte na árvore ficam **pulados** — não são aprovados." >> "$GITHUB_STEP_SUMMARY"
+
+  scripts-lint:
+    name: scripts · lint (ruff + shellcheck)
+    runs-on: ubuntu-latest
+    needs: detect
+    if: needs.detect.outputs.verifiers == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uvx ruff check scripts/*.py
+      - name: shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          shellcheck scripts/*.sh infra/deploy/*.sh .githooks/*
+
+  api-lint:
+    name: api · lint
+    runs-on: ubuntu-latest
+    needs: detect
+    if: needs.detect.outputs.api == 'true'
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --dev
+      - run: uv run ruff check .
+      - run: uv run black --check .
+
+  api-test:
+    name: api · test (RLS + provas negativas via testcontainers)
+    runs-on: ubuntu-latest
+    needs: detect
+    if: needs.detect.outputs.api == 'true'
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --dev
+
+      - name: Suíte completa (contrato, unit, integração, perf)
+        run: uv run pytest -q
+
+      # Verde sozinho prova que o gate RODOU, não que DETECTA (R27). Cada prova negativa é
+      # exigida explicitamente: se alguma parar de acusar a falha semeada, ela falha AQUI,
+      # em vez de um verificador cego passar despercebido.
+      - name: Provas NEGATIVAS — cada gate visto ACUSANDO a falha semeada (R27)
+        run: |
+          uv run pytest -q \
+            tests/integration/test_rls_negative_proof.py \
+            tests/contract/test_contract_gate_negative.py \
+            tests/unit/test_config_template_gate_negative.py \
+            tests/unit/test_deploy_runbook_gate_negative.py \
+            tests/unit/test_fill_shared_config.py \
+            tests/unit/test_published_surface_detector.py \
+            tests/unit/test_rollback_no_build.py \
+            tests/unit/test_log_pii_detector.py \
+            tests/unit/test_deploy_signup_disabled.py \
+            tests/contract/test_protected_surface.py \
+            tests/integration/test_access_scope_negative_proof.py \
+            tests/integration/test_rls_coverage.py \
+            tests/integration/test_policy_index_coverage.py \
+            tests/integration/test_privilege_escalation.py \
+            tests/integration/test_access_audit.py \
+            tests/integration/test_identity_admin_deadline.py \
+            tests/integration/test_user_anonymization.py \
+            tests/integration/test_pii_isolation.py \
+            tests/integration/test_no_security_definer.py \
+            tests/integration/test_user_lifecycle.py \
+            tests/integration/test_user_correction.py \
+            tests/integration/test_person_erasure.py \
+            tests/integration/test_retention_purge.py \
+            tests/integration/test_identity_function.py \
+            tests/integration/test_last_superadmin.py \
+            tests/integration/test_rls_session_claims.py \
+            tests/integration/test_erasure_reconciler_backoff.py \
+            tests/integration/test_user_list.py \
+            tests/unit/test_erasure_backoff.py \
+            tests/unit/test_no_user_deletion.py \
+            tests/unit/test_lgpd_baseline.py \
+            tests/unit/test_request_path_credentials.py \
+            tests/unit/test_deploy_config_completion.py
+
+      # O que depende do provedor de identidade é provado contra o GoTrue real, com o
+      # Postgres do stack, em containers: cada prova também é vista reprovando contra o
+      # dublê que só registra a chamada.
+      - name: Provedor real — GoTrue v2.189.0 + Postgres do stack
+        run: |
+          uv run pytest -q \
+            tests/integration/test_access_cut.py \
+            tests/integration/test_erasure_provider.py \
+            tests/integration/test_trail_purge.py \
+            tests/integration/test_provider_residual_limit.py
+
+      - name: Origem do log — a contagem vem de execução autenticada REAL (SC-003)
+        run: uv run pytest -q tests/integration/test_log_origin_no_pii.py
+
+      - name: Prazo — prova ao vivo do cliente 1/3, banco parado/lento (SC-010b)
+        run: uv run pytest -q tests/integration/test_outbound_deadline.py
+
+  web-build:
+    name: web · lint + test + build
+    runs-on: ubuntu-latest
+    needs: detect
+    if: needs.detect.outputs.web == 'true'
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test
+      - name: Telas de gestão de usuários — edição, listagem e criação
+        run: |
+          npx vitest run tests/admin-user-edit.test.tsx \
+            tests/admin-users-list.test.tsx tests/admin-user-create.test.tsx
+      - name: Lista com filtro de status, mensagem de login e fim da sessão do desativado
+        run: |
+          npx vitest run tests/admin-user-list.test.tsx \
+            tests/login-and-session.test.tsx
+      - name: Design system — só tokens nas telas e componentes da feature 01
+        working-directory: .
+        run: |
+          python3 scripts/check_design_tokens.py
+          python3 scripts/check_design_tokens.py --self-test
+      - run: npm run build
+        env:
+          # O build NÃO embute configuração (FR-012): o servidor lê o ambiente do host em
+          # runtime. Estes valores existem só para o build resolver.
+          SUPABASE_PUBLIC_URL: http://localhost:8000
+          SUPABASE_ANON_KEY: ci-anon-key
+          API_PUBLIC_BASE_URL: http://localhost:8001
+          API_TIMEOUT_MS: "10000"
+          AUTH_TIMEOUT_MS: "10000"
+
+  contract-gate:
+    name: contract · gate nas DUAS metades (design → gerado → cliente)
+    runs-on: ubuntu-latest
+    needs: detect
+    if: >-
+      needs.detect.outputs.api == 'true' &&
+      needs.detect.outputs.web == 'true' &&
+      needs.detect.outputs.contracts == 'true' &&
+      needs.detect.outputs.verifiers == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Exportar o OpenAPI a partir do código
+        working-directory: apps/api
+        run: |
+          uv sync --dev
+          uv run python scripts/export_openapi.py
+
+      # Metade (i) — design ⊆ gerado. Cruza componentes (specs/ + apps/api): roda no
+      # runner, onde ambos coexistem, e recebe os caminhos por ARGUMENTO (R26) — nunca por
+      # `docker compose exec <serviço>`, que não teria o outro componente.
+      - name: Metade (i) · o gerado contém tudo que o design promete
+        working-directory: apps/api
+        run: |
+          uv run python ../../scripts/check_contract_conformance.py \
+            --design ../../specs/001-feature-00-funda/contracts/openapi.yaml \
+            --generated openapi.json
+
+      - name: Metade (i) · feature 01 — o gerado contém tudo que o design promete
+        if: needs.detect.outputs.contracts01 == 'true'
+        working-directory: apps/api
+        run: |
+          uv run python ../../scripts/check_contract_conformance.py \
+            --design ../../specs/01-controle-acesso/contracts/openapi.yaml \
+            --generated openapi.json
+
+      # Metade (ii) — gerado ↔ cliente tipado.
+      - name: Metade (ii) · regenerar o client tipado
+        working-directory: apps/web
+        run: |
+          npm ci
+          npm run gen:api
+
+      - name: Metade (ii) · falhar em qualquer drift de contrato/cliente
+        run: git diff --exit-code apps/api/openapi.json apps/web/lib/api
+
+  deadline-coverage:
+    name: prazo · cobertura dos NOVE clientes de saída (SC-010a)
+    runs-on: ubuntu-latest
+    needs: detect
+    if: >-
+      needs.detect.outputs.api == 'true' &&
+      needs.detect.outputs.web == 'true' &&
+      needs.detect.outputs.verifiers == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      # Cobertura parcial = FALHA: basta um cliente sem prazo para pendurar a requisição.
+      - run: python3 scripts/check_outbound_deadlines.py
+      - name: O verificador de prazo visto ACUSANDO chamadas sem prazo semeadas
+        run: python3 scripts/check_outbound_deadlines.py --self-test
+
+  config-template:
+    name: config · template = contrato do que o componente lê (SC-011)
+    runs-on: ubuntu-latest
+    needs: detect
+    if: >-
+      needs.detect.outputs.api == 'true' &&
+      needs.detect.outputs.web == 'true' &&
+      needs.detect.outputs.verifiers == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      # Cobre os componentes que AUTORAMOS (leitura precisa: modelo de settings / módulo de
+      # runtime). REPROVA nos dois sentidos + exige anotação de origem (FR-024/R30).
+      - name: api · template ↔ config.py
+        run: |
+          python3 scripts/check_config_template.py --name api \
+            --template apps/api/.env.example \
+            --code apps/api/app/core/config.py --code apps/api/docker-compose.yml
+      - name: web · template ↔ runtime-config.ts
+        run: |
+          python3 scripts/check_config_template.py --name web \
+            --template apps/web/.env.example \
+            --code apps/web/lib/runtime-config.ts --code apps/web/docker-compose.yml
+
+  state-gate:
+    name: estado · toda montagem gravável sobrevive às duas destruições (SC-014a)
+    runs-on: ubuntu-latest
+    needs: detect
+    # A condição é a presença do OBJETO verificado — a orquestração de produção —, nunca a
+    # do verificador: apagá-lo tem de QUEBRAR o job, não desligá-lo em silêncio.
+    if: >-
+      needs.detect.outputs.overlay == 'true' &&
+      needs.detect.outputs.stack == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Materializar os envs a partir dos templates versionados
+        # A resolução não lê VALOR nenhum — só a forma das montagens. Os arquivos reais de
+        # ambiente não são versionados, então os templates bastam e mantêm o job
+        # determinístico. São TRÊS: a composição raiz inclui os composes de `api` e `web`,
+        # que declaram os `env_file` deles — faltando um, a resolução ABORTA e o verificador
+        # recebe documento vazio, passando a auditar o nada.
+        run: |
+          cp -n infra/supabase/.env.example infra/supabase/.env
+          cp -n apps/api/.env.example       apps/api/.env
+          cp -n apps/web/.env.example       apps/web/.env.local
+      - name: Resolver a orquestração de produção e conferir as montagens
+        # Quem resolve é este job, com o MESMO conjunto de arquivos que a implantação usa;
+        # o verificador recebe o resultado e não reimplementa semântica de inclusão/fusão.
+        # As tags são substituíveis por qualquer valor: nenhuma imagem é puxada aqui.
+        env:
+          ITALLUS_API_IMAGE: local/api:ci
+          ITALLUS_WEB_IMAGE: local/web:ci
+        run: |
+          set -euo pipefail
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml config --format json \
+            | python3 scripts/check_state_outside_tree.py --resolved - --root .
+
+  runbook-gate:
+    name: runbook · DEPLOY.md ⇄ composes/templates (SC-009/R31)
+    runs-on: ubuntu-latest
+    needs: detect
+    if: >-
+      needs.detect.outputs.runbook == 'true' &&
+      needs.detect.outputs.api == 'true' &&
+      needs.detect.outputs.web == 'true' &&
+      needs.detect.outputs.stack == 'true' &&
+      needs.detect.outputs.verifiers == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      # Falsificador estático (R31): os fatos derivados do DEPLOY.md têm de bater com os
+      # composes/templates — sem depender de executar o runbook num host limpo.
+      - name: DEPLOY.md deriva dos arquivos-fonte
+        run: |
+          uv run --with pyyaml python scripts/check_deploy_runbook.py --runbook DEPLOY.md \
+            --compose apps/api/docker-compose.yml --compose apps/web/docker-compose.yml \
+            --compose infra/supabase/docker-compose.yml --compose infra/supabase/docker-compose.logs.yml \
+            --env-file infra/supabase/.env.example \
+            --template apps/api/.env.example --template apps/web/.env.example \
+            --bootstrap-script apps/api/scripts/bootstrap_superadmin.py
+
+  config-check:
+    name: config · no committed secrets
+    runs-on: ubuntu-latest
+    needs: detect
+    if: >-
+      needs.detect.outputs.api == 'true' &&
+      needs.detect.outputs.web == 'true' &&
+      needs.detect.outputs.stack == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - name: No tracked secrets; per-component .env.example present
+        run: |
+          if git ls-files | grep -E '(^|/)\.env(\.local)?$'; then
+            echo "A real .env/.env.local is tracked — secrets must not be versioned (FR-012/SC-003)." >&2
+            exit 1
+          fi
+          test -f infra/supabase/.env.example
+          test -f apps/api/.env.example
+          test -f apps/web/.env.example
+
+  images:
+    name: images · build limpo + publicação no GHCR (tag = SHA)
+    runs-on: ubuntu-latest
+    needs: detect
+    if: >-
+      needs.detect.outputs.api == 'true' &&
+      needs.detect.outputs.web == 'true'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login no GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Namespace das imagens (GHCR exige minúsculas)
+        id: img
+        run: |
+          ns="ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')"
+          echo "ns=$ns" >> "$GITHUB_OUTPUT"
+
+      # Build LIMPO (--no-cache): um Dockerfile quebrado falha o PR sem cache que mascare
+      # (R13). O push cria o ARTEFATO IMUTÁVEL (tag = SHA do commit) que a produção PUXA e
+      # para o qual o rollback reverte (R21) — a imagem validada aqui é a que sobe.
+      - name: api · build --no-cache + push
+        run: |
+          IMAGE="${{ steps.img.outputs.ns }}/api:${{ github.sha }}"
+          docker build --no-cache -t "$IMAGE" apps/api
+          docker push "$IMAGE"
+
+      - name: web · build --no-cache + push
+        run: |
+          IMAGE="${{ steps.img.outputs.ns }}/web:${{ github.sha }}"
+          docker build --no-cache -t "$IMAGE" apps/web
+          docker push "$IMAGE"
+
+  # VERSIONAMENTO AUTOMÁTICO — só na linha principal, e só depois de todo gate fechar.
+  #
+  # A versão sai dos tipos dos commits desde a última tag (feat = minor, resto = patch),
+  # que são confiáveis porque o hook `commit-msg` e o job `enforce-title` os cobram.
+  # As notas são montadas dos mesmos assuntos, agrupados por tipo.
+  #
+  # Sem commit novo desde a última tag, o passo não publica nada.
+  release:
+    name: release · tag e notas a partir dos commits
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [scripts-lint, api-lint, api-test, web-build, contract-gate, deadline-coverage,
+            config-template, state-gate, runbook-gate, config-check, images]
+    permissions:
+      contents: write
+    # Dois merges próximos calculariam a MESMA versão a partir da mesma tag: um
+    # publica, o outro falha ao empurrar a tag e deixa a CI vermelha num commit
+    # são. A execução em curso NÃO é cancelada — ela já pode ter publicado.
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calcular a versão e montar as notas
+        id: versao
+        run: |
+          set -euo pipefail
+          if ! versao=$(scripts/next_version.sh HEAD); then
+            echo "Nenhum commit novo desde a última tag; nada a publicar."
+            echo "publicar=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          scripts/next_version.sh HEAD notas > /tmp/notas.md
+          echo "versao=$versao" >> "$GITHUB_OUTPUT"
+          echo "publicar=1" >> "$GITHUB_OUTPUT"
+          echo "Próxima versão: $versao"
+
+      - name: Publicar a tag e a release
+        if: steps.versao.outputs.publicar == '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSAO: ${{ steps.versao.outputs.versao }}
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$VERSAO" -m "$VERSAO"
+          git push origin "$VERSAO"
+          titulo=$(sed -n '/^### /{n;s/^- //;p;q}' /tmp/notas.md)
+          gh release create "$VERSAO" \
+            --title "$VERSAO — ${titulo:-mudanças desde a versão anterior}" \
+            --notes-file /tmp/notas.md \
+            --latest

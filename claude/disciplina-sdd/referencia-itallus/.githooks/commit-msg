@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Valida o assunto da mensagem de commit. $1 = arquivo com a mensagem.
+# As regras vivem em scripts/check_subject.sh, compartilhadas com a validacao
+# do titulo de PR na CI.
+msg_file="$1"
+assunto=$(sed -n '1p' "$msg_file")
+
+# Merge e revert gerados pelo git, comentario e mensagem vazia nao passam pela regra.
+printf '%s' "$assunto" | grep -Eq '^(Merge|Revert) ' && exit 0
+printf '%s' "$assunto" | grep -Eq '^(#|$)' && exit 0
+
+raiz=$(git rev-parse --show-toplevel)
+validador="$raiz/scripts/check_subject.sh"
+
+if [ ! -x "$validador" ]; then
+    printf 'commit-msg: %s ausente ou sem permissao de execucao.\n' "$validador" >&2
+    exit 1
+fi
+
+
+# Placeholder do template deixado por preencher. Linhas de comentario sao
+# descartadas pelo git, entao so o que sobra na mensagem conta.
+sobrou=$(grep -v '^#' "$msg_file" | grep -oE '\{[^{}]{2,}\}' | head -3)
+if [ -n "$sobrou" ]; then
+    printf 'commit-msg BLOQUEADO: placeholder do template nao foi preenchido:\n' >&2
+    printf '%s\n' "$sobrou" | sed 's/^/    /' >&2
+    exit 1
+fi
+
+if ! "$validador" "$assunto" "$msg_file"; then
+    printf 'commit-msg BLOQUEADO.\n' >&2
+    exit 1
+fi
+exit 0
