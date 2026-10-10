@@ -5,7 +5,8 @@ description: |
   documento de requisitos base (ex.: requisitos.md, prd.md) gera a visão geral e um PRD por
   feature, agrupados em diretórios de épico; ou reformula um PRD existente que se revelou grande
   demais em dois ou mais PRDs. Aplica as regras de hierarquia, IDs estáveis, critério de feature,
-  dono de requisito no corte, restrição repetida, altitude e ordem por grafo de dependência. Use
+  dono de requisito no corte, restrição repetida, altitude, régua de exigência e ordem por grafo
+  de dependência. Use
   quando o projeto começa a ser planejado a partir de um documento de requisitos, quando é preciso
   refazer a quebra em épicos e features, ou quando uma feature contém duas ou mais entregas que
   podem ir para produção separadas. Não use para refinar o conteúdo de um PRD que continua sendo
@@ -77,7 +78,8 @@ no `/define` ou no `/design` da feature. Ver a seção 2 das regras.
    >
    > Onde a entrada não decide (dono de requisito no corte, objetivo ou critério de épico,
    > conceito sem feature), **não escolha**: marque `[a definir]` e liste como pergunta.
-   > Retorne: arquivos criados e alterados, perguntas ao responsável, e os arquivos a remover.
+   > Retorne: arquivos criados e alterados, evoluções registradas fora da régua (seção 10 das
+   > regras), perguntas ao responsável, e os arquivos a remover.
 
 2. **Perguntas.** Repasse cada pergunta ao responsável, sem alteração e uma por vez. Com as
    respostas, **retome o mesmo agente** para aplicá-las.
@@ -93,6 +95,8 @@ no `/define` ou no `/design` da feature. Ver a seção 2 das regras.
      decidida pelo responsável; restrições repetidas com o mesmo ID.
    - Nenhum requisito do documento de requisitos (ou do PRD de origem) sumiu sem decisão.
    - Toda feature passa no teste de feature grande demais.
+   - Nenhum endurecimento além da régua dentro de uma feature; o que ficou para depois está na
+     visão como evolução, com o gatilho (seção 10 das regras).
    - Links e remissões entre visão e PRDs resolvem para arquivo existente.
    - Nenhum mecanismo em PRD ou visão (rotas, nomes de tabela, policies).
    - Nenhum objetivo, critério ou dono preenchido sem lastro; o que falta está `[a definir]`.
