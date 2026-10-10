@@ -7,7 +7,11 @@ que é específico do itallus sai ou vira parâmetro do projeto.
 | Arquivo | O que é |
 |---|---|
 | `AGENTS.md`, `CLAUDE.md` | regras do projeto e do processo; o `CLAUDE.md` importa o `AGENTS.md` |
+| `docs/constitution/principios.md` | princípios de qualidade da aplicação, padrão da disciplina; alimentam a constituição |
 | `docs/constitution/constitution.md` | constituição v2.2.0: princípios, governança e Sync Impact Report |
+| `docs/requisitos.md` | exemplo de entrada da decomposição: os PRDs e a visão do itallus saíram dele |
+| `docs/visao-geral.md` | exemplo de visão gerada pela decomposição |
+| `docs/prds/E0-fundacao/00-fundacao-auth-shell.md` | exemplo do modelo de PRD: 8 seções e Changelog |
 | `docs/roteiro-sdd.md` | playbook e racional da disciplina, incluindo como escrever e emendar a constituição (§6) |
 | `padroes-qualidade.md` | referência de qualidade por pilar, mantida fora do repositório do itallus |
 | `.gitmessage`, `.githooks/` | modelo de commit e hooks locais: guarda de branch e validação do assunto |
