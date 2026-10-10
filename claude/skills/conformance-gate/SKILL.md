@@ -93,6 +93,8 @@ Ler o `AGENTS.md` (e/ou `CLAUDE.md`) do projeto e extrair, SEM assumir:
   convenções do `AGENTS.md`, ADRs, regras de CI (onde entram segurança e obrigação legal).
 - **Decisões registradas**: onde os artefatos guardam decisão do responsável — Open Questions e
   Revision History do DEFINE/DESIGN, limites declarados, Fora de escopo, Changelog do PRD, ADRs.
+- **Registro de evoluções**: onde o projeto registra o que fica acima da régua, com a origem e o
+  gatilho (ex.: issue com label própria). O gate não lê o registro; só aponta para ele.
 
 Se o projeto **não** declarar algo, cair nos defaults do AgentSpec (`.claude/sdd/`) e **registrar a
 suposição** no relatório (classe D).
@@ -116,12 +118,16 @@ Argumento: `readiness` ou `conformance` (default `conformance`).
 
 A régua é decidida no planejamento, não no gate:
 
-- **Base fixa**, desde a primeira entrega: a base declarada (Passo 0). Não varia com o estágio do
-  produto.
+- **Base fixa**, desde a primeira entrega: a base declarada (Passo 0), incluída a qualidade
+  estrutural que ela declara — arquitetura, princípios de design, clean code. Não varia com o
+  estágio do produto.
 - **Régua que sobe com o uso**: robustez para cenário raro, escala além do uso atual, automação de
   operação rara, observabilidade profunda, cobertura exaustiva de borda. Sobe só com justificativa
   registrada — evidência de uso, obrigação nova ou decisão do responsável.
-- O que excede a régua é registrado como **evolução**, com o gatilho que a justificaria.
+- A régua limita **quais cenários** o código trata, nunca a **qualidade da estrutura**: violação
+  estrutural que a base declara é achado, não observação de maturidade.
+- O que excede a régua é registrado como **evolução** no registro do projeto (Passo 0), com o
+  gatilho que a justificaria.
 
 O gate cobra a régua declarada e **nunca a sobe**:
 
@@ -134,7 +140,7 @@ O gate cobra a régua declarada e **nunca a sobe**:
   **não realiza** ou **não prova**.
 - **Observação de maturidade**: o que não tem afirmação em vigor para citar, e o cenário
   **improvável** (seção Severidade) que nenhum artefato declara. Sem severidade, nunca bloqueia e
-  não é candidata a issue — o responsável decide se a registra.
+  não é candidata a issue — o responsável decide se a registra no registro de evoluções.
 - **Decidido**: achado coberto por decisão registrada nos artefatos (mesmo objeto, mesmo estado
   esperado) é listado como decidido, com a referência; não conta como achado novo e não bloqueia.
   Critério de DoD que falha ou não foi medido no `conformance` segue bloqueando (Veredito).
@@ -283,7 +289,8 @@ upstream que o corrige. Não bloqueiam; a abertura das issues é decisão do res
 ### 7. Observações de maturidade
 Uma linha cada: o que foi observado; por que não é achado (sem afirmação em vigor, ou improvável
 não declarado); o gatilho que justificaria subir a régua; e o caminho mais barato se o responsável
-quiser registrar (declarar o limite ou a evolução no artefato de origem).
+quiser registrar (a evolução no registro do projeto, com o gatilho; o limite declarado no artefato
+de origem).
 
 ### 8. Remediação (proposta, não aplicada)
 Perguntar ao responsável se quer sugestões concretas de remediação para os top-N — **sem aplicá-las**.
@@ -294,7 +301,8 @@ Cada sugestão:
   origem — e diz a classe de custo: **local** (texto de artefato existente, ou código existente sem
   estrutura nova) ou **mecanismo novo** (componente, tabela, coluna ou estado, lock, job,
   dependência, tela);
-- não propõe mecanismo para cenário que a régua não exige (YAGNI/KISS).
+- não propõe mecanismo para cenário que a régua não exige (YAGNI/KISS), nem abre mão da base
+  estrutural para baratear a correção.
 
 ## Enforcement
 

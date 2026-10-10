@@ -46,7 +46,8 @@ responsável. O brainstorm **decide**; esta skill **aplica** — o brainstorm n�
 
 - **the-planner** — faz todo o trabalho: análise de impacto e edição.
 - **Quem invoca a skill** — orquestra: repassa a entrada sem alteração, repassa as perguntas do
-  agente ao responsável sem alteração (uma por vez), revisa o diff e reporta. Não analisa, não
+  agente ao responsável sem alteração (uma por vez), revisa o diff, registra as evoluções que o
+  agente listou e reporta. Não analisa, não
   decide e não edita os artefatos; divergência encontrada na revisão volta ao agente.
 
 ## Pré-condições
@@ -83,7 +84,7 @@ responsável. O brainstorm **decide**; esta skill **aplica** — o brainstorm n�
    >    requisito com justificativa registrada na decisão — evidência de uso, obrigação nova ou
    >    decisão explícita do responsável de subir a régua; sem ela, não edite e liste como
    >    pergunta. O que a decisão adia vai para o Fora de escopo do PRD, com o gatilho que o
-   >    traria para dentro.
+   >    traria para dentro, e entra na lista de evoluções a registrar, com a origem.
    >
    > **Edição.** Para cada decisão:
    > f. Aplique-a ao PRD e às **seções afetadas da visão**, editando no lugar, sem renumerar
@@ -99,7 +100,8 @@ responsável. O brainstorm **decide**; esta skill **aplica** — o brainstorm n�
    > k. Não invente além das decisões: o que continuar aberto permanece marcado.
    >
    > Retorne: frase morta e raio por decisão, a classificação de régua de cada exigência, o que
-   > mudou em cada arquivo, as pendências e as perguntas ao responsável.
+   > mudou em cada arquivo, as evoluções a registrar, as pendências e as perguntas ao
+   > responsável.
 
 2. **Perguntas.** Repasse cada pergunta ao responsável, sem alteração e uma por vez. Com as
    respostas, **retome o mesmo agente** para aplicá-las.
@@ -116,7 +118,10 @@ responsável. O brainstorm **decide**; esta skill **aplica** — o brainstorm n�
    - **Coerência cross-feature** contra a visão (modelo, dependências, decisões) e a
      constituição, quando houver.
 
-4. **Commit por tema**, no fluxo de branch/PR e nas regras de mensagem do `AGENTS.md`.
+4. **Evoluções.** Com o aval do responsável, registre cada evolução que o agente listou no
+   registro de evoluções que o `AGENTS.md` declara — uma por item, com a origem e o gatilho.
+
+5. **Commit por tema**, no fluxo de branch/PR e nas regras de mensagem do `AGENTS.md`.
 
 ## Limite da análise por frase morta
 
