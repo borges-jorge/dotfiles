@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+protected='^(master|qa)$'
+branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+if printf '%s' "$branch" | grep -Eq "$protected"; then
+    printf 'pre-commit BLOCKED: commits diretos em %s nao sao permitidos.\n' "$branch" >&2
+    printf 'Crie um feature branch:  git switch -c feature/<nome>\n' >&2
+    exit 1
+fi

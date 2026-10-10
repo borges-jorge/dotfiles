@@ -1,0 +1,21 @@
+name: check-release
+
+# Release e publicada depois do fato: este workflow sinaliza, nao impede.
+on:
+  release:
+    types: [published, edited]
+
+jobs:
+  enforce-body:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: valida as notas da release
+        env:
+          CORPO: ${{ github.event.release.body }}
+        run: |
+          printf '%s' "$CORPO" > /tmp/corpo-release.md
+          scripts/check_body.sh release /tmp/corpo-release.md || {
+            echo "::error::notas fora do modelo (.github/RELEASE_TEMPLATE/release-notes.md)."
+            exit 1
+          }

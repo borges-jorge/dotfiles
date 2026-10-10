@@ -1,0 +1,27 @@
+name: protect-branches
+
+on:
+  push:
+    branches: [master, qa]
+
+jobs:
+  revert-direct-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: revert if not PR merge
+        run: |
+          MSG=$(git log -1 --pretty=%s)
+          if ! echo "$MSG" | grep -qE '^Merge pull request #'; then
+            echo "::error::Push direto detectado em $(git branch --show-current). Use um PR."
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git config user.name "github-actions[bot]"
+            git revert HEAD --no-edit
+            git push
+            exit 1
+          fi

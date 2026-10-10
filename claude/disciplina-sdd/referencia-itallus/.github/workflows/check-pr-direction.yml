@@ -1,0 +1,65 @@
+name: check-pr
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+    branches: [master, qa]
+
+jobs:
+  enforce-direction:
+    runs-on: ubuntu-latest
+    steps:
+      - name: enforce merge direction
+        run: |
+          BASE="${{ github.base_ref }}"
+          HEAD="${{ github.head_ref }}"
+
+          if [ "$BASE" = "master" ] && [ "$HEAD" != "qa" ]; then
+            echo "::error::PRs para master so sao aceitos de qa. Branch de origem: $HEAD"
+            exit 1
+          fi
+
+          if [ "$BASE" = "qa" ] && [ "$HEAD" = "master" ]; then
+            echo "::error::PRs para qa nao podem vir de master. Branch de origem: $HEAD"
+            exit 1
+          fi
+
+  # O titulo do PR vira o corpo do commit de merge: e o texto que sobra na mainline.
+  # Passa pelo MESMO validador do hook de commit, para as duas portas nao divergirem.
+  enforce-title:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: valida o titulo do PR
+        # O titulo entra por variavel de ambiente, nunca interpolado no shell.
+        env:
+          TITULO: ${{ github.event.pull_request.title }}
+        run: |
+          if [ ! -x scripts/check_subject.sh ]; then
+            echo "::notice::validador ausente nesta revisao; nada a checar."
+            exit 0
+          fi
+          scripts/check_subject.sh "$TITULO" || {
+            echo "::error::titulo do PR fora da convencao; as regras estao em .gitmessage."
+            exit 1
+          }
+
+  # O corpo do PR e confrontado com o template: secoes obrigatorias presentes e
+  # nenhum placeholder ou bloco de instrucao sobrando.
+  enforce-body:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: valida o corpo do PR
+        env:
+          CORPO: ${{ github.event.pull_request.body }}
+        run: |
+          if [ ! -x scripts/check_body.sh ]; then
+            echo "::notice::validador ausente nesta revisao; nada a checar."
+            exit 0
+          fi
+          printf '%s' "$CORPO" > /tmp/corpo-pr.md
+          scripts/check_body.sh pr /tmp/corpo-pr.md || {
+            echo "::error::corpo do PR fora do template (.github/PULL_REQUEST_TEMPLATE.md)."
+            exit 1
+          }

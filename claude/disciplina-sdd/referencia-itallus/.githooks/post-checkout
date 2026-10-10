@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# $1 = sha anterior, $2 = sha novo, $3 = 1 se branch checkout / 0 se file checkout
+
+# Liga o template de mensagem de commit, uma vez por clone. Sem isso o `.gitmessage`
+# fica versionado e nao aparece no editor.
+raiz=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -f "$raiz/.gitmessage" ] && [ "$(git config --get commit.template)" != ".gitmessage" ]; then
+    git config commit.template .gitmessage
+    printf 'Template de mensagem de commit ligado (.gitmessage).\n' >&2
+fi
+
+[ "$3" = "1" ] || exit 0
+
+branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+protected='^(master|qa)$'
+convention='^(feature|fix|chore|docs|refactor|test)/.+'
+
+if printf '%s' "$branch" | grep -Eq "$protected"; then
+    printf 'AVISO: voce esta em "%s", um branch protegido. Commits diretos sao bloqueados.\n' "$branch" >&2
+elif ! printf '%s' "$branch" | grep -Eq "$convention"; then
+    printf 'AVISO: branch "%s" nao segue a convencao <tipo>/<nome>.\n' "$branch" >&2
+    printf 'Tipos aceitos: feature, fix, chore, docs, refactor, test\n' >&2
+fi
