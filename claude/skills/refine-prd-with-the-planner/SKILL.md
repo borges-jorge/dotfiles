@@ -7,7 +7,8 @@ description: |
   versiona via Changelog. Parte da afirmação que deixou de ser verdadeira para achar o raio de
   alcance e o ponto de entrada. Use antes do /define para levar o brainstorm ao PRD (iterando até
   o PRD ficar adequado), ou a qualquer momento do ciclo quando uma decisão muda requisito,
-  regra de negócio ou restrição de uma feature. Não use para criar o plano nem para dividir um
+  regra de negócio ou restrição de uma feature — inclusive quando o uso em produção justifica
+  subir a régua de exigência. Não use para criar o plano nem para dividir um
   PRD em dois ou mais — isso é decompose-requirements-with-the-planner.
 ---
 
@@ -36,6 +37,7 @@ description: |
 |---|---|
 | **Antes do ciclo da feature** | O brainstorm da feature + o PRD da feature |
 | **Durante o ciclo** (define, design, build) | O PRD da feature + a decisão, com ou sem brainstorm |
+| **Depois da entrega** (uso em produção) | O PRD da feature + a decisão de subir a régua, com a evidência de uso que a justifica |
 
 Antes do ciclo, brainstorm e refino podem se alternar até o PRD ficar adequado, a critério do
 responsável. O brainstorm **decide**; esta skill **aplica** — o brainstorm não escreve o PRD.
@@ -74,22 +76,30 @@ responsável. O brainstorm **decide**; esta skill **aplica** — o brainstorm n�
    > d. **Estrutura:** se a decisão faz a feature conter duas ou mais entregas que podem ir para
    >    produção separadas, não divida o PRD — pare e indique a
    >    `decompose-requirements-with-the-planner` (desmembramento).
+   > e. **Régua:** classifique cada exigência que a decisão traz como **base** (o que o projeto já
+   >    declara como padrão), **entrega de valor** da feature ou **endurecimento** que sobe a régua
+   >    (robustez para cenário raro, escala além do uso atual, automação de operação rara,
+   >    observabilidade profunda, cobertura exaustiva de casos de borda). Endurecimento só vira
+   >    requisito com justificativa registrada na decisão — evidência de uso, obrigação nova ou
+   >    decisão explícita do responsável de subir a régua; sem ela, não edite e liste como
+   >    pergunta. O que a decisão adia vai para o Fora de escopo do PRD, com o gatilho que o
+   >    traria para dentro.
    >
    > **Edição.** Para cada decisão:
-   > e. Aplique-a ao PRD e às **seções afetadas da visão**, editando no lugar, sem renumerar
+   > f. Aplique-a ao PRD e às **seções afetadas da visão**, editando no lugar, sem renumerar
    >    seções.
-   > f. **Propague** aos acertos do raio de alcance que estão na visão ou em outros PRDs. Acertos
+   > g. **Propague** aos acertos do raio de alcance que estão na visão ou em outros PRDs. Acertos
    >    abaixo do PRD ficam como pendência, com o comando de entrada de cada uma.
-   > g. **Mantenha** o template de PRD e o formato da visão do `AGENTS.md`.
-   > h. **Altitude:** PRD e visão recebem só **problema, resultado, regra de negócio e
+   > h. **Mantenha** o template de PRD e o formato da visão do `AGENTS.md`.
+   > i. **Altitude:** PRD e visão recebem só **problema, resultado, regra de negócio e
    >    restrição**. Mecanismo (rotas, schema, policies, formato de token, nomes de tabela) fica
    >    no design da feature. Um `[a definir]` resolvido no design fecha com **remissão** ao
    >    design, sem copiar o mecanismo.
-   > i. Em cada PRD alterado, acrescente uma linha no **`## Changelog`**, incrementando a versão.
-   > j. Não invente além das decisões: o que continuar aberto permanece marcado.
+   > j. Em cada PRD alterado, acrescente uma linha no **`## Changelog`**, incrementando a versão.
+   > k. Não invente além das decisões: o que continuar aberto permanece marcado.
    >
-   > Retorne: frase morta e raio por decisão, o que mudou em cada arquivo, as pendências e as
-   > perguntas ao responsável.
+   > Retorne: frase morta e raio por decisão, a classificação de régua de cada exigência, o que
+   > mudou em cada arquivo, as pendências e as perguntas ao responsável.
 
 2. **Perguntas.** Repasse cada pergunta ao responsável, sem alteração e uma por vez. Com as
    respostas, **retome o mesmo agente** para aplicá-las.
@@ -98,6 +108,8 @@ responsável. O brainstorm **decide**; esta skill **aplica** — o brainstorm n�
    com o trecho exato — nunca correção à mão:
    - PRDs alterados mantêm template + Changelog atualizado, no idioma do projeto.
    - Nada inventado além das decisões.
+   - Nenhum requisito de endurecimento sem justificativa registrada; o adiado está no Fora de
+     escopo, com o gatilho.
    - Cabeçalhos de seção da visão com a mesma numeração de antes.
    - Nenhum mecanismo subiu ao PRD ou à visão (procure nomes de tabela, funções, rotas).
    - Cada acerto da frase morta foi tratado ou está nas pendências com comando de entrada.

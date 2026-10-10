@@ -13,6 +13,7 @@ PRD, idioma e formato do Changelog vêm do `AGENTS.md` do projeto; o método est
 7. Altitude
 8. Lastro: nada sem decisão humana
 9. Saída
+10. Régua de exigência
 
 ---
 
@@ -52,6 +53,12 @@ Os dois vícios que produzem feature grande demais:
   PRD por entidade junta entregas independentes.
 
 O corte segue **fatias verticais** entregáveis, não camadas nem entidades.
+
+**A primeira entrega fica na régua do estágio do produto.** A feature é a menor entrega com valor
+próprio que pode ir a produção e ser exercitada pelo uso. Endurecimento — robustez para cenário
+raro, escala além do uso atual, automação de operação rara, observabilidade profunda, cobertura
+exaustiva de casos de borda — não entra nela: fica registrado como evolução, com o gatilho que a
+justificaria, e vira feature posterior quando o gatilho acontecer (seção 10).
 
 ## 3. Identificadores
 
@@ -131,7 +138,29 @@ planos incham sem que o produto avance.
 - grafo de dependência, caminho principal e o que corre em paralelo;
 - épicos: objetivo, critério de pronto, features;
 - departamentos sem épico;
+- evoluções fora da régua atual, cada uma com o gatilho que a traria para o plano;
 - pontos em aberto (`[a definir]` e perguntas).
 
 **Um PRD por feature**, no template do `AGENTS.md`, dentro do diretório do épico, com o épico no
 cabeçalho e o Changelog iniciado.
+
+## 10. Régua de exigência
+
+O planejamento decide o que cada feature exige; as fases seguintes cumprem essa régua e não a
+sobem.
+
+- **Base fixa:** o que o projeto declara como padrão desde a primeira entrega — constituição,
+  convenções do `AGENTS.md`, ADRs, regras de CI, onde entram segurança e obrigação legal. Vale para
+  toda feature e não varia com o estágio do produto.
+- **Régua que sobe com o uso:** robustez para cenário raro, escala além do uso atual, automação de
+  operação rara, observabilidade profunda, cobertura exaustiva de casos de borda. Sobe só com
+  justificativa registrada: evidência de uso (incidente, volume, retorno de usuário), obrigação
+  nova ou decisão do responsável.
+- **Onde pesam as dimensões de risco:** impacto, probabilidade, reversibilidade, detectabilidade,
+  alcance e evidência de uso entram aqui, na decisão de onde fica a régua — e quem decide é o
+  responsável. Operação irreversível ou silenciosa pode justificar declarar cedo a proteção contra
+  um cenário raro; sem essa decisão, a proteção é evolução.
+- **Evolução com gatilho:** o que excede a régua não some. Fica na visão, com o gatilho que o
+  traria para dentro; quando o gatilho acontece, entra no plano como feature nova (seção 3).
+- **Sem lastro, não sobe:** requisito de endurecimento sem justificativa registrada não entra no
+  PRD — vira pergunta ao responsável (seção 8).
