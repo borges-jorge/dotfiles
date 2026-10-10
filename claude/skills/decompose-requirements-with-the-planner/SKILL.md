@@ -6,11 +6,10 @@ description: |
   feature, agrupados em diretórios de épico; ou reformula um PRD existente que se revelou grande
   demais em dois ou mais PRDs. Aplica as regras de hierarquia, IDs estáveis, critério de feature,
   dono de requisito no corte, restrição repetida, altitude, régua de exigência e ordem por grafo
-  de dependência. Use
-  quando o projeto começa a ser planejado a partir de um documento de requisitos, quando é preciso
-  refazer a quebra em épicos e features, ou quando uma feature contém duas ou mais entregas que
-  podem ir para produção separadas. Não use para refinar o conteúdo de um PRD que continua sendo
-  uma feature só — isso é refine-prd-with-the-planner.
+  de dependência. Use quando o projeto começa a ser planejado a partir de um documento de
+  requisitos, quando é preciso refazer a quebra em épicos e features, ou quando uma feature contém
+  duas ou mais entregas que podem ir para produção separadas. Não use para refinar o conteúdo de
+  um PRD que continua sendo uma feature só — isso é refine-prd-with-the-planner.
 ---
 
 # Decompor requisitos com o the-planner
@@ -49,7 +48,7 @@ no `/define` ou no `/design` da feature. Ver a seção 2 das regras.
   PRDs, e devolve perguntas sobre o que as entradas não decidem.
 - **Quem invoca a skill** — orquestra: repassa a entrada sem alteração, repassa as perguntas do
   agente ao responsável sem alteração (uma por vez), executa o que o agente não tem ferramenta para
-  fazer (`git rm`), revisa o diff e reporta. Não analisa, não decide e não edita os artefatos;
+  fazer (`git rm`, registro das evoluções), revisa o diff e reporta. Não analisa, não decide e não edita os artefatos;
   divergência encontrada na revisão volta ao agente.
 
 ## Pré-condições
@@ -95,14 +94,18 @@ no `/define` ou no `/design` da feature. Ver a seção 2 das regras.
      decidida pelo responsável; restrições repetidas com o mesmo ID.
    - Nenhum requisito do documento de requisitos (ou do PRD de origem) sumiu sem decisão.
    - Toda feature passa no teste de feature grande demais.
-   - Nenhum endurecimento além da régua dentro de uma feature; o que ficou para depois está na
-     visão como evolução, com o gatilho (seção 10 das regras).
+   - Nenhum endurecimento além da régua dentro de uma feature; o que ficou para depois está
+     listado como evolução, com a origem e o gatilho (seção 10 das regras).
    - Links e remissões entre visão e PRDs resolvem para arquivo existente.
    - Nenhum mecanismo em PRD ou visão (rotas, nomes de tabela, policies).
    - Nenhum objetivo, critério ou dono preenchido sem lastro; o que falta está `[a definir]`.
    - Desmembramento: cabeçalhos de seção da visão com a mesma numeração de antes.
 
-5. **Commit** no fluxo de branch/PR e nas regras de mensagem do `AGENTS.md`.
+5. **Evoluções.** Com o aval do responsável, registre cada evolução que o agente listou no
+   registro de evoluções que o `AGENTS.md` declara — uma por item, com a origem e o gatilho. Sem
+   registro declarado, elas ficam na visão.
+
+6. **Commit** no fluxo de branch/PR e nas regras de mensagem do `AGENTS.md`.
 
 ## Depois da decomposição
 

@@ -138,7 +138,8 @@ planos incham sem que o produto avance.
 - grafo de dependência, caminho principal e o que corre em paralelo;
 - épicos: objetivo, critério de pronto, features;
 - departamentos sem épico;
-- evoluções fora da régua atual, cada uma com o gatilho que a traria para o plano;
+- evoluções fora da régua atual: remissão ao registro de evoluções do projeto, ou, sem registro
+  declarado no `AGENTS.md`, a lista com o gatilho de cada uma;
 - pontos em aberto (`[a definir]` e perguntas).
 
 **Um PRD por feature**, no template do `AGENTS.md`, dentro do diretório do épico, com o épico no
@@ -150,8 +151,9 @@ O planejamento decide o que cada feature exige; as fases seguintes cumprem essa 
 sobem.
 
 - **Base fixa:** o que o projeto declara como padrão desde a primeira entrega — constituição,
-  convenções do `AGENTS.md`, ADRs, regras de CI, onde entram segurança e obrigação legal. Vale para
-  toda feature e não varia com o estágio do produto.
+  convenções do `AGENTS.md`, ADRs, regras de CI, onde entram segurança, obrigação legal e a
+  qualidade estrutural (arquitetura, princípios de design, clean code). Vale para toda feature e
+  não varia com o estágio do produto. A régua limita quais cenários se tratam, nunca a estrutura.
 - **Régua que sobe com o uso:** robustez para cenário raro, escala além do uso atual, automação de
   operação rara, observabilidade profunda, cobertura exaustiva de casos de borda. Sobe só com
   justificativa registrada: evidência de uso (incidente, volume, retorno de usuário), obrigação
@@ -160,7 +162,8 @@ sobem.
   alcance e evidência de uso entram aqui, na decisão de onde fica a régua — e quem decide é o
   responsável. Operação irreversível ou silenciosa pode justificar declarar cedo a proteção contra
   um cenário raro; sem essa decisão, a proteção é evolução.
-- **Evolução com gatilho:** o que excede a régua não some. Fica na visão, com o gatilho que o
-  traria para dentro; quando o gatilho acontece, entra no plano como feature nova (seção 3).
+- **Evolução com gatilho:** o que excede a régua não some. Fica no registro de evoluções que o
+  `AGENTS.md` declara (sem registro declarado, na visão), com a origem e o gatilho que o traria
+  para dentro; quando o gatilho acontece, entra no plano como feature nova (seção 3).
 - **Sem lastro, não sobe:** requisito de endurecimento sem justificativa registrada não entra no
   PRD — vira pergunta ao responsável (seção 8).
