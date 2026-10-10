@@ -4,9 +4,10 @@ description: >-
   Gate read-only de conformidade e DoD. Confronta a cadeia completa de artefatos de
   planejamento (fonte-upstream/ADRs/constituição ↔ PRD ↔ DEFINE/DESIGN/BUILD_REPORT ↔ CÓDIGO)
   para pegar drift de rastreabilidade, satisfação de requisito não medida e não-conformidade
-  artefato↔código. Dois modos: readiness (pré-/build) e conformance (pré-PR, exige evidência ao
-  vivo). Agnóstico ao projeto — caminhos/IDs/idioma/nomes de artefato vêm do AGENTS.md. Complementa
-  os gates fracos do fluxo SDD (no AgentSpec não há gate de consistência cross-artefato nativo).
+  artefato↔código, contra a régua que o projeto declarou — não busca a perfeição do software.
+  Dois modos: readiness (pré-/build) e conformance (pré-PR, exige evidência ao vivo). Agnóstico ao
+  projeto — caminhos/IDs/idioma/nomes de artefato vêm do AGENTS.md. Complementa os gates fracos do
+  fluxo SDD (no AgentSpec não há gate de consistência cross-artefato nativo).
 argument-hint: "readiness | conformance (default: conformance)"
 compatibility: "AgentSpec project (.claude/sdd/); artifact paths/IDs/idioma resolvidos via AGENTS.md"
 user-invocable: true
@@ -28,6 +29,11 @@ mas **não** verificam três eixos:
 3. **Conformidade com o código** — o que os artefatos **afirmam** existe de fato no repositório
    e/ou **rodando** (o fluxo de spec nunca olha o código).
 
+O gate mede esses três eixos **contra a régua que o projeto declarou** — não procura todo defeito
+que o software poderia ter. Uma feature vai para produção na régua do estágio em que o produto
+está e é refinada pelo uso; a régua é decidida no planejamento, e o gate a cobra sem subi-la
+(seção Régua).
+
 Esta skill é **agnóstica ao projeto**: não hardcoda caminhos, esquemas de ID nem idioma —
 resolve tudo lendo o `AGENTS.md` do projeto onde roda. Opera por **classes de falha** e por uma
 **matriz de confronto direcional**, não por casos específicos.
@@ -44,14 +50,21 @@ resolve tudo lendo o `AGENTS.md` do projeto onde roda. Opera por **classes de fa
   injetado** na invocação (`readiness`/`conformance` + escopo explícito, quando houver); ausente o
   argumento, a varredura é neutra e completa. Se um fato do contexto for relevante, ele **tem de
   ser re-derivado do artefato/código aqui** para contar — citação de memória do chat não é prova.
+  Issues, PRs e relatórios de gates anteriores **não** são entrada: uma decisão do responsável
+  conta quando está registrada nos artefatos.
 - **Read-only.** NÃO modifica nenhum arquivo. Nunca aplica correção. Se propõe remediação, é
   como **texto** — e a correção real entra **pelo fluxo** (corrige o artefato-fonte a montante e
   re-roda o comando para cascatear), NUNCA ad hoc.
 - **O humano invoca; o agente assiste.** Esta skill é disparada pelo responsável. Quando um agente
   a executa, ele revisa, roda as provas de evidência, e **reporta** — não conserta o que o gate
   achou (um defeito revelado vira relatório, não edição).
+- **Cobrar a régua, nunca subi-la.** O gate exige o que a base declarada e os artefatos exigem.
+  Defeito possível que nenhuma afirmação em vigor exige não é achado: é observação de maturidade
+  (seção Régua).
 - **Sem viés de foco.** Rodar o gate = varredura neutra da taxonomia inteira; não prefaciar com um
-  "foco" que vicie o resultado.
+  "foco" que vicie o resultado. O recorte é fixo: a varredura percorre todo ID rastreável do
+  upstream e do DEFINE e todo item do File Manifest; o que vira achado é decidido pelo filtro de
+  admissão, não pela escolha do agente.
 
 ## Passo 0 — Resolver contexto do projeto (a partir do AGENTS.md)
 
@@ -76,6 +89,10 @@ Ler o `AGENTS.md` (e/ou `CLAUDE.md`) do projeto e extrair, SEM assumir:
   (modo `conformance`), e o que acontece com os achados abaixo dele (ex.: "crítico e alto bloqueiam;
   médio e baixo viram issue"). Critério de DoD **não medido ou falhando bloqueia sempre** no
   `conformance`, qualquer que seja o limiar. Sem limiar declarado, vale o default da seção Veredito.
+- **Base declarada**: o que o projeto fixa como padrão desde a primeira entrega — constituição,
+  convenções do `AGENTS.md`, ADRs, regras de CI (onde entram segurança e obrigação legal).
+- **Decisões registradas**: onde os artefatos guardam decisão do responsável — Open Questions e
+  Revision History do DEFINE/DESIGN, limites declarados, Fora de escopo, Changelog do PRD, ADRs.
 
 Se o projeto **não** declarar algo, cair nos defaults do AgentSpec (`.claude/sdd/`) e **registrar a
 suposição** no relatório (classe D).
@@ -95,9 +112,37 @@ Argumento: `readiness` ou `conformance` (default `conformance`).
   "sim/não" **não medido**. Como a delegação do `/build` é automática, é **a única trava forte**
   e roda depois do código — obrigatório **sem exceção**.
 
+## Régua — o que o gate cobra
+
+A régua é decidida no planejamento, não no gate:
+
+- **Base fixa**, desde a primeira entrega: a base declarada (Passo 0). Não varia com o estágio do
+  produto.
+- **Régua que sobe com o uso**: robustez para cenário raro, escala além do uso atual, automação de
+  operação rara, observabilidade profunda, cobertura exaustiva de borda. Sobe só com justificativa
+  registrada — evidência de uso, obrigação nova ou decisão do responsável.
+- O que excede a régua é registrado como **evolução**, com o gatilho que a justificaria.
+
+O gate cobra a régua declarada e **nunca a sobe**:
+
+- **Afirmação em vigor**: enunciado da base declarada ou de um artefato upstream, citável por ID ou
+  por local (artefato + seção). Afirmação marcada `[a definir]`, diferida ou fora de escopo não
+  exige nada da camada de baixo; resolvê-la ou implementá-la sem decisão registrada é achado
+  (classes A e D).
+- **Filtro de admissão**: só é achado o que cita uma afirmação em vigor que a camada de baixo
+  **derruba, contradiz, enfraquece, deixa ambígua** (duas leituras que mudam o que se constrói),
+  **não realiza** ou **não prova**.
+- **Observação de maturidade**: o que não tem afirmação em vigor para citar, e o cenário
+  **improvável** (seção Severidade) que nenhum artefato declara. Sem severidade, nunca bloqueia e
+  não é candidata a issue — o responsável decide se a registra.
+- **Decidido**: achado coberto por decisão registrada nos artefatos (mesmo objeto, mesmo estado
+  esperado) é listado como decidido, com a referência; não conta como achado novo e não bloqueia.
+  Critério de DoD que falha ou não foi medido no `conformance` segue bloqueando (Veredito).
+
 ## Taxonomia de falhas (A–E) — o backbone
 
-Rodar as cinco classes. São ortogonais ao que os gates nativos do AgentSpec cobrem.
+Rodar as cinco classes. São ortogonais ao que os gates nativos do AgentSpec cobrem. Cada classe
+passa pelo filtro de admissão (seção Régua).
 
 - **A. Drift de rastreabilidade (upstream → downstream).**
   Requisito/objetivo/métrica/critério/constraint/item **in-scope** da fonte que foi **dropado** ou
@@ -144,7 +189,9 @@ tem de **realizar** o que a de cima exige.
 Para **cada** critério/métrica/gate "sim/não" e cada acceptance scenario:
 
 1. Derivar dos artefatos **como se prova** (o comando/observação que torna o critério verdadeiro).
-   Nunca hardcodar; ler do DEFINE (acceptance)/DESIGN (testing strategy)/CI o que o próprio projeto define como prova.
+   Nunca hardcodar; ler do DEFINE (acceptance)/DESIGN (testing strategy)/CI o que o próprio projeto
+   define como prova. A prova cobre os cenários que o critério declara — o falsificador dele diz
+   quais são; cenário que o critério não declara não entra na prova.
 2. **Rodar a prova** (ou, se exigir recurso indisponível, emitir o **comando exato** e marcar
    pendente com a razão). Capturar a saída como evidência.
 3. Classificar o resultado no **ledger** (abaixo). Só marca **VERIFICADO(sim)** com **evidência
@@ -156,16 +203,41 @@ a UI headless (ex.: Playwright) para os acceptance scenarios; comparar contrato 
 
 ## Severidade
 
-Endurecer no eixo de DoD:
+A severidade sai de dois fatos verificáveis, nunca de julgamento livre. Cada achado registra os
+dois, com o fato que sustenta cada um.
 
-- **CRITICAL** — DoD/critério "sim/não" **não satisfeito** ou **NÃO-MEDIDO**; MUST funcional sem
-  prova; requisito in-scope **dropado/enfraquecido**; placeholder marcado como pronto; violação de
-  princípio da constituição (constituição = CRITICAL automático).
-- **HIGH** — requisito conflitante/ambíguo em atributo crítico; acceptance não exercitado; deferral
-  sem justificativa explícita.
-- **MEDIUM** — drift de terminologia/enum/ordem; cobertura não-funcional faltando; edge case
-  subespecificado.
-- **LOW** — redação/estilo; redundância menor; referência morta cosmética.
+**Peso** — o nível da afirmação em vigor que o achado cita:
+
+| Peso | Afirmação atingida |
+|---|---|
+| 1 | princípio da constituição, critério de DoD (métrica do PRD, critério de sucesso, teste de aceite) ou MUST |
+| 2 | outro requisito, regra ou restrição do upstream; decisão de ADR; convenção declarada |
+| 3 | decisão interna do DESIGN; cobertura não funcional fora do DoD |
+| 4 | só a forma: terminologia, enum, ordem, slug, referência morta, redação |
+
+**Manifestação** — o que precisa acontecer para a falha aparecer, decidido por quem controla o
+gatilho. O achado lista as condições do gatilho:
+
+| Manifestação | Teste |
+|---|---|
+| certa | a falha já está no texto ou no código, ou acontece em toda execução do caminho principal |
+| provável | um ator a dispara quando quer — fluxo alternativo, entrada inválida, envio duplicado, chamada direta à API, inclusive repetindo até acertar uma janela de tempo —, ou ela depende de uma janela de horas ou dias (pendência, prazo) |
+| improvável | depende de eventos independentes coincidirem numa janela de segundos — concorrência no mesmo objeto, mudança de estado entre dois passos, falha de infraestrutura num passo específico |
+
+Cenário declarado num critério ou falsificador está exigido: descumpri-lo é **certo**, porque a
+raridade já foi pesada por quem o declarou. Cenário improvável não declarado é observação de
+maturidade, não achado.
+
+| Peso \ Manifestação | certa | provável |
+|---|---|---|
+| 1 | CRITICAL | HIGH |
+| 2 | HIGH | MEDIUM |
+| 3 | MEDIUM | LOW |
+| 4 | LOW | LOW |
+
+- Na dúvida entre dois níveis, de peso ou de manifestação, vale o **menor** que um fato citado
+  sustente.
+- A constituição entra no peso 1 e segue a manifestação, como qualquer afirmação.
 
 A severidade classifica; **o que bloqueia é o limiar** resolvido no Passo 0 (seção Veredito).
 
@@ -174,7 +246,7 @@ A severidade classifica; **o que bloqueia é o limiar** resolvido no Passo 0 (se
 Emitir, **no idioma do projeto**:
 
 ### 1. Tabela de findings
-`| ID | Classe (A–E) | Severidade | Origem (requisito/ID) | Onde quebrou (artefato:linha ou código:arquivo) | Lacuna de evidência | Ação de fluxo (qual upstream corrigir + re-rodar qual comando) |`
+`| ID | Classe (A–E) | Afirmação em vigor (ID ou local) | Peso | Manifestação (condições do gatilho) | Severidade | Onde quebrou (artefato:linha ou código:arquivo) | Lacuna de evidência | Ação de fluxo (qual upstream corrigir + re-rodar qual comando) |`
 
 ### 2. Ledger de conformidade por requisito *(o entregável central)*
 Uma linha por requisito/critério/métrica rastreável:
@@ -184,7 +256,8 @@ máximo possível é "coberto por task adequada"/"não coberto" (sem execução)
 evidência ao vivo para os "sim/não".
 
 ### 3. Métricas
-Total de requisitos rastreados · % VERIFICADO(sim) · # NÃO-MEDIDO · # CRITICAL · # por classe.
+Total de requisitos rastreados · % VERIFICADO(sim) · # NÃO-MEDIDO · # CRITICAL · # por classe ·
+# decididos · # observações de maturidade.
 
 ### 4. Veredito
 Aplicar o **limiar do projeto** (Passo 0):
@@ -196,16 +269,32 @@ Aplicar o **limiar do projeto** (Passo 0):
 - **Default, se o projeto não declarar limiar:** `conformance` bloqueia com qualquer CRITICAL;
   `readiness` bloqueia com qualquer drift/enfraquecimento/contradição-na-fonte pendente. Registrar a
   suposição (classe D).
+- Decididos e observações de maturidade não entram no veredito, salvo o DoD absoluto do
+  `conformance`.
 
 ### 5. Achados abaixo do limiar
 Listar como **candidatos a issue**, **um por unidade que fecha sozinha** (um estado esperado, um
 caminho de entrega) — nunca agrupados. Cada um com: título curto, onde está, o estado esperado e o
 upstream que o corrige. Não bloqueiam; a abertura das issues é decisão do responsável.
 
-### 6. Remediação (proposta, não aplicada)
+### 6. Decididos
+`| ID | Afirmação | Decisão registrada (artefato:seção) |`
+
+### 7. Observações de maturidade
+Uma linha cada: o que foi observado; por que não é achado (sem afirmação em vigor, ou improvável
+não declarado); o gatilho que justificaria subir a régua; e o caminho mais barato se o responsável
+quiser registrar (declarar o limite ou a evolução no artefato de origem).
+
+### 8. Remediação (proposta, não aplicada)
 Perguntar ao responsável se quer sugestões concretas de remediação para os top-N — **sem aplicá-las**.
-Cada sugestão aponta o **artefato-fonte a corrigir** e **qual comando re-rodar** para cascatear
-(nunca "editar o downstream à mão").
+Cada sugestão:
+- aponta o **artefato-fonte a corrigir** e **qual comando re-rodar** para cascatear (nunca "editar
+  o downstream à mão");
+- lista primeiro a opção aceitável **mais barata** — muitas vezes declarar o limite no artefato de
+  origem — e diz a classe de custo: **local** (texto de artefato existente, ou código existente sem
+  estrutura nova) ou **mecanismo novo** (componente, tabela, coluna ou estado, lock, job,
+  dependência, tela);
+- não propõe mecanismo para cenário que a régua não exige (YAGNI/KISS).
 
 ## Enforcement
 
@@ -215,11 +304,15 @@ Esta skill **não** registra hooks próprios. O "sempre rodar antes do PR" é en
 
 ## Done When
 
-- [ ] Contexto do projeto resolvido a partir do AGENTS.md (paths/IDs/idioma/branch de PR/limiar).
+- [ ] Contexto do projeto resolvido a partir do AGENTS.md (paths/IDs/idioma/branch de PR/limiar,
+      base declarada e onde ficam as decisões registradas).
 - [ ] Taxonomia A–E rodada na matriz de confronto direcional (código incluído no modo conformance).
+- [ ] Filtro de admissão aplicado: todo achado cita uma afirmação em vigor; o resto está em
+      decididos ou em observações de maturidade.
+- [ ] Severidade de cada achado por peso × manifestação, com o fato de cada um citado.
 - [ ] Ledger de conformidade emitido; cada DoD "sim/não" com estado + evidência (conformance) ou
       cobertura (readiness).
 - [ ] Veredito (APROVADO/BLOQUEADO ou PRONTO/NÃO PRONTO) pelo limiar do projeto, com DoD
       FALHOU/NÃO-MEDIDO explicitados.
 - [ ] Achados abaixo do limiar listados como candidatos a issue, um por unidade.
-- [ ] Nenhum arquivo modificado; remediação apenas proposta.
+- [ ] Nenhum arquivo modificado; remediação apenas proposta, a opção mais barata primeiro.
