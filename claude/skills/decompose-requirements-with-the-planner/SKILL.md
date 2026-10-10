@@ -3,13 +3,14 @@ name: decompose-requirements-with-the-planner
 description: |
   Decompõe requisitos em épicos e features invocando o agente the-planner: a partir do
   documento de requisitos base (ex.: requisitos.md, prd.md) gera a visão geral e um PRD por
-  feature, agrupados em diretórios de épico; ou reformula um PRD existente que se revelou grande
-  demais em dois ou mais PRDs. Aplica as regras de hierarquia, IDs estáveis, critério de feature,
-  dono de requisito no corte, restrição repetida, altitude, régua de exigência e ordem por grafo
-  de dependência. Use quando o projeto começa a ser planejado a partir de um documento de
-  requisitos, quando é preciso refazer a quebra em épicos e features, ou quando uma feature contém
-  duas ou mais entregas que podem ir para produção separadas. Não use para refinar o conteúdo de
-  um PRD que continua sendo uma feature só — isso é refine-prd-with-the-planner.
+  feature, agrupados em diretórios de épico; reformula um PRD existente que se revelou grande
+  demais em dois ou mais PRDs; ou acrescenta ao plano uma feature nova. Aplica as regras de
+  hierarquia, IDs estáveis, critério de feature, dono de requisito no corte, restrição repetida,
+  altitude, régua de exigência e ordem por grafo de dependência. Use quando o projeto começa a ser
+  planejado a partir de um documento de requisitos, quando é preciso refazer a quebra em épicos e
+  features, quando uma feature contém duas ou mais entregas que podem ir para produção separadas,
+  ou quando uma feature nova entra no plano. Não use para refinar o conteúdo de um PRD que
+  continua sendo uma feature só — isso é refine-prd-with-the-planner.
 ---
 
 # Decompor requisitos com o the-planner
@@ -38,6 +39,7 @@ description: |
 |---|---|---|
 | **Plano inteiro** | O documento de requisitos base | Visão geral + um PRD por feature, nos diretórios de épico |
 | **Desmembramento** | Um PRD existente + a razão do corte (as entregas que vão para produção separadas) | Dois ou mais PRDs no lugar do original + visão atualizada |
+| **Feature nova** | A descrição da feature (escopo, restrições, falsificador) e o épico | Um PRD novo no diretório do épico + visão atualizada (tabela, grafo, épico) |
 
 O desmembramento aparece quando o teste de feature grande demais acusa — em geral no brainstorm,
 no `/define` ou no `/design` da feature. Ver a seção 2 das regras.
@@ -57,6 +59,7 @@ no `/define` ou no `/design` da feature. Ver a seção 2 das regras.
 - Branch de trabalho, nunca branch protegida (ver `AGENTS.md`).
 - **Plano inteiro:** o diretório de PRDs ainda não tem o plano (ou o responsável decidiu refazê-lo).
 - **Desmembramento:** o PRD existe, e a razão do corte está escrita.
+- **Feature nova:** o plano existe, e a feature não está nele.
 
 ## Procedimento
 
@@ -74,6 +77,10 @@ no `/define` ou no `/design` da feature. Ver a seção 2 das regras.
    > — **Desmembramento:** PRD em «caminho»; razão do corte: «…». Reformule-o em dois ou mais PRDs
    > (IDs com letra, arquivos novos no diretório do épico), atualize a visão (tabela, grafo, épico)
    > e as remissões dos outros PRDs ao ID de origem. Edite a visão no lugar, sem renumerar seções.
+   >
+   > — **Feature nova:** descrição: «…»; épico: «…». Crie o PRD no diretório do épico, com o ID
+   > pela seção 3 das regras, e atualize a visão (tabela, grafo, épico). Edite a visão no lugar,
+   > sem renumerar seções.
    >
    > Onde a entrada não decide (dono de requisito no corte, objetivo ou critério de épico,
    > conceito sem feature), **não escolha**: marque `[a definir]` e liste como pergunta.
@@ -99,7 +106,7 @@ no `/define` ou no `/design` da feature. Ver a seção 2 das regras.
    - Links e remissões entre visão e PRDs resolvem para arquivo existente.
    - Nenhum mecanismo em PRD ou visão (rotas, nomes de tabela, policies).
    - Nenhum objetivo, critério ou dono preenchido sem lastro; o que falta está `[a definir]`.
-   - Desmembramento: cabeçalhos de seção da visão com a mesma numeração de antes.
+   - Desmembramento e feature nova: cabeçalhos de seção da visão com a mesma numeração de antes.
 
 5. **Evoluções.** Com o aval do responsável, registre cada evolução que o agente listou no
    registro de evoluções que o `AGENTS.md` declara — uma por item, com a origem e o gatilho. Sem
@@ -111,4 +118,4 @@ no `/define` ou no `/design` da feature. Ver a seção 2 das regras.
 
 O conteúdo de cada feature é refinado antes do ciclo dela pela `refine-prd-with-the-planner`
 (a partir do brainstorm da feature ou de uma decisão). Esta skill volta a ser usada só quando a
-estrutura muda: um PRD que precisa virar dois ou mais, ou um plano refeito.
+estrutura muda: um PRD que precisa virar dois ou mais, uma feature nova, ou um plano refeito.
