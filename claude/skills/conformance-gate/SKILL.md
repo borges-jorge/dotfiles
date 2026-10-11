@@ -172,7 +172,10 @@ passa pelo filtro de admissão (seção Régua).
   Todo ponto onde um artefato deixou "a definir"/"diferido"/ambíguo e **alguém resolveu
   unilateralmente** um lado → listar para **confirmação humana** (torna decisão implícita em gate
   explícito). Adjetivo qualitativo dado como "satisfeito" sem medida concreta. Assumption feita e
-  **não registrada**.
+  **não registrada**. Afirmação de mecanismo — comportamento de código já entregue ou de biblioteca
+  com estado — que sustenta uma decisão do DESIGN **sem prova citada** (arquivo e linha, ou a
+  execução que a mostrou) nem marca de hipótese; no `readiness` confere-se a citação e que o trecho
+  citado existe, sem executar nada.
 - **E. Higiene estendida.**
   Drift de terminologia/número/enum/ordem/slug entre **todos** os artefatos **e** o código.
   Referência morta (doc cita arquivo/flag/rota que não existe mais).

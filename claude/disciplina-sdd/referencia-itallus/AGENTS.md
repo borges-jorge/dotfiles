@@ -170,6 +170,15 @@ qualidade da estrutura**.
   History e cascateia; resíduo neles não some por re-rodar, corrige-se na origem); o `/build`
   **regenera** o código e escreve o `BUILD_REPORT`. Não há `tasks.md`: o que já roda é medido pelo
   `conformance-gate` (roteiro §8.2).
+- **Afirmação de mecanismo é provada antes de virar decisão.** Quando uma decisão depende de como o
+  código já entregue ou uma biblioteca com estado se comporta (RLS, transação, sessão, provedor), o
+  `DESIGN` cita a prova — o trecho de código (arquivo e linha) ou a execução que a mostrou; sem prova,
+  a afirmação fica marcada como hipótese. O agente do `/design` tem shell para ler e provar; o do
+  `/iterate` não, então no `/iterate` o agente principal prova antes de montar o argumento, que passa
+  o comportamento verificado como fato. O `readiness` reprova afirmação de mecanismo sem prova citada.
+- **Decisões em lote, uma passada por camada.** As decisões de uma rodada (gate, teste, revisão)
+  entram juntas: um refino, depois um `/iterate` no `DEFINE` e um no `DESIGN`, nessa ordem e só nas
+  camadas que a decisão alcança — nunca um `/iterate` por achado.
 
 ### Critérios e provas
 Estas regras recaem sobre **critérios de DoD**: métricas do PRD, critérios de sucesso e testes de
