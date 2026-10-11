@@ -27,6 +27,12 @@ labels: [chore]
 - [ ] {action on `{path}`}
 - [ ] {action on `{path}`}
 
+## Expected
+
+<!-- The state that shows, once the work is done, that it was reached. One or two lines. -->
+
+{Observable state after the work.}
+
 ## Why now
 
 <!-- One line: what it unblocks, or what it costs to keep postponing.
