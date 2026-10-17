@@ -224,6 +224,11 @@ dois, com o fato que sustenta cada um.
 | 3 | decisão interna do DESIGN; cobertura não funcional fora do DoD |
 | 4 | só a forma: terminologia, enum, ordem, slug, referência morta, redação |
 
+O peso é o da afirmação que o achado viola, nunca o tamanho ou a aparência do defeito. Defeito de
+texto que fere uma convenção declarada (no `AGENTS.md`, na constituição, num ADR) é peso 2, e não
+4. O peso 4 vale só quando nenhuma afirmação de peso 1 a 3 rege aquele texto. Achar uma afirmação
+de peso maior que rege o defeito encerra a escolha do peso: não há dúvida a resolver pelo menor.
+
 **Manifestação** — o que precisa acontecer para a falha aparecer, decidido por quem controla o
 gatilho. O achado lista as condições do gatilho:
 
@@ -245,7 +250,9 @@ maturidade, não achado.
 | 4 | LOW | LOW |
 
 - Na dúvida entre dois níveis, de peso ou de manifestação, vale o **menor** que um fato citado
-  sustente.
+  sustente. Há dúvida só quando nenhum fato citado decide entre os dois níveis; registrar dois
+  pesos ("2 ou 4") para o mesmo achado e ficar com o menor, havendo afirmação citada que sustenta
+  o maior, é erro de aplicação.
 - A constituição entra no peso 1 e segue a manifestação, como qualquer afirmação.
 
 A severidade classifica; **o que bloqueia é o limiar** resolvido no Passo 0 (seção Veredito).
