@@ -51,7 +51,9 @@ resolve tudo lendo o `AGENTS.md` do projeto onde roda. Opera por **classes de fa
   argumento, a varredura é neutra e completa. Se um fato do contexto for relevante, ele **tem de
   ser re-derivado do artefato/código aqui** para contar — citação de memória do chat não é prova.
   Issues, PRs e relatórios de gates anteriores **não** são entrada: uma decisão do responsável
-  conta quando está registrada nos artefatos.
+  conta quando está registrada nos artefatos. A exceção são os **relatórios de review** que o
+  projeto declara (Passo 0), no modo `conformance`: entram como **candidatos**, nunca como achados
+  prontos — cada um é provado de novo neste run (seção Relatórios de review).
 - **Read-only.** NÃO modifica nenhum arquivo. Nunca aplica correção. Se propõe remediação, é
   como **texto** — e a correção real entra **pelo fluxo** (corrige o artefato-fonte a montante e
   re-roda o comando para cascatear), NUNCA ad hoc.
@@ -95,6 +97,9 @@ Ler o `AGENTS.md` (e/ou `CLAUDE.md`) do projeto e extrair, SEM assumir:
   Revision History do DEFINE/DESIGN, limites declarados, Fora de escopo, Changelog do PRD, ADRs.
 - **Registro de evoluções**: onde o projeto registra o que fica acima da régua, com a origem e o
   gatilho (ex.: issue com label própria). O gate não lê o registro; só aponta para ele.
+- **Relatórios de review**: quais reviews o projeto exige depois do build (ex.: code review e
+  security review), onde ficam os relatórios, o template e a branch que recebe o PR. Sem declaração,
+  o gate não exige nem lê relatório de review.
 
 Se o projeto **não** declarar algo, cair nos defaults do AgentSpec (`.claude/sdd/`) e **registrar a
 suposição** no relatório (classe D).
@@ -193,6 +198,29 @@ passa pelo filtro de admissão (seção Régua).
 Confrontos **direcionais** (não todos-contra-todos): a fonte-upstream manda; cada camada downstream
 tem de **realizar** o que a de cima exige.
 
+## Relatórios de review (modo `conformance`)
+
+Os reviews procuram defeito de código e vulnerabilidade no diff, sem ancorar em afirmação dos
+artefatos, sem verificar o que acham e sem régua. O gate os recebe como fonte de candidatos e aplica
+a eles o mesmo critério dos próprios achados.
+
+1. **Presença e âncora.** Para cada review que o projeto exige, o relatório existe, segue o template
+   e declara o commit revisado e a base do diff. O commit revisado é o **último commit que muda algo
+   fora dos relatórios** (`git diff --name-only <commit revisado> HEAD` só lista relatórios de
+   review) e o ponto de divergência da base é o mesmo da branch que recebe o PR
+   (`git merge-base HEAD <branch do PR>`). Relatório ausente, sem os campos ou ancorado noutro
+   commit ou noutra base é achado de classe C contra a convenção do projeto, e o relatório não é
+   usado.
+2. **Prova.** Cada achado do relatório é re-derivado neste run: ler o código citado e, quando o
+   comportamento depende de execução ou de biblioteca, reproduzir o gatilho (teste, chamada,
+   leitura da fonte da biblioteca). O texto do review não é evidência. Achado que não se reproduz é
+   **refutado**, com a prova.
+3. **Admissão.** O achado provado passa pelo filtro de admissão (seção Régua): cita uma afirmação em
+   vigor e recebe classe, peso e manifestação como qualquer achado; coberto por decisão registrada,
+   vai para decididos; sem afirmação em vigor, ou cenário improvável não declarado, vira observação
+   de maturidade.
+4. **Disposição.** Todo achado de todo relatório sai na tabela de disposição (Saída) — nenhum some.
+
 ## Regra de evidência (modo `conformance`) — o coração do gate
 
 Para **cada** critério/métrica/gate "sim/não" e cada acceptance scenario:
@@ -254,6 +282,10 @@ maturidade, não achado.
   pesos ("2 ou 4") para o mesmo achado e ficar com o menor, havendo afirmação citada que sustenta
   o maior, é erro de aplicação.
 - A constituição entra no peso 1 e segue a manifestação, como qualquer afirmação.
+- **Princípio genérico de qualidade** (clean code, DRY, SOLID, padrões de projeto) legitima a
+  existência do pilar, não cada ocorrência. Um defeito de código só recebe o peso da base declarada
+  quando uma cláusula dela rege aquele caso (ex.: a regra de dependência entre camadas); sem
+  cláusula, o peso é 3.
 
 A severidade classifica; **o que bloqueia é o limiar** resolvido no Passo 0 (seção Veredito).
 
@@ -273,7 +305,7 @@ evidência ao vivo para os "sim/não".
 
 ### 3. Métricas
 Total de requisitos rastreados · % VERIFICADO(sim) · # NÃO-MEDIDO · # CRITICAL · # por classe ·
-# decididos · # observações de maturidade.
+# decididos · # observações de maturidade · achados de review por disposição.
 
 ### 4. Veredito
 Aplicar o **limiar do projeto** (Passo 0):
@@ -293,16 +325,22 @@ Listar como **candidatos a issue**, **um por unidade que fecha sozinha** (um est
 caminho de entrega) — nunca agrupados. Cada um com: título curto, onde está, o estado esperado e o
 upstream que o corrige. Não bloqueiam; a abertura das issues é decisão do responsável.
 
-### 6. Decididos
+### 6. Disposição dos achados de review *(conformance, quando o projeto declara reviews)*
+`| Review | # | Achado (curto) | Prova | Disposição |`
+onde **Disposição ∈ `refutado` · `observação` · `decidido` · `finding <ID>`**, uma linha por achado
+de cada relatório, na ordem do relatório. Relatório recusado no passo de presença e âncora sai com a
+razão, sem linhas de achado.
+
+### 7. Decididos
 `| ID | Afirmação | Decisão registrada (artefato:seção) |`
 
-### 7. Observações de maturidade
+### 8. Observações de maturidade
 Uma linha cada: o que foi observado; por que não é achado (sem afirmação em vigor, ou improvável
 não declarado); o gatilho que justificaria subir a régua; e o caminho mais barato se o responsável
 quiser registrar (a evolução no registro do projeto, com o gatilho; o limite declarado no artefato
 de origem).
 
-### 8. Remediação (proposta, não aplicada)
+### 9. Remediação (proposta, não aplicada)
 Perguntar ao responsável se quer sugestões concretas de remediação para os top-N — **sem aplicá-las**.
 Cada sugestão:
 - aponta o **artefato-fonte a corrigir** e **qual comando re-rodar** para cascatear (nunca "editar
@@ -328,6 +366,8 @@ Esta skill **não** registra hooks próprios. O "sempre rodar antes do PR" é en
 - [ ] Filtro de admissão aplicado: todo achado cita uma afirmação em vigor; o resto está em
       decididos ou em observações de maturidade.
 - [ ] Severidade de cada achado por peso × manifestação, com o fato de cada um citado.
+- [ ] Relatórios de review declarados conferidos (presença, commit, base) e cada achado deles
+      provado e com disposição (conformance).
 - [ ] Ledger de conformidade emitido; cada DoD "sim/não" com estado + evidência (conformance) ou
       cobertura (readiness).
 - [ ] Veredito (APROVADO/BLOQUEADO ou PRONTO/NÃO PRONTO) pelo limiar do projeto, com DoD
