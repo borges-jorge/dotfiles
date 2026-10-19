@@ -237,17 +237,18 @@ falsificador próprio.
 - **`readiness`, antes do `/build`:** consistência DEFINE↔DESIGN e fidelidade ao upstream
   (PRD/visão/ADRs/constituição). Achado **crítico ou alto bloqueia o `/build`**; médio e baixo viram
   issue, uma por unidade que fecha sozinha.
-- **Reviews, depois do `/build` e antes do `conformance`:** o responsável roda `/code-review high`
-  (sem `--fix`) e `/security-review` sobre o commit do build, com a árvore limpa. O agente principal
-  grava a saída de cada um, sem alteração, em `.claude/sdd/reports/CODE_REVIEW_{FEATURE}.md` e
+- **Reviews, depois do `/build` e antes do `conformance`:** o responsável roda
+  `/code-review high origin/qa...HEAD` (sem `--fix`) e `/security-review` sobre o commit do build,
+  com a árvore limpa. O agente principal grava a saída de cada um, sem alteração, em `.claude/sdd/reports/CODE_REVIEW_{FEATURE}.md` e
   `SECURITY_REVIEW_{FEATURE}.md`, no template, e commita os dois num commit próprio. O review não
   classifica nem decide: cada achado é candidato que o `conformance` prova, filtra e classifica. O
-  relatório vale enquanto o diff da branch contra a base for o que ele revisou; mudou o diff, roda-se
+  relatório vale enquanto o diff contra a base que ele declara for o que ele revisou (o code review
+  compara com a `qa`, pelo alvo explícito; o security review, com a `master`); mudou o diff, roda-se
   de novo. O `/ship` arquiva os dois relatórios com a feature.
 - **`conformance`, antes do PR para `qa` ou de declarar a feature pronta:** confronta artefatos↔código
   e exige evidência ao vivo. **Critério de DoD não medido ou falhando bloqueia sempre**; os demais
-  achados seguem o limiar do `readiness`. Relatório de review ausente, ou feito sobre um diff que não
-  é mais o da branch, bloqueia. É a única trava forte depois do código — obrigatório sem exceção.
+  achados seguem o limiar do `readiness`. Relatório de review ausente, ou cujo diff contra a base
+  declarada mudou, bloqueia. É a única trava forte depois do código — obrigatório sem exceção.
 
 ## Convenções
 - **Idioma — comunicação:** **pt-BR**.
