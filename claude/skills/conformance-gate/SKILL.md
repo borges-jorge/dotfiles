@@ -51,9 +51,11 @@ resolve tudo lendo o `AGENTS.md` do projeto onde roda. Opera por **classes de fa
   argumento, a varredura é neutra e completa. Se um fato do contexto for relevante, ele **tem de
   ser re-derivado do artefato/código aqui** para contar — citação de memória do chat não é prova.
   Issues, PRs e relatórios de gates anteriores **não** são entrada: uma decisão do responsável
-  conta quando está registrada nos artefatos. A exceção são os **relatórios de review** que o
-  projeto declara (Passo 0), no modo `conformance`: entram como **candidatos**, nunca como achados
-  prontos — cada um é provado de novo neste run (seção Relatórios de review).
+  conta quando está registrada nos artefatos. As exceções, no modo `conformance`, são os
+  relatórios que o projeto declara (Passo 0): os **de review** entram como **candidatos**, nunca como
+  achados prontos — cada um é provado de novo neste run (seção Relatórios de review); os **de
+  validação** entram como **evidência** de execução que o gate não consegue repetir (seção
+  Relatórios de validação).
 - **Read-only.** NÃO modifica nenhum arquivo. Nunca aplica correção. Se propõe remediação, é
   como **texto** — e a correção real entra **pelo fluxo** (corrige o artefato-fonte a montante e
   re-roda o comando para cascatear), NUNCA ad hoc.
@@ -100,6 +102,9 @@ Ler o `AGENTS.md` (e/ou `CLAUDE.md`) do projeto e extrair, SEM assumir:
 - **Relatórios de review**: quais reviews o projeto exige depois do build (ex.: code review e
   security review), onde ficam os relatórios, o template e a branch que recebe o PR. Sem declaração,
   o gate não exige nem lê relatório de review.
+- **Relatórios de validação**: execução que o gate não consegue repetir (ex.: exige credencial do
+  responsável), onde fica o relatório com a saída e o template. Sem declaração, o gate não lê
+  relatório de validação.
 
 Se o projeto **não** declarar algo, cair nos defaults do AgentSpec (`.claude/sdd/`) e **registrar a
 suposição** no relatório (classe D).
@@ -222,6 +227,20 @@ a eles o mesmo critério dos próprios achados.
    vai para decididos; sem afirmação em vigor, ou cenário improvável não declarado, vira observação
    de maturidade.
 4. **Disposição.** Todo achado de todo relatório sai na tabela de disposição (Saída) — nenhum some.
+
+## Relatórios de validação (modo `conformance`)
+
+Quando a prova de um critério exige recurso que o gate não tem, o projeto pode declarar um
+relatório com a saída da execução feita pelo responsável.
+
+1. **Presença e âncora.** O relatório segue o template e declara o comando, o commit validado e a
+   base do diff. Está ancorado pela mesma regra dos relatórios de review: o código que ele validou é
+   o código de hoje contra a mesma base (mesmo `git patch-id --stable`, excluídos os relatórios).
+   Desancorado, não vale como evidência.
+2. **Leitura.** A saída é a evidência: o critério fica `VERIFICADO(sim)` só se ela mostra o que o
+   falsificador do critério exige; o que ela não mostra fica `NÃO-MEDIDO`. Saída que mostra falha
+   deixa o critério `FALHOU`.
+3. **Sem relatório ancorado**, vale a Regra de evidência: emitir o comando exato e marcar pendente.
 
 ## Regra de evidência (modo `conformance`) — o coração do gate
 
@@ -370,6 +389,8 @@ Esta skill **não** registra hooks próprios. O "sempre rodar antes do PR" é en
 - [ ] Severidade de cada achado por peso × manifestação, com o fato de cada um citado.
 - [ ] Relatórios de review declarados conferidos (presença, âncora pelo diff) e cada achado deles
       provado e com disposição (conformance).
+- [ ] Relatórios de validação declarados conferidos (presença, âncora) e lidos contra o
+      falsificador de cada critério que provam (conformance).
 - [ ] Ledger de conformidade emitido; cada DoD "sim/não" com estado + evidência (conformance) ou
       cobertura (readiness).
 - [ ] Veredito (APROVADO/BLOQUEADO ou PRONTO/NÃO PRONTO) pelo limiar do projeto, com DoD
