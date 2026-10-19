@@ -532,7 +532,9 @@ ela é construída determina se a infra nasce validada ou apodrece.
   se tivessem `container_name` — o nome é derivado pelo orquestrador (`itallus-api-1`/`itallus-web-1`) —
   e citou segredos por apelido ("senha do Postgres") em vez do nome literal da variável.
 - **Bloco de estado não ganha PR próprio.** Cada ajuste do bloco de estado do `CLAUDE.md` custaria dois
-  PRs e uma release patch; ele muda dentro do PR de transição de feature (abertura ou entrega).
+  PRs e uma release patch; ele muda dentro do PR de transição de feature (abertura ou entrega). Na
+  abertura, a branch aponta a feature ativa antes do `/build`: na 02a o bloco mudou depois dos reviews,
+  o diff da branch mudou e os relatórios de review e de validação tiveram de ser refeitos.
 - **Um gate que valida os artefatos contra ELES MESMOS auto-valida.** O `conformance-gate readiness`, ao
   conferir `DEFINE`/`DESIGN` entre si, tem esse risco: um critério vago **+** um design vago **concordam**
   e passam — por isso é preciso não parar nessa checagem interna. Fechar a classe exige um referente
