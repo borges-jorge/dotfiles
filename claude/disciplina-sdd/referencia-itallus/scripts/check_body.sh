@@ -33,7 +33,7 @@ fi
 case "$tipo" in
     pr)      obrigatorias="## O que entra|## Evidência|## Ainda não entra"
              modelo=".github/PULL_REQUEST_TEMPLATE.md" ;;
-    issue)   obrigatorias="## Context|## Expected"
+    issue)   obrigatorias="## Context|## Expected|## Delivery"
              modelo=".github/ISSUE_TEMPLATE/" ;;
     # A release nasce da CI assinada pelo gerador, e dela so se pode exigir o que
     # ele produz. A nota enriquecida a mao perde a assinatura e passa a responder
