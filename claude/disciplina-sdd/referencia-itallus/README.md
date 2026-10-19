@@ -1,6 +1,6 @@
 # Referência: disciplina SDD do itallus
 
-Cópia dos artefatos de processo do itallus (`borgesj-itl/itallus`, branch `qa`, commit `44dc226`),
+Cópia dos artefatos de processo do itallus (`borgesj-itl/itallus`, branch `qa`, commit `2af4a98`),
 usada como referência para reformular a disciplina e empacotá-la (issue #10). Ao executar o plano, o
 que é específico do itallus sai ou vira parâmetro do projeto.
 

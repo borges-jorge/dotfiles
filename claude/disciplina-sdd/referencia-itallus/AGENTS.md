@@ -91,7 +91,9 @@ Pull Request, e a branch de trabalho é **`<tipo>/<nome>`** com `tipo` em
 - **Onde cada decisão mora:** nos próprios artefatos — AgentSpec (`DEFINE`/`DESIGN`/`BUILD_REPORT`,
   em `.claude/sdd/`) e the-planner (visão + PRDs/ADRs). Nada de `.md` ad hoc de controle no repo;
   estado volátil fica na memória do agente. O **bloco de estado do `CLAUDE.md`** muda só dentro de PR
-  de transição de feature (abertura ou entrega), nunca em PR próprio.
+  de transição de feature (abertura ou entrega), nunca em PR próprio. Na abertura, a branch da feature
+  aponta a feature ativa no bloco antes do `/build`: mudança depois dos reviews tira a âncora dos
+  relatórios.
 - **Cenário de validação ≠ runbook.** Aceitação no DEFINE, estratégia de teste no DESIGN; setup de
   ambiente mora no `README.md` (dev) e no `DEPLOY.md` (produção).
 
