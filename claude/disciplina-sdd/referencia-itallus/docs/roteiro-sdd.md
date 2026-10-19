@@ -287,7 +287,8 @@ controle** que evitam drift e retrabalho. Sequência completa (sempre as 5 fases
    `.claude/sdd/templates/REVIEW_REPORT_TEMPLATE.md`), com o commit revisado e a base do diff, num
    commit próprio, e vira **entrada do conformance**, que prova cada achado contra o código, aplica
    o filtro de admissão e a tabela de severidade. Classificar no chat criaria uma segunda régua. O
-   relatório vale só para o commit revisado: código mudou depois, roda-se de novo.
+   relatório vale enquanto o diff da branch contra a base for o que ele revisou (mesmo hash de patch):
+   trazer a `qa` para a branch sem mudar o que ela traz não o invalida; mudar o código, sim.
 10. **▶ Gate de conformidade — conformance (`/conformance-gate conformance`), OBRIGATÓRIO antes de PR.**
     Como a delegação do `/build` é automática, este é **a única trava forte e roda depois do código** —
     por isso é obrigatório **sem exceção**. **Antes de abrir PR para `qa`/declarar "done"**, rodar o gate
