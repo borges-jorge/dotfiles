@@ -33,6 +33,7 @@ Cada artefato tem um template, e é nele que a regra está escrita, no momento d
 | release notes | `.github/RELEASE_TEMPLATE/release-notes.md` | `check-release.yml` — sinaliza |
 | argumento de `/iterate` | seções `Mudança:`, `Fato provado:` e `Hipótese:` (Fluxo AgentSpec) | `.claude/hooks/check_iterate_argument.py` — bloqueia |
 | relatório de review | `.claude/sdd/templates/REVIEW_REPORT_TEMPLATE.md` (Gates) | `/conformance-gate conformance` — bloqueia |
+| relatório de validação | `.claude/sdd/templates/VALIDATION_REPORT_TEMPLATE.md` (Gates) | `/conformance-gate conformance` — lê como evidência |
 
 Assunto e título passam por `scripts/check_subject.sh`; os corpos, por `scripts/check_body.sh`.
 Uma implementação por regra, várias portas. **Uma issue por achado:** cada issue é uma unidade que
@@ -245,6 +246,12 @@ falsificador próprio.
   relatório vale enquanto o diff contra a base que ele declara for o que ele revisou (o code review
   compara com a `qa`, pelo alvo explícito; o security review, com a `master`); mudou o diff, roda-se
   de novo. O `/ship` arquiva os dois relatórios com a feature.
+- **Validação que o gate não consegue repetir** (exige credencial do responsável): o responsável
+  roda a execução que o `DESIGN` define, no terminal dele, sobre o commit do build e com a árvore
+  limpa. O agente principal grava a saída, sem alteração, em
+  `.claude/sdd/reports/VALIDATION_{FEATURE}.md`, no template, num commit próprio. O `conformance` lê
+  o relatório como evidência dos critérios que a execução prova; vale enquanto o código contra a
+  `qa` for o validado.
 - **`conformance`, antes do PR para `qa` ou de declarar a feature pronta:** confronta artefatos↔código
   e exige evidência ao vivo. **Critério de DoD não medido ou falhando bloqueia sempre**; os demais
   achados seguem o limiar do `readiness`. Relatório de review ausente, ou cujo diff contra a base
