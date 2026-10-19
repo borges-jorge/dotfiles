@@ -205,12 +205,13 @@ artefatos, sem verificar o que acham e sem régua. O gate os recebe como fonte d
 a eles o mesmo critério dos próprios achados.
 
 1. **Presença e âncora.** Para cada review que o projeto exige, o relatório existe, segue o template
-   e declara o commit revisado e a base do diff. O commit revisado é o **último commit que muda algo
-   fora dos relatórios** (`git diff --name-only <commit revisado> HEAD` só lista relatórios de
-   review) e o ponto de divergência da base é o mesmo da branch que recebe o PR
-   (`git merge-base HEAD <branch do PR>`). Relatório ausente, sem os campos ou ancorado noutro
-   commit ou noutra base é achado de classe C contra a convenção do projeto, e o relatório não é
-   usado.
+   e declara o commit revisado e a base do diff (referência e ponto de divergência). O relatório
+   está ancorado quando **o diff que ele revisou é o diff da branch hoje**: o patch entre o ponto de
+   divergência declarado e o commit revisado tem o mesmo `git patch-id --stable` que o patch entre
+   `git merge-base HEAD <branch do PR>` e `HEAD`, excluídos os relatórios de review. Merge da branch
+   do PR que não muda o que a branch traz mantém a âncora; qualquer mudança no diff da branch a
+   quebra. Relatório ausente, sem os campos ou desancorado é achado de classe C contra a convenção
+   do projeto, e o relatório não é usado.
 2. **Prova.** Cada achado do relatório é re-derivado neste run: ler o código citado e, quando o
    comportamento depende de execução ou de biblioteca, reproduzir o gatilho (teste, chamada,
    leitura da fonte da biblioteca). O texto do review não é evidência. Achado que não se reproduz é
@@ -366,7 +367,7 @@ Esta skill **não** registra hooks próprios. O "sempre rodar antes do PR" é en
 - [ ] Filtro de admissão aplicado: todo achado cita uma afirmação em vigor; o resto está em
       decididos ou em observações de maturidade.
 - [ ] Severidade de cada achado por peso × manifestação, com o fato de cada um citado.
-- [ ] Relatórios de review declarados conferidos (presença, commit, base) e cada achado deles
+- [ ] Relatórios de review declarados conferidos (presença, âncora pelo diff) e cada achado deles
       provado e com disposição (conformance).
 - [ ] Ledger de conformidade emitido; cada DoD "sim/não" com estado + evidência (conformance) ou
       cobertura (readiness).
