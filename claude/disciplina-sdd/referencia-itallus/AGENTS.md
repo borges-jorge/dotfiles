@@ -31,6 +31,8 @@ Cada artefato tem um template, e é nele que a regra está escrita, no momento d
 | issue | `.github/ISSUE_TEMPLATE/` — bug, tech-debt, chore | `check-issue.yml` — sinaliza e comenta |
 | pull request | `.github/PULL_REQUEST_TEMPLATE.md` | `check-pr-direction.yml` — título e corpo |
 | release notes | `.github/RELEASE_TEMPLATE/release-notes.md` | `check-release.yml` — sinaliza |
+| argumento de `/iterate` | seções `Mudança:`, `Fato provado:` e `Hipótese:` (Fluxo AgentSpec) | `.claude/hooks/check_iterate_argument.py` — bloqueia |
+| relatório de review | `.claude/sdd/templates/REVIEW_REPORT_TEMPLATE.md` (Gates) | `/conformance-gate conformance` — bloqueia |
 
 Assunto e título passam por `scripts/check_subject.sh`; os corpos, por `scripts/check_body.sh`.
 Uma implementação por regra, várias portas. **Uma issue por achado:** cada issue é uma unidade que
@@ -40,7 +42,8 @@ fecha sozinha, nunca uma lista de achados.
 declarada faz minor, qualquer outro faz patch. Quando a CI fecha verde na `master`, o job `release`
 calcula a versão a partir dos tipos dos commits, cria a tag e publica a release com as notas
 montadas dos assuntos (`scripts/next_version.sh`), assinadas como geradas automaticamente. Ninguém
-publica versão à mão. A `v1.0.0` fica para quando o produto tiver ciclo de vida de usuário.
+publica versão à mão. A `v1.0.0` fica para quando a primeira feature de gestão de contratos
+(épico E3) estiver em produção.
 
 **`master` e `qa` são protegidas** — commit e push diretos são bloqueados por hook local e
 revertidos por workflow. O merge tem direção única, **`<tipo>/* → qa → master`**, sempre por
@@ -137,6 +140,26 @@ qualidade da estrutura**.
   - **ship e produção** — limites e evoluções ficam listados no arquivamento, com a issue de cada
     um; problema observado em uso volta pelo refino e sobe a régua.
 
+### Caminho de entrega: PRD ou tarefa simples
+Feature entregue não é reaberta: mudança posterior no que ela entregou é entrega nova. O peso dessa
+entrega segue o critério abaixo, aplicado por issue antes de o trabalho começar.
+- **Exige PRD** (ciclo completo do AgentSpec) o trabalho que atende a pelo menos um destes:
+  1. só se prova correto **executando** (teste, stack ou deploy) — ler o diff não basta;
+  2. muda **comportamento em execução** do sistema ou da operação (resposta da API, tela, dado
+     gravado, deploy, rollback);
+  3. muda **requisito, regra de negócio ou restrição** (corrigir fato desatualizado não conta);
+  4. toca **segurança, LGPD ou schema de banco**.
+- **Tarefa simples** é o que não atende a nenhum: PR direto `docs`, `chore` ou `fix`, sem PRD. Em
+  documento de planejamento (visão, PRD), a correção entra pelo `/refine-prd-with-the-planner`, sem
+  abrir PRD novo.
+- **PRD compartilhado só por resultado comum:** issues dividem um PRD quando fechar uma sem a outra
+  deixa o mesmo resultado incompleto. Tocar o mesmo arquivo não basta; correções sem ligação direta
+  não se juntam para aproveitar o fluxo.
+- **Classificação registrada e validada:** a seção `## Delivery` da issue traz o caminho e o critério
+  que o decide, com a avaliação do agente sobre o caso de fronteira (risco, reversibilidade,
+  alcance). O responsável valida aplicando a label `delivery:prd` ou `delivery:simple`; sem a
+  label, o trabalho não começa.
+
 ### Fluxo AgentSpec
 - **Fluxo, uma feature por vez:**
   1. `/decompose-requirements-with-the-planner` com o documento de requisitos → visão + PRDs por
@@ -168,14 +191,18 @@ qualidade da estrutura**.
   cosmético ou derivado não se mexe.
 - **Escrita por comando:** `DEFINE` e `DESIGN` são **incrementais** (`/iterate` bumpa a Revision
   History e cascateia; resíduo neles não some por re-rodar, corrige-se na origem); o `/build`
-  **regenera** o código e escreve o `BUILD_REPORT`. Não há `tasks.md`: o que já roda é medido pelo
-  `conformance-gate` (roteiro §8.2).
+  **regenera** o código e escreve o `BUILD_REPORT`; cada rodada de review **regenera** o próprio
+  relatório. Não há `tasks.md`: o que já roda é medido pelo `conformance-gate` (roteiro §8.2).
 - **Afirmação de mecanismo é provada antes de virar decisão.** Quando uma decisão depende de como o
   código já entregue ou uma biblioteca com estado se comporta (RLS, transação, sessão, provedor), o
   `DESIGN` cita a prova — o trecho de código (arquivo e linha) ou a execução que a mostrou; sem prova,
   a afirmação fica marcada como hipótese. O agente do `/design` tem shell para ler e provar; o do
   `/iterate` não, então no `/iterate` o agente principal prova antes de montar o argumento, que passa
   o comportamento verificado como fato. O `readiness` reprova afirmação de mecanismo sem prova citada.
+- **Argumento de `/iterate` em três seções:** `Mudança:` (o que muda em requisito ou design),
+  `Fato provado:` (cada afirmação de mecanismo com a prova — a execução que a mostrou ou o
+  arquivo e a linha) e `Hipótese:` (o que não foi provado, ou "nenhuma"). O hook
+  `.claude/hooks/check_iterate_argument.py` barra a chamada ao agente do `/iterate` sem as três.
 - **Decisões em lote, uma passada por camada.** As decisões de uma rodada (gate, teste, revisão)
   entram juntas: um refino, depois um `/iterate` no `DEFINE` e um no `DESIGN`, nessa ordem e só nas
   camadas que a decisão alcança — nunca um `/iterate` por achado.
@@ -210,10 +237,17 @@ falsificador próprio.
 - **`readiness`, antes do `/build`:** consistência DEFINE↔DESIGN e fidelidade ao upstream
   (PRD/visão/ADRs/constituição). Achado **crítico ou alto bloqueia o `/build`**; médio e baixo viram
   issue, uma por unidade que fecha sozinha.
+- **Reviews, depois do `/build` e antes do `conformance`:** o responsável roda `/code-review high`
+  (sem `--fix`) e `/security-review` sobre o commit do build, com a árvore limpa. O agente principal
+  grava a saída de cada um, sem alteração, em `.claude/sdd/reports/CODE_REVIEW_{FEATURE}.md` e
+  `SECURITY_REVIEW_{FEATURE}.md`, no template, e commita os dois num commit próprio. O review não
+  classifica nem decide: cada achado é candidato que o `conformance` prova, filtra e classifica. Código
+  mudou depois do review, roda-se de novo. O `/ship` arquiva os dois relatórios com a feature.
 - **`conformance`, antes do PR para `qa` ou de declarar a feature pronta:** confronta artefatos↔código
   e exige evidência ao vivo. **Critério de DoD não medido ou falhando bloqueia sempre**; os demais
-  achados seguem o limiar do `readiness`. É a única trava forte depois do código — obrigatório sem
-  exceção.
+  achados seguem o limiar do `readiness`. Relatório de review ausente, ou feito sobre outro commit que
+  não o último a mudar algo fora dos relatórios, bloqueia. É a única trava forte depois do código —
+  obrigatório sem exceção.
 
 ## Convenções
 - **Idioma — comunicação:** **pt-BR**.
@@ -263,9 +297,10 @@ falsificador próprio.
   débito, custo de reversão) e discordar de abordagem inferior **antes** de implementar.
 - **Pesquisa sob incerteza:** pesquisar antes de responder (doc da versão exata) e sinalizar a
   incerteza antes, não depois.
-- **Toda mudança de código passa pelo fluxo do AgentSpec** (`/build` a partir do `DESIGN`), inclusive
-  durante verificação: ali o agente só testa e reporta (arquivo, sintoma, impacto); a correção entra
-  pelo fluxo quando o responsável decidir.
+- **Mudança de código segue o caminho validado da issue:** `delivery:prd` passa pelo fluxo do
+  AgentSpec (`/build` a partir do `DESIGN`); `delivery:simple` vai em PR direto. Durante verificação
+  o agente só testa e reporta (arquivo, sintoma, impacto); a correção entra pelo caminho validado
+  quando o responsável decidir.
 - **Artefato sem meta-informação:** o que o agente gera contém só o que serve ao leitor do artefato —
   nada de narração do caminho, "decidido nesta sessão", refs a tasks/ADR ou justificativa de existência.
 - **Não narrar a própria disciplina nas respostas:** aplica-se a regra e pronto; a resposta traz o

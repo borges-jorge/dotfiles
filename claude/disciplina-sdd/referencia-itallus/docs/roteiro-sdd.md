@@ -278,18 +278,28 @@ controle** que evitam drift e retrabalho. Sequência completa (sempre as 5 fases
 8. **`/build`** → código + `BUILD_REPORT_{FEATURE}.md`. O build-agent **gera as tasks on-the-fly do
    File Manifest** e **delega a especialistas automaticamente** (a delegação é o modelo do AgentSpec,
    não requer aprovação passo-a-passo); verificação por arquivo (import/lint) e cheia (lint/tipos/testes).
-9. **▶ Gate de conformidade — conformance (`/conformance-gate conformance`), OBRIGATÓRIO antes de PR.**
-   Como a delegação do `/build` é automática, este é **a única trava forte e roda depois do código** —
-   por isso é obrigatório **sem exceção**. **Antes de abrir PR para `qa`/declarar "done"**, rodar o gate
-   em modo `conformance`: além do readiness, confronta **artefatos↔código** e **exige evidência ao vivo**
-   de cada critério de sucesso/métrica "sim/não" (sobe/roda o que for preciso: ambiente, migração, CI,
-   performance, UI headless). Pega **placeholder marcado como pronto** e **DoD não medido**. **PROIBIDO**
-   declarar "done"/abrir PR com um DoD **não medido** ou **falhando** — "existe código" ≠ "gate passou".
-   Achados que **não** são critério de DoD seguem o limiar do readiness.
-   *(Enforcement hoje = esta regra + o bullet do `AGENTS.md`; hook de harness que barre o PR mecanicamente
-   = pendência futura — se entrar, marcador com hash da árvore + interceptar `gh pr create --base qa`.)*
-10. **`/ship`** → arquiva os artefatos em `.claude/sdd/archive/{FEATURE}/` + `SHIPPED_{DATA}.md` com
-    lessons learned.
+9. **▶ Reviews de código e de segurança (`/code-review high` e `/security-review`).** Procuram o que o
+   gate não procura: defeito de código (bug, caso de erro, validação de entrada) e vulnerabilidade
+   explorável no diff da branch. Não ancoram em afirmação dos artefatos, não verificam o que acham e
+   não classificam pela régua — um achado deles pode ser decisão registrada, cenário fora da régua
+   ou falso positivo. Por isso **não decidem nada**: a saída de cada um é gravada **sem alteração**
+   em `.claude/sdd/reports/{CODE_REVIEW|SECURITY_REVIEW}_{FEATURE}.md` (template
+   `.claude/sdd/templates/REVIEW_REPORT_TEMPLATE.md`), com o commit revisado e a base do diff, num
+   commit próprio, e vira **entrada do conformance**, que prova cada achado contra o código, aplica
+   o filtro de admissão e a tabela de severidade. Classificar no chat criaria uma segunda régua. O
+   relatório vale só para o commit revisado: código mudou depois, roda-se de novo.
+10. **▶ Gate de conformidade — conformance (`/conformance-gate conformance`), OBRIGATÓRIO antes de PR.**
+    Como a delegação do `/build` é automática, este é **a única trava forte e roda depois do código** —
+    por isso é obrigatório **sem exceção**. **Antes de abrir PR para `qa`/declarar "done"**, rodar o gate
+    em modo `conformance`: além do readiness, confronta **artefatos↔código** e **exige evidência ao vivo**
+    de cada critério de sucesso/métrica "sim/não" (sobe/roda o que for preciso: ambiente, migração, CI,
+    performance, UI headless). Pega **placeholder marcado como pronto** e **DoD não medido**. **PROIBIDO**
+    declarar "done"/abrir PR com um DoD **não medido** ou **falhando** — "existe código" ≠ "gate passou".
+    Achados que **não** são critério de DoD seguem o limiar do readiness.
+    *(Enforcement hoje = esta regra + o bullet do `AGENTS.md`; hook de harness que barre o PR mecanicamente
+    = pendência futura — se entrar, marcador com hash da árvore + interceptar `gh pr create --base qa`.)*
+11. **`/ship`** → arquiva os artefatos em `.claude/sdd/archive/{FEATURE}/` + `SHIPPED_{DATA}.md` com
+    lessons learned, incluídos os relatórios de review.
 
 **Princípios do ciclo:** (a) artefato AgentSpec muda **re-rodando o comando** (`/iterate` para
 DEFINE/DESIGN; `/build` regenera código), nunca por edição manual; (b) argumentos dos comandos

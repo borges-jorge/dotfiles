@@ -21,7 +21,7 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
   **Framework backend = FastAPI + SQLModel** (Pydantic + SQLAlchemy).
 - **Estrutura = monorepo** (ver `visao-geral.md` ADR-004): **`apps/api`** (FastAPI + uv,
   Clean Architecture/ports-adapters) + **`apps/web`** (Next.js + Tailwind + shadcn).
-  `docs/`, `.specify/`, `.github/`, `.githooks/` e a skill `.claude/skills/ui-ux-pro-max/`
+  `docs/`, `.github/`, `.githooks/` e a skill `.claude/skills/ui-ux-pro-max/`
   ficam na raiz. **Esta feature monta esse esqueleto pela primeira vez.**
 - **Contrato front↔back** (ver `visao-geral.md` ADR-005): o **FastAPI gera o OpenAPI**
   (fonte da verdade) e o `apps/web` gera um **client TS tipado via orval** (client + hooks
@@ -36,8 +36,8 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
   de **pipeline/stepper de status** (fluxos lineares pós-venda), **tabelas densas** com
   filtro/ordenação/paginação **server-side**, **anexo/preview de documentos** e **trilha de
   auditoria**; **variação por área** (BID = funil/comparação, feature 10). **Marca restrita
-  a CORES + LOGOTIPO** (`docs/brand-identity/`: guia `brand-guidelines/Italtel_Brand_Guidelines_2024.pdf`
-  para a paleta + ícones em `logo/icons/`) — **tipografia e iconografia NÃO ficam vinculadas à
+  a CORES + LOGOTIPO** (guia da marca em PDF, **não versionado**, para a paleta + ícones em
+  `docs/references/brand-identity/logo/icons/`) — **tipografia e iconografia NÃO ficam vinculadas à
   marca** (escolha do padrão SaaS/ERP). As features seguintes herdam dele.
   **`frontend-design@claude-plugins-official` excluído.** **Tema = light na v1; dark mode
   diferido** (não-v1) — o design system **reserva os tokens** para não retrabalhar
@@ -80,11 +80,8 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
   do registry, sem reconstruir** — **entregue como MECANISMO por esta feature**; a **liveness
   pós-deploy** é **MEDIDA por ela** (deploys de produção `35136474611`, `35223484216`, `35227709700`
   com passo de saúde + smoke test passando — a versão implantada responde). A **execução da reversão
-  pelo artefato**, porém, **permanece NÃO-MEDIDA / em aberto sob a própria 00**: nos deploys que
-  passaram o rollback ficou **skipped** e no único em que **disparou** (`35218615973`) **falhou** por
-  resíduo de host, não por defeito do mecanismo — o **mecanismo dispara em falha** (entregue), mas
-  **uma reversão íntegra e saudável nunca foi capturada**; a medição fica **pendente de um exercício
-  real bem-sucedido**, sob a 00 — ADR-010)
+  pelo artefato** também está **MEDIDA sob a 00**, com a execução capturada em **2026-09-21** (run **35559037188**) —
+  ADR-010)
   (O0.8/O0.12/RNF0.11/RNF0.15/RNF0.16);
   **CI = GitHub Actions (nuvem)** em **PR** **e exercitável sobre a revisão da branch antes do PR**
   (disparo **fora de `pull_request`**, **a partir da definição de CI já integrada à linha principal**)
@@ -110,7 +107,9 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
 - **Convenções de API + auditoria** (ver `visao-geral.md` ADR-008): **paginação, envelope de erro
   único e versionamento** são **decididos aqui (1×)** e herdados
   por todas as features — **filtro/ordenação NÃO** entra na 00 (catálogo de navegação estático, sem
-  lista filtrável real); a convenção fica p/ a **1ª lista filtrável real (feature 02+)**. E a **tabela
+  lista filtrável real); a convenção de **filtro** é a da **1ª lista filtrável real — a lista de
+  usuários da feature 06d** (um parâmetro de situação; omitido = todos), e a de **ordenação** fica p/
+  a 1ª lista ordenável real. E a **tabela
   de auditoria de uso/operações sensíveis** (LGPD = um dos drivers) tem seu baseline criado aqui.
 - Deploy **on-prem**, **VM dedicada**; acesso **interno (rede direta ou VPN)**, **sem
   entrada externa (ingress)**, **com saída para a internet (egress)**.
@@ -147,7 +146,7 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
 - O0.7 — **Bootstrap do design system**: gerar **uma vez** o `apps/web/design-system/
   MASTER.md` via **ui-ux-pro-max** (Master + Overrides), no **padrão SaaS/ERP corporativo
   moderno** (brief = plataforma operacional multi-módulo; marca restrita a cores + logotipo —
-  `docs/brand-identity/`); telas futuras herdam dele.
+  ativos em `docs/references/brand-identity/`); telas futuras herdam dele.
 - O0.8 — **Deploy de produção reproduzível e mensurável** (ADR-010): a v1 é implantada no **host
   de produção** **exclusivamente via o provisionamento + o runbook** (O0.12), **sem passos
   improvisados**, com **secrets de produção externalizados no host de produção** (nada versionado) e **acesso por
@@ -168,12 +167,8 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
   feature**; a **liveness pós-deploy** é **MEDIDA por ela**: a **aplicação implantável da 00 é o
   próprio stack de fundação**, **já implantado em produção** (deploys de produção **35136474611**,
   **35223484216**, **35227709700** com passo de saúde + smoke test passando — a versão implantada
-  responde). A **execução da reversão pelo artefato**, porém, **permanece NÃO-MEDIDA / em aberto sob a
-  própria 00**: nos deploys que passaram o rollback ficou **skipped** e no único em que **disparou**
-  (**35218615973**) **falhou** por resíduo de host, não por defeito do mecanismo — o **mecanismo
-  dispara em falha** (entregue), mas **uma reversão íntegra e saudável nunca foi capturada**, ficando
-  **pendente de um exercício real bem-sucedido**. Nenhuma dessas responsabilidades é transferida à
-  feature 01.
+  responde). A **execução da reversão pelo artefato** também está **MEDIDA sob a 00**, com a execução
+  capturada em **2026-09-21** (run **35559037188**). Nenhuma dessas responsabilidades é transferida à feature 01.
 - O0.9 — **Data layer com migração**: SQLModel + **Alembic** (autogenerate); 1ª migração
   cria o baseline; conexão de runtime com **role não-privilegiado** (`itallus_app`) que
   **respeita RLS** e **propaga o JWT por transação** (`set_config('request.jwt.claims', …,
@@ -208,7 +203,8 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
   qa/staging de runtime** (ADR-007/010/011).
 - O0.11 — **Convenções transversais de API + tabela de auditoria**: paginação,
   **envelope de erro único** e versionamento definidos 1× (**filtro/ordenação NÃO** — catálogo
-  estático; fica p/ a 1ª lista filtrável real, feature 02+); baseline da **tabela
+  estático; o filtro fica com a 1ª lista filtrável real, a lista de usuários da 06d, e a ordenação com
+  a 1ª lista ordenável real); baseline da **tabela
   de auditoria** (ADR-008).
 - O0.12 — **Handoff de deploy entregue** (ADR-010): **provisionamento reproduzível do servidor**
   como **infra-as-code**, **nomeado por papel** (`infra/deploy`, não pela tecnologia do alvo) —
@@ -234,7 +230,7 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
 
 ## 4. Solução Proposta
 - **Monorepo (ADR-004):** `apps/api` (backend) + `apps/web` (frontend) no mesmo repo;
-  `docs/`, `.specify/`, `.github/`, `.githooks/` e `.claude/skills/ui-ux-pro-max/` na raiz.
+  `docs/`, `.github/`, `.githooks/` e `.claude/skills/ui-ux-pro-max/` na raiz.
 - **Backend (`apps/api`):** FastAPI + uv; camadas `domain / application / ports / adapters`
   (KB clean-architecture). Auth e banco expostos como **portas** (Protocols/ABCs);
   implementações concretas = **adapters out** (Supabase Auth, Postgres). `tests/` espelha
@@ -257,8 +253,8 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
   Dashboard"). Contemplar os **requisitos transversais de UI** (stepper de status, tabelas densas
   server-side, anexo/preview de documentos, trilha de auditoria) e a **variação por área** (BID =
   funil). **Marca = cores + logotipo apenas:** extrair a **paleta** e as **regras de uso de logo**
-  do **guia da marca** (`docs/brand-identity/brand-guidelines/Italtel_Brand_Guidelines_2024.pdf`)
-  e incorporar o **ícone/logotipo** (`docs/brand-identity/logo/icons/`: `Icon@2x (3).png` default,
+  do **guia da marca** (PDF **não versionado**)
+  e incorporar o **ícone/logotipo** (`docs/references/brand-identity/logo/icons/`: `Icon@2x (3).png` default,
   `Icon_black@2x.png`, `Icon_white@2x.png`) no shell; **tipografia/iconografia = escolha do padrão**,
   não do guia. Overrides por tela em `pages/*.md`. Telas das features seguintes herdam do Master.
 - **AuthN:** sessão Supabase; backend valida o token em cada fronteira (constitution V). A
@@ -334,11 +330,8 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
   automático** em falha — **mecanismo entregue por esta feature**; a **liveness pós-deploy** é **MEDIDA
   por ela**: a **aplicação implantável da 00 é o próprio stack de fundação**, **já implantado em
   produção** (deploys de produção **35136474611**, **35223484216**, **35227709700** com passo de saúde
-  + smoke test passando — a versão implantada responde). A **execução da reversão pelo artefato**,
-  porém, **permanece NÃO-MEDIDA / em aberto sob a própria 00**: nos deploys que passaram o rollback
-  ficou **skipped** e no único em que **disparou** (**35218615973**) **falhou** por resíduo de host,
-  não por defeito do mecanismo — o **mecanismo dispara em falha** (entregue), mas **uma reversão
-  íntegra e saudável nunca foi capturada**, ficando **pendente de um exercício real bem-sucedido**.
+  + smoke test passando — a versão implantada responde). A **execução da reversão pelo artefato**
+  também está **MEDIDA sob a 00**, com a execução capturada em **2026-09-21** (run **35559037188**).
   Nenhuma dessas responsabilidades é transferida à feature 01.
 - **Definição do pipeline na linha principal (ADR-010 item 10):** a **definição do pipeline** (CI +
   deploy) é **versionada** e **entra na linha principal ANTES de ser exercitada**, por **rota própria,
@@ -402,8 +395,9 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
   limit default 50, máx 200), **envelope de erro único**
   `{ error: { code, message, details[]?, request_id } }` e **versionamento** — refletidos no
   OpenAPI e herdados pelas features seguintes. **Filtro/ordenação NÃO** é definido na 00 (catálogo
-  de navegação estático, sem lista filtrável real); a convenção fica p/ a **1ª lista filtrável real
-  (feature 02+)**.
+  de navegação estático, sem lista filtrável real); o **filtro** segue a **1ª lista filtrável real — a
+  lista de usuários da feature 06d** (um parâmetro de situação; omitido = todos) — e a **ordenação**
+  fica p/ a 1ª lista ordenável real.
 
 ## 5. Requisitos
 **Funcionais**
@@ -420,15 +414,15 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
   (client + hooks TanStack Query); o pipeline de codegen roda no build/CI (ADR-005).
 - RF0.6 — Existe um `apps/web/design-system/MASTER.md` gerado **uma vez** pelo
   **ui-ux-pro-max**, no **padrão SaaS/ERP corporativo moderno** (brief = plataforma operacional
-  multi-módulo; **marca = cores da paleta + logotipo/ícone** de `docs/brand-identity/`;
+  multi-módulo; **marca = cores da paleta + logotipo/ícone**, ativos em `docs/references/brand-identity/`;
   **tipografia/iconografia não vinculadas à marca**), contemplando os **requisitos transversais
   de UI** (stepper de status, tabelas densas server-side, anexo/preview, auditoria) e **variação
   por área** (BID = funil); base visual (shadcn) das telas futuras (ADR-005).
 - RF0.7 — Schema versionado por **Alembic** (autogenerate a partir do `SQLModel.metadata`);
   **1ª migração** cria o baseline e as policies de RLS vão **na migração** (ADR-006).
 - RF0.8 — Convenções de API (**paginação, envelope de erro único, versionamento**) definidas e
-  refletidas no OpenAPI (**filtro/ordenação NÃO** — catálogo estático; fica p/ a 1ª lista filtrável
-  real, feature 02+); **baseline da tabela de auditoria** presente (ADR-008).
+  refletidas no OpenAPI (**filtro/ordenação NÃO** — catálogo estático; o filtro fica com a 1ª lista
+  filtrável real, a lista de usuários da 06d, e a ordenação com a 1ª lista ordenável real); **baseline da tabela de auditoria** presente (ADR-008).
 
 **Não-funcionais / arquiteturais**
 - RNF0.1 — Auth e banco atrás de **portas**; troca de adapter com **baixo esforço**
@@ -484,11 +478,8 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
   **liveness pós-deploy** é **MEDIDA por ela**: a **aplicação implantável da 00 é o próprio stack de
   fundação**, **já implantado em produção** (deploys de produção **35136474611**, **35223484216**,
   **35227709700** com passo de saúde + smoke test passando — a versão implantada responde). A
-  **execução da reversão pelo artefato**, porém, **permanece NÃO-MEDIDA / em aberto sob a própria 00**:
-  nos deploys que passaram o rollback ficou **skipped** e no único em que **disparou** (**35218615973**)
-  **falhou** por resíduo de host, não por defeito do mecanismo — o **mecanismo dispara em falha**
-  (entregue), mas **uma reversão íntegra e saudável nunca foi capturada**, ficando **pendente de um
-  exercício real bem-sucedido**. Nenhuma dessas responsabilidades é transferida à feature 01.
+  **execução da reversão pelo artefato** também está **MEDIDA sob a 00**, com a execução capturada em
+  **2026-09-21** (run **35559037188**). Nenhuma dessas responsabilidades é transferida à feature 01.
 - RNF0.13 — **Aplicação 100% containerizada** (ADR-011): `api`, `web` e qualquer **serviço da
   aplicação em runtime**
   rodam **exclusivamente como containers Docker, nunca direto no host** — o **ferramental de
@@ -572,11 +563,8 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
   **entregue como mecanismo** (RNF0.11/RNF0.17) **e MEDIDA sob a 00**: a **aplicação implantável da 00
   é o próprio stack de fundação**, **já implantado em produção** (deploys de produção **35136474611**,
   **35223484216**, **35227709700** com passo de saúde + smoke test passando — a versão implantada
-  responde). A **execução da reversão pelo artefato** (M0.10), porém, **permanece NÃO-MEDIDA / em
-  aberto sob a própria 00** — o **mecanismo dispara em falha** (entregue), mas **uma reversão íntegra
-  e saudável nunca foi capturada** (rollback **skipped** nos deploys que passaram; no único em que
-  **disparou**, **35218615973**, **falhou** por resíduo de host, não por defeito do mecanismo),
-  ficando **pendente de um exercício real bem-sucedido**. Nenhuma das duas é transferida à feature 01.
+  responde). A **execução da reversão pelo artefato** (M0.10) também está **MEDIDA sob a 00**, com a
+  execução capturada em **2026-09-21** (run **35559037188**). Nenhuma das duas é transferida à feature 01.
 - M0.2 — As **3 áreas** e seus **7 departamentos** presentes na navegação hierárquica (contagem).
 - M0.3 — 0 segredos versionados; 0 ocorrências de PII/segredo em log (auditoria).
 - M0.4 — **[hipótese]** Tempo de carga inicial dentro do alvo (**alvo a definir**).
@@ -600,14 +588,8 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
   host** (sim/não); e **construir é estruturalmente impossível no passo de reversão** — o passo que
   reverte **não dispõe de construção de imagem**, verificável na própria definição do pipeline
   (sim/não). **A EXECUÇÃO da reversão** — voltar para a **versão imutável anterior**, lida do **estado
-  do deploy persistido no host**, **sem reconstruir** — **permanece NÃO-MEDIDA / em aberto sob a
-  própria 00**: o **mecanismo é entregue pela 00 e dispara em falha**, mas **uma reversão íntegra e
-  saudável nunca foi capturada** — nos deploys de produção que passaram (**35136474611**,
-  **35223484216**, **35227709700**) o rollback ficou **skipped** (não exercitado) e no único em que
-  **disparou** (**35218615973**) **falhou** por resíduo de host, não por defeito do mecanismo. A
-  medição fica **pendente de um exercício real bem-sucedido**, **sob a 00** — não transferida à
-  feature 01. (Distinguir: **o mecanismo dispara em falha** = verdade, entregue; **a reversão foi
-  medida com sucesso** = ainda não.)
+  do deploy persistido no host**, **sem reconstruir** — está **MEDIDA sob a 00**, com a execução
+  capturada em **2026-09-21** (run **35559037188**) (sim) — não transferida à feature 01.
 - M0.11 — **Definição do pipeline integrada sem que nenhuma execução de deploy seja criada**
   (O0.13/RNF0.18; ADR-010 item 10): a
   **integração da definição do pipeline à linha principal ocorreu** e o **registro de execuções do
@@ -648,10 +630,7 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
   permanecem **sob a 00** (M0.1, M0.10): a **aplicação implantável da 00 é o próprio stack de
   fundação**, **já implantado em produção**. A **liveness pós-deploy** está **MEDIDA** (deploys de
   produção **35136474611**, **35223484216**, **35227709700** com passo de saúde + smoke test passando);
-  a **execução da reversão** está **entregue como mecanismo** (dispara em falha) mas **ainda
-  NÃO-MEDIDA** — **uma reversão íntegra e saudável nunca foi capturada** (rollback **skipped** nos
-  deploys que passaram; no único em que disparou, **35218615973**, falhou por resíduo de host, não por
-  defeito do mecanismo) —, ficando **pendente de um exercício real bem-sucedido** sob a 00. A premissa
+  a **execução da reversão** está **entregue e MEDIDA** (execução capturada em **2026-09-21**, run **35559037188**). A premissa
   de que a medição só seria observável depois de uma aplicação de negócio mergear **envelheceu**, e
   **nenhuma dessas responsabilidades é transferida à feature 01**.
 
@@ -673,9 +652,9 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
   **disciplinado/consistente** (shadcn) no **padrão SaaS/ERP corporativo moderno** (sóbrio/baixo
   ruído; **sem marketing nem gradientes "AI"**), e fazer as telas **herdarem** dele.
 - **Risco — cores/logo da marca:** os valores concretos de **paleta** e **regras de uso de logo**
-  **não estão fixados** — devem ser **extraídos do guia da marca**
-  (`docs/brand-identity/brand-guidelines/Italtel_Brand_Guidelines_2024.pdf`) ao gerar o `MASTER.md`;
-  mitigar tratando o guia como **fonte da verdade de cor/logo** e validando o Master contra ele.
+  são **extraídos do guia da marca** (PDF **não versionado**) e estão fixados em
+  `apps/web/design-system/MASTER.md`; mitigar tratando o guia como **fonte da verdade de cor/logo**
+  e validando o Master contra ele.
   **Tipografia e iconografia não vêm do guia** (escolha do padrão SaaS/ERP).
 - **Risco — padrão de v1 não atingido:** o estado atual (design gerado de brief genérico, tipografia
   presa ao guia, telas planas) **não** satisfaz o padrão-alvo. Mitigar: a **v1 (login + casca)
@@ -753,3 +732,4 @@ telas acabadas no padrão** (RNF0.12), **não "em branco"** — a **área** é n
 | 1.31 | 2026-09-25 | refino | **Constitution II (v2.0.0):** a remissão do **RNF0.5** deixa de dizer que a constituição exige alvo explícito (para cada componente) e passa a refletir a redação vigente — **sem custo oculto** e, **onde o uso justifica**, alvo explícito para o **caminho crítico**, **derivado de decisão registrada**. O alvo de login/carga inicial **segue a definir** e a **[hipótese]** permanece marcada como tal; **nenhum objetivo/requisito/métrica da 00 muda de conteúdo** |
 | 1.29 | 2026-09-17 | refino | **Correção do ESTADO DA MEDIÇÃO da reversão (ADR-010 item 9), após o gate de conformidade re-derivar a evidência ao vivo — a PROPRIEDADE da 00 permanece.** A **liveness pós-deploy (M0.1(b))** **continua MEDIDA sob a 00** (deploys de produção `35136474611`/`35223484216`/`35227709700` com passo de saúde + smoke test passando). A **execução da reversão pelo artefato (M0.10)** é **rebaixada de "dada como MEDIDA" para NÃO-MEDIDA / em aberto sob a própria 00**: o mecanismo é entregue pela 00 e **dispara em falha**, mas nos deploys que passaram o rollback ficou **skipped** e no único em que disparou (`35218615973`) **falhou por resíduo de host, não por defeito do mecanismo** — **uma reversão íntegra e saudável nunca foi capturada**; a medição fica **pendente de um exercício real bem-sucedido**. Redação separada: "o mecanismo dispara em falha" (entregue) ≠ "a reversão foi medida com sucesso" (ainda não). Ajustados **M0.1, M0.10, O0.8, RNF0.11, §2, §4, §7**; **liveness (M0.1(b)) intocada**; a propriedade **não** volta à feature 01. **Remissão a 1.28** (histórico): onde aquele registro dava a execução da reversão como MEDIDA, prevalece esta entrada |
 | 1.32 | 2026-09-28 | refino | **Organização em épicos:** cabeçalho passa a nomear o **Épico E0 (Fundação)** no lugar da fase (as fases do roadmap deixam de existir). Remissões à feature 02 (desmembrada) apontam o recorte: alvo NetCorp por config → **02a** (O0.4); jobs de sync NetCorp → **02a/02b** (§4). **Nenhum objetivo/requisito/métrica da 00 muda de conteúdo** |
+| 1.33 | 2026-10-13 | refino | **Correções de fato, sem mudar requisito, regra nem restrição.** **(1) Marca:** os ativos de marca ficam em `docs/references/brand-identity/` e o guia da marca em PDF **não é versionado**; os valores concretos de paleta e uso de logo estão fixados em `apps/web/design-system/MASTER.md` (§2, O0.7, §4, RF0.6, risco de cores/logo em §8). **(2) `.specify/`** deixa de constar entre os diretórios da raiz — não existe mais (§2, §4); registros datados do Changelog ficam como estão. **(3) Execução da reversão pelo artefato MEDIDA sob a 00**, com a execução capturada em **2026-09-21** (run **35559037188**; a issue #101 segue fechada) (§2, O0.8, §4, RNF0.11, M0.1, M0.10, §7). **Remissão a 1.29** (histórico): onde aquele registro dava a execução da reversão como não-medida, prevalece esta entrada. **(4) Convenção de filtro** propagada da visão: a 1ª lista filtrável real é a lista de usuários da **06d** (um parâmetro de situação; omitido = todos); a ordenação fica para a 1ª lista ordenável real (§2, O0.11, §4, RF0.8). **Nenhum objetivo/requisito/métrica da 00 muda de conteúdo**; muda só o estado de medição da M0.10 |

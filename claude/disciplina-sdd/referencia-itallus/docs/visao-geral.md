@@ -4,11 +4,14 @@
 > Serve como **âncora de coerência cross-feature** junto com a `constitution`
 > (`docs/constitution/principios.md`), conforme o [roteiro SDD](roteiro-sdd.md).
 > Insumos: [`docs/requisitos.md`](requisitos.md) + princípios de qualidade + **identidade
-> visual da marca** ([`docs/brand-identity/`](references/brand-identity/) — guia da marca + ícones,
-> referência do design system; ver ADR-005).
+> visual da marca** (ativos em [`docs/references/brand-identity/`](references/brand-identity/) —
+> ícones; o guia da marca em PDF **não é versionado**; referência do design system; ver ADR-005).
 >
 > **Convenção:** inferências do planejador são marcadas com **[hipótese]**; onde o
-> requisito diz "a definir", o texto mantém **a definir** (não inventa valor).
+> requisito diz "a definir", o texto mantém **a definir** (não inventa valor). **Evolução fora da
+> régua atual** (itens "posterior", "diferido", "gancho futuro", "evolução possível") tem remissão ao
+> **registro de evoluções do projeto** — issues com a label `deferred`, cada uma com a **origem** e o
+> **gatilho** que a traz de volta.
 
 ---
 
@@ -78,7 +81,7 @@ Parcerias: Rebate · Renovação de licenças   |   Faturamento: PO · BOQ
 
 | Entidade | Pontos essenciais |
 |----------|-------------------|
-| **Usuário** | Identidade no **Supabase Auth** (**só autenticação** — mecanismo entregue pela 00); a **autorização** é domínio do itallus (`department_access` + papel/**permissão**, lidos na RLS — ADR-002/006/009). Pode existir sem ser colaborador. **Baseline de login/sessão/guarda de rota na UI = feature 00** (já implantado); **ciclo de vida voltado ao produto = feature 01** (criar/convidar, convite/reset + **mecanismo de anonimização do usuário, sem interface**), que **consome** esse baseline — ADR-009 item 1a; **desativação/reativação, correção de nome/e-mail e apagamento dos dados pessoais do usuário = feature 06d** (épico E1), que aciona a anonimização entregue pela 01 — ADR-009 item 7; **não há exclusão de usuário**. **Criado/convidado pelo Admin** na tela admin (sem self-signup; backend→**Auth Admin API** server-side; convite/reset pelo **mesmo link de uso único** — token do backend, uso único, expiração curta — **exibido na tela admin, sem e-mail**, com o usuário definindo a própria senha — ADR-009). **Acesso por departamento** a nível de usuário (1+ departamentos); **papéis cumulativos** **usuário ⊂ manager ⊂ admin ⊂ superadmin**. **Enforcement por permissão** (papel = bundle) com **interseção escopo∧capacidade** — ADR-002. |
+| **Usuário** | Identidade no **Supabase Auth** (**só autenticação** — mecanismo entregue pela 00); a **autorização** é domínio do itallus (`department_access` + papel/**permissão**, lidos na RLS — ADR-002/006/009). Pode existir sem ser colaborador. **Baseline de login/sessão/guarda de rota na UI = feature 00** (já implantado); **ciclo de vida voltado ao produto = feature 01** (criar/convidar, convite/reset + **mecanismo de anonimização do usuário, sem interface**), que **consome** esse baseline — ADR-009 item 1a; **desativação/reativação, correção de nome/e-mail e apagamento dos dados pessoais do usuário = feature 06d** (épico E1), que aciona a anonimização entregue pela 01 e **adapta** a guarda de acesso e a política de anonimização da 01 (o usuário desativado deixa de ter identidade nas regras de acesso) — ADR-009 item 7; **não há exclusão de usuário**. **Criado/convidado pelo Admin** na tela admin (sem self-signup; backend→**Auth Admin API** server-side; convite/reset pelo **mesmo link de uso único** — token do backend, uso único, expiração curta — **exibido na tela admin, sem e-mail**, com o usuário definindo a própria senha — ADR-009). **Acesso por departamento** a nível de usuário (1+ departamentos); **papéis cumulativos** **usuário ⊂ manager ⊂ admin ⊂ superadmin**. **Enforcement por permissão** (papel = bundle) com **interseção escopo∧capacidade** — ADR-002. |
 | **Permissão / Papel** | `permission` = **catálogo genérico** de capacidades (qualquer ação/domínio), **semeado por migração**, desacoplado do catálogo de departamentos. **Papel = unidade de concessão** = bundle de permissões (`role_permission`); v1 = bundle default grosso por papel. Ponto de decisão (guard/RLS) opera sobre **permissão**; autoridade efetiva = **permissão ∧ escopo**, deny-by-default. `approve` semeada/escopada, **sem fluxo**. Concessão fina por usuário e ABAC = ganchos futuros — ADR-002. |
 | **Área / Departamento (catálogo)** | **3 áreas + 7 departamentos semeados por migração**; mudam **só via desenvolvimento** — **sem CRUD de usuário**. A **associação** departamento↔usuário (`department_access`) é editável na gestão de acessos — ADR-002. |
 | **Colaborador** | Tabela **nativa** (preenchimento manual), só **internos** por ora — cadastro e histórico de departamento = **feature 06a**. **Link opcional** a Usuário; desativar o usuário **preserva** o colaborador (garantia da **feature 06c**). Vínculo **editável somente na tela admin de gestão de usuário** (opção entregue pela feature 06c como melhoria dessa tela); na edição de colaborador, **somente leitura** — ADR-009. |
@@ -129,7 +132,7 @@ Parcerias: Rebate · Renovação de licenças   |   Faturamento: PO · BOQ
   **`apps/api`** (backend FastAPI + uv, Clean Architecture / Ports & Adapters) e
   **`apps/web`** (frontend Next.js + Tailwind + shadcn). Coerente com a governança já
   existente (hooks `.githooks`, fluxo `feature/* → qa → master`, branch protection,
-  deploy em host único). `docs/`, `.specify/`, `.github/`, `.githooks/` e a skill de design
+  deploy em host único). `docs/`, `.github/`, `.githooks/` e a skill de design
   (`.claude/skills/ui-ux-pro-max/`) permanecem na raiz. Detalhe interno por feature fica
   para o **Design** do AgentSpec (ver §9 ADR-004).
 - **Observabilidade (concern §8):** **logging estruturado com structlog desde a v1**
@@ -191,8 +194,8 @@ Parcerias: Rebate · Renovação de licenças   |   Faturamento: PO · BOQ
 | CI (pipeline, não ambiente) | **GitHub Actions (nuvem)**, efêmero no runner: lint/test/build + **gate de drift** do contrato + **RLS via testcontainers**; **exercitável sobre a revisão da branch antes do PR** (disparo **fora de `pull_request`**), **a partir da definição de CI já integrada à linha principal** — dá evidência ao vivo dos critérios de contrato/RLS **antes** de abrir o PR. **Também PUBLICA as imagens de aplicação no registry**, versionadas de forma **imutável por versão do código** (é o artefato que a produção puxa) | ADR-007/010/011 |
 | Empacotamento | **Aplicação 100% containerizada** — `api`, `web` e qualquer **serviço da aplicação em runtime** rodam **só como containers Docker, nunca no host** (o **ferramental de verificação** — suíte de testes, verificadores de repositório, geração do client tipado — roda no **host de dev** e no **runner da CI**, ADR-011 item 1); **`docker-compose` da raiz orquestra via `include`** os composes de cada serviço (`apps/api/docker-compose.yml`, `apps/web/docker-compose.yml`) + o do stack Supabase (raiz **não** inline) e sobe/derruba o **projeto inteiro** com **um comando**. **Dev × produção explícitos:** o **compose base = DEV** (constrói localmente, monta a fonte, recarga automática); a **sobreposição de produção** substitui pela **imagem versionada** (**sem montagem de fonte, sem recarga**) — **produção não constrói no host**; `api`→Postgres **direto na rede do compose** (serviço `db`); o `web` faz Auth ao Supabase de **dois contextos** — **server-side** pela **rede interna do compose** (gateway Kong), **navegador** pela **URL publicada** (config do web distingue as duas URLs) | ADR-011 |
 | Registry de imagens (repositório de artefatos) | A **CI publica** as imagens de aplicação num **registry**, **versionadas de forma imutável por versão do código**. É o **repositório de artefatos do fluxo de entrega**: a **imagem validada na CI é exatamente a que sobe em produção**, e é o **artefato para onde o rollback reverte**. **Produto/instância concretos = derivados no Design** | ADR-010/011 |
-| CD | **pull-based**: o **host de produção puxa** da `master` (coerente com egress/sem-ingress); GitHub **não** empurra; **mecanismo = runner self-hosted do GitHub Actions no host de produção** (event-driven, egress-only, dispara no merge à `master`); polling caseiro = alternativa rejeitada. **Produção PUXA a imagem versionada do registry — não constrói no host.** **O deploy de produção é entregável da feature 00**, feito **de forma reproduzível via o provisionamento + runbook** (sem passos improvisados; secrets de prod externalizados no host de produção; acesso por VPN/rede interna sem ingress) e **medido no momento próprio**: o **critério de pronto da 00 é a metade (a) — mecanismo, ANTES do PR, sobre a aplicação** — disparo **fora do fluxo de merge**, **a partir da definição já integrada à linha principal**, **apontando para a revisão da branch da feature** (a definição habilita; a revisão determina o que é implantado): implanta no host de produção e prova runner→imagem daquela versão puxada do registry (host não constrói)→stack saudável→migrações→serviço, com evidência. A **metade (b) — liveness pós-deploy** (**smoke test pós-deploy**: saúde + probe, com **rollback automático** em falha) é **entregável da 00 como MECANISMO E MEDIDA pela 00**: a **aplicação implantável da 00 é o próprio stack de fundação**, **já implantado em produção** (reinstalação a frio em 2026-09-17) com o **rollback automático observado disparando** — logo a **liveness pós-deploy** é **dada como MEDIDA** sob a 00, enquanto a **execução da reversão pelo artefato** (linha Rollback) é **entregue como mecanismo mas NÃO-MEDIDA / em aberto sob a 00** (issue #101); nenhuma transferida à feature 01 | ADR-010/011 |
-| Rollback | **Re-implanta a versão IMUTÁVEL ANTERIOR a partir do registry — NÃO reconstrói.** O **estado do deploy** (qual é a **última versão boa conhecida**) é **persistido no host de produção** e é o que o rollback consulta. Reconstruir durante um rollback é lento e pode falhar por causas novas (dependência indisponível, imagem-base alterada, rede) justamente com a produção quebrada. **Medição:** a **impossibilidade estrutural de construir no passo de reversão** é **medida sob a 00** (prova negativa, unit — SC-013); a **EXECUÇÃO da reversão** é **item operacional aberto, NÃO-MEDIDA / em aberto sob a 00** (issue #101) — o rollback foi observado disparando na reinstalação a frio de 2026-09-17, mas nenhuma reversão íntegra e saudável foi capturada; a aplicação implantável da 00 é o próprio stack de fundação, já implantado | ADR-010/011 |
+| CD | **pull-based**: o **host de produção puxa** da `master` (coerente com egress/sem-ingress); GitHub **não** empurra; **mecanismo = runner self-hosted do GitHub Actions no host de produção** (event-driven, egress-only, dispara no merge à `master`); polling caseiro = alternativa rejeitada. **Produção PUXA a imagem versionada do registry — não constrói no host.** **O deploy de produção é entregável da feature 00**, feito **de forma reproduzível via o provisionamento + runbook** (sem passos improvisados; secrets de prod externalizados no host de produção; acesso por VPN/rede interna sem ingress) e **medido no momento próprio**: o **critério de pronto da 00 é a metade (a) — mecanismo, ANTES do PR, sobre a aplicação** — disparo **fora do fluxo de merge**, **a partir da definição já integrada à linha principal**, **apontando para a revisão da branch da feature** (a definição habilita; a revisão determina o que é implantado): implanta no host de produção e prova runner→imagem daquela versão puxada do registry (host não constrói)→stack saudável→migrações→serviço, com evidência. A **metade (b) — liveness pós-deploy** (**smoke test pós-deploy**: saúde + probe, com **rollback automático** em falha) é **entregável da 00 como MECANISMO E MEDIDA pela 00**: a **aplicação implantável da 00 é o próprio stack de fundação**, **já implantado em produção** (reinstalação a frio em 2026-09-17) com o **rollback automático observado disparando** — logo a **liveness pós-deploy** é **dada como MEDIDA** sob a 00, e a **execução da reversão pelo artefato** (linha Rollback) também está **MEDIDA** sob a 00 (execução capturada em **2026-09-21**, run 35559037188); nenhuma transferida à feature 01 | ADR-010/011 |
+| Rollback | **Re-implanta a versão IMUTÁVEL ANTERIOR a partir do registry — NÃO reconstrói.** O **estado do deploy** (qual é a **última versão boa conhecida**) é **persistido no host de produção** e é o que o rollback consulta. Reconstruir durante um rollback é lento e pode falhar por causas novas (dependência indisponível, imagem-base alterada, rede) justamente com a produção quebrada. **Medição:** a **impossibilidade estrutural de construir no passo de reversão** é **medida sob a 00** (prova negativa, unit — SC-013); a **EXECUÇÃO da reversão** pelo artefato está **MEDIDA sob a 00**, com a execução capturada em **2026-09-21** (run 35559037188); a aplicação implantável da 00 é o próprio stack de fundação, já implantado | ADR-010/011 |
 | Provisionamento / runbook (handoff) | **Entregáveis da feature 00** (hoje ausentes): **provisionamento reproduzível do servidor** como **infra-as-code**, **nomeado por papel** (`infra/deploy`) — não pela tecnologia do alvo —, cobrindo **bootstrap/registro do runner self-hosted no host de produção** + demais configs de host, **idempotente e versionado** (o runner deixa de ser pressuposto e passa a ser criável pelos meios entregues); e **runbook de deploy de produção (`DEPLOY.md`)** — **documento de foco único e autocontido** que reúne tudo o que o operador precisa para subir o ambiente do zero (obter código → bootstrap → config/segredos externalizados no host → subir o stack + aplicar migrações → verificação de saúde), com **pré-requisito concreto** (portas e nomes de container livres no host-alvo) | ADR-010 |
 | Backup / DR | **Posterior** (não exigido na v1) | Requisito §4 |
 
@@ -211,14 +214,14 @@ Parcerias: Rebate · Renovação de licenças   |   Faturamento: PO · BOQ
 | Migração de schema | **Alembic** (`target_metadata = SQLModel.metadata`, autogenerate) | SQLModel não migra; schema **e RLS** versionados juntos por feature; ver ADR-006 |
 | Sincronização NetCorp | **Cache/replicação local** (job periódico → espelho PostgreSQL) | read-only; runtime lê o espelho; frequência **a definir**; ver ADR-001 |
 | Controle de acesso | **RLS no Postgres** + tabela de permissões **por departamento** (padrão KB Supabase) | Defesa em profundidade; ver ADR-002 |
-| Identidade → RLS | Conexão de runtime com **role não-privilegiado** (`itallus_app`, nunca `service_role`) + **propagação dos claims do JWT por transação** via `set_config('request.jwt.claims', …, true)` | RLS realmente aplica; trilho fixado na 00; policies concretas por tabela = feature 01. **A 01 reaproveita o trilho da 00 sem alterá-lo** (a API segue propagando o JSON completo dos claims; sem canal novo dedicado ao `user_id`); a policy lê **só o `sub`** desse JSON (`current_setting('request.jwt.claims', true)::jsonb ->> 'sub'`) e decide o escopo por `EXISTS`/`JOIN` em `department_access`/`role_permission` para todos os papéis (escopo global = permissão explícita em `role_permission`); ver ADR-002/006 |
+| Identidade → RLS | Conexão de runtime com **role não-privilegiado** (`itallus_app`, nunca `service_role`) + **propagação dos claims do JWT por transação** via `set_config('request.jwt.claims', …, true)` | RLS realmente aplica; trilho fixado na 00; policies concretas por tabela = feature 01. **A 01 reaproveita o trilho da 00 sem alterá-lo** (a API segue propagando o JSON completo dos claims; sem canal novo dedicado ao `user_id`); a policy lê **só o `sub`** desse JSON (`current_setting('request.jwt.claims', true)::jsonb ->> 'sub'`) e decide o escopo por `EXISTS`/`JOIN` em `department_access`/`role_permission` para todos os papéis (escopo global = permissão explícita em `role_permission`). **A 06d** faz a identidade ser **reaplicada a cada transação da sessão** e o **usuário desativado deixar de ter identidade** nas regras de acesso (DESIGN da 06d); ver ADR-002/006 |
 | Representação de valores | **`Decimal` (Python) / `NUMERIC` (Postgres) / string (JSON)** — **nunca `float`** | Núcleo de valor (R$) sem erro de arredondamento; ver ADR-006 |
 | Históricos | **SCD Tipo 2** (linha por versão, `is_current` + vigência) | Padrão KB data-modeling; ver ADR-003 |
 | Arquitetura | **Clean Architecture / SOLID / ports-adapters** | Requisito + constitution |
 | Estrutura do repo | **Monorepo** (`apps/api` + `apps/web`); diretriz de esqueleto + convenções | Coerente com a governança (hooks/branch/deploy único); ver ADR-004 |
 | Contrato front↔back | **OpenAPI gerado pelo FastAPI** (fonte da verdade) → **client TS tipado via orval** (gera client + hooks **TanStack Query**; `apps/web/lib/api/`) | Drift pego em compile-time/CI; ver ADR-005 |
 | Data-fetching (web) | **TanStack Query** (convenção; hooks gerados pelo orval por endpoint) | Padronização do acesso à API num app CRUD-pesado; ver ADR-005 |
-| Design system / UI | **ui-ux-pro-max** (skill offline/versionada em `.claude/skills/`) → `apps/web/design-system/` **MASTER.md + pages/\*.md**, no **padrão SaaS/ERP corporativo moderno** (sóbrio/baixo ruído/minimalista; sem marketing nem gradientes "AI"); **marca restrita a cores + logotipo** (`docs/brand-identity/`) — **tipografia/iconografia NÃO vinculadas à marca** | Único "cérebro" de design (Master + Overrides); shadcn/Tailwind; brief = plataforma operacional multi-módulo (não "Analytics Dashboard"); requisitos transversais de UI (stepper de status, tabelas densas server-side, anexo/preview, auditoria) + variação por área (BID = funil); ver ADR-005 e §11 |
+| Design system / UI | **ui-ux-pro-max** (skill offline/versionada em `.claude/skills/`) → `apps/web/design-system/` **MASTER.md + pages/\*.md**, no **padrão SaaS/ERP corporativo moderno** (sóbrio/baixo ruído/minimalista; sem marketing nem gradientes "AI"); **marca restrita a cores + logotipo** (ativos em `docs/references/brand-identity/`; guia da marca em PDF não versionado) — **tipografia/iconografia NÃO vinculadas à marca** | Único "cérebro" de design (Master + Overrides); shadcn/Tailwind; brief = plataforma operacional multi-módulo (não "Analytics Dashboard"); requisitos transversais de UI (stepper de status, tabelas densas server-side, anexo/preview, auditoria) + variação por área (BID = funil); ver ADR-005 e §11 |
 | Tema (UI) | **Tema claro (light) na v1; dark mode diferido** (não-v1) | Reduz escopo da 00 (constitution IX); o design system **reserva os tokens** para não retrabalhar; ver ADR-005 e §11 |
 | Observabilidade — logging | **structlog** (estruturado, **desde a v1**, sem PII/segredo) | Transversal/facade nas bordas (não port); constitution V/VI |
 | Observabilidade — métricas/tracing | **OpenTelemetry** — **posterior** (não-v1) | Entra quando a maturidade exigir |
@@ -229,10 +232,10 @@ Parcerias: Rebate · Renovação de licenças   |   Faturamento: PO · BOQ
 | NetCorp por ambiente | **3 alvos atrás do MESMO port ACL**, por **config externalizada** (VII): **stub/fake** (test double — CI + default dev) · **NetCorp de teste** (réplica de prod, rede interna, ~1×/semana — validação real em dev) · **NetCorp de produção** (read-only, só prod) | ADR-010 (ver ADR-001/004) |
 | Definição do pipeline (CI + deploy) | **Entregável versionado da 00**, **integrado à linha principal ANTES de ser exercitado**, por **rota própria** (separada do PR da aplicação) e **evoluindo por PR** como qualquer código; **integrar não é exercitar** — **nenhuma execução de deploy chega a ser criada** na integração; **gates de CI sem objeto nesse PR** = **exceção declarada** (job **visivelmente não-executado**, nunca "aprovado"; **gates voltam a ser exigidos em todo PR** assim que a aplicação existe na linha principal) | Fronteira de **segurança** da plataforma (disparo manual só existe para definição na linha principal — senão qualquer branch rodaria o pipeline com os **segredos do repositório**); ver ADR-010 item 10 |
 | CI (pipeline, não ambiente) | **GitHub Actions (nuvem)** em **PR** e **exercitável sobre a revisão da branch antes do PR** (disparo **fora de `pull_request`**, **a partir da definição de CI já integrada à linha principal**): **lint + testes (api) + build (web) + gate de drift** (regenera orval, falha se divergir) + **RLS via testcontainers** (Postgres no runner); **publica as imagens de aplicação no registry** (imutáveis por versão do código) | Concretiza M0.5/RNF0.7 da 00 e dá evidência pré-PR; a imagem publicada **é o artefato que a produção puxa**; ver ADR-007/010/011 |
-| CD | **pull-based**: o **host de produção** (**só produção**) **puxa** da `master` (egress; sem ingress); GitHub não empurra; **mecanismo = runner self-hosted do GitHub Actions no host de produção** (event-driven, egress-only; polling caseiro rejeitado). **Produção puxa a imagem versionada do registry — não constrói no host** (ADR-011). **Provisionamento reproduzível (infra-as-code, inclui bootstrap do runner) + runbook `DEPLOY.md`** entregues pela 00; deploy **reproduzível** via eles; **critério de pronto da 00 = prova do mecanismo pré-PR**, disparado **fora do fluxo de merge** a partir da **definição já na linha principal** e **apontando para a revisão da branch**, com evidência; a **liveness pós-deploy** (smoke test + **rollback = re-implantar o artefato imutável anterior**) é **mecanismo entregue E MEDIDO pela 00** — a aplicação implantável da 00 é o próprio stack de fundação, **já implantado em produção** (reinstalação a frio em 2026-09-17) com o rollback automático observado disparando; a **execução da reversão pelo artefato** permanece **sob a 00**, entregue como mecanismo mas ainda **NÃO-MEDIDA / em aberto** (pendente de um rollback real bem-sucedido; disparos observados falharam por resíduo de host), não transferida à feature 01 | ADR-010/011 |
+| CD | **pull-based**: o **host de produção** (**só produção**) **puxa** da `master` (egress; sem ingress); GitHub não empurra; **mecanismo = runner self-hosted do GitHub Actions no host de produção** (event-driven, egress-only; polling caseiro rejeitado). **Produção puxa a imagem versionada do registry — não constrói no host** (ADR-011). **Provisionamento reproduzível (infra-as-code, inclui bootstrap do runner) + runbook `DEPLOY.md`** entregues pela 00; deploy **reproduzível** via eles; **critério de pronto da 00 = prova do mecanismo pré-PR**, disparado **fora do fluxo de merge** a partir da **definição já na linha principal** e **apontando para a revisão da branch**, com evidência; a **liveness pós-deploy** (smoke test + **rollback = re-implantar o artefato imutável anterior**) é **mecanismo entregue E MEDIDO pela 00** — a aplicação implantável da 00 é o próprio stack de fundação, **já implantado em produção** (reinstalação a frio em 2026-09-17) com o rollback automático observado disparando; a **execução da reversão pelo artefato** permanece **sob a 00**, entregue como mecanismo **E MEDIDA** (execução capturada em **2026-09-21**, run 35559037188), não transferida à feature 01 | ADR-010/011 |
 | Teste (backend) | **pytest + testcontainers** (Postgres real p/ RLS) + **testes point-in-time** (SCD-2) | Cobre os 2 hotspots de risco (isolamento, custo do mês); ver ADR-007 |
 | Teste (frontend) | **Vitest** (unit); **Playwright (e2e) posterior** | Unit desde já; e2e quando a maturidade exigir; ver ADR-007 |
-| Convenções de API | **Envelope de erro único** `{error:{code,message,details[]?,request_id}}`, **paginação cursor** (limit default 50, máx 200), **versionamento** — decididas 1× na feature 00; **filtro/ordenação NÃO** entra na 00 (catálogo estático), fica p/ a 1ª lista filtrável real (feature 02+) | Decididas 1× na feature 00, herdadas por todas; ver ADR-008 |
+| Convenções de API | **Envelope de erro único** `{error:{code,message,details[]?,request_id}}`, **paginação cursor** (limit default 50, máx 200), **versionamento** — decididas 1× na feature 00; **filtro/ordenação NÃO** entra na 00 (catálogo estático); **filtro de lista = a convenção da lista de usuários da 06d** (1ª lista filtrável real): **um parâmetro de situação; omitido = todos**; **ordenação** fica p/ a 1ª lista ordenável real | Decididas 1× na feature 00, herdadas por todas; ver ADR-008 |
 | Auditoria (uso/operações sensíveis) | **Tabela de auditoria** + escrita nas operações sensíveis (PII de colaboradores + valores); LGPD = um dos drivers | Casa de implementação da constitution VIII; ver ADR-008 |
 
 > **Itens "posterior" (não-v1, sem PRD agora):** backup & disaster recovery; circuit
@@ -241,7 +244,8 @@ Parcerias: Rebate · Renovação de licenças   |   Faturamento: PO · BOQ
 > **seed/dados de referência de NEGÓCIO** (o **seed do usuário de desenvolvimento** **não** está aqui —
 > é parte do ambiente reproduzível, entregue pela **feature 00**); **runtime/agendador do job de sync NetCorp** (cron/systemd/worker — detalhe
 > de deploy da feature 02a); microsserviços stateless para tarefas específicas (ex.: processar
-> planilha). São **adiados de propósito** (não esquecidos): entram quando a maturidade exigir.
+> planilha). São **adiados de propósito** (não esquecidos): entram quando a maturidade exigir —
+> cada um com origem e gatilho no **registro de evoluções** (issues com a label `deferred`).
 
 ---
 
@@ -257,8 +261,9 @@ serve (épico **não** é departamento).
 | ID | Feature | Épico | Departamento atendido | Depende de | PRD |
 |----|---------|-------|-----------------------|------------|-----|
 | **00** | Fundação, Autenticação e Shell | E0 | — (base transversal) | — | [00](prds/E0-fundacao/00-fundacao-auth-shell.md) |
+| **13** | Confiabilidade do deploy e do rollback em produção | E0 | — (base transversal) | 00 | [13](prds/E0-fundacao/13-confiabilidade-deploy-rollback.md) |
 | **01** | Controle de Acesso por Departamento | E1 | — (transversal) | 00 | [01](prds/E1-controle-acesso/01-controle-acesso-area.md) |
-| **06d** | Desativação, correção e apagamento de usuário | E1 | — (administração de usuários, transversal) | 01 | [06d](prds/E1-controle-acesso/06d-desativacao-exclusao-correcao-usuario.md) |
+| **06d** | Desativação, correção e apagamento de dados pessoais de usuário | E1 | — (administração de usuários, transversal) | 01 | [06d](prds/E1-controle-acesso/06d-desativacao-exclusao-correcao-usuario.md) |
 | **02a** | Integração NetCorp — Clientes e conector NetCorp | E2 | — (dado-mestre cross-área) | 00, 01(s) | [02a](prds/E2-integracao-netcorp/02a-clientes.md) |
 | **02b** | Integração NetCorp — catálogo de CR (`tbcencus`) | E2 | — (dado-mestre cross-área) | 02a | [02b](prds/E2-integracao-netcorp/02b-catalogo-cr.md) |
 | **03** | Contrato Jurídico | E3 | Contratos (`contracts`) | 02a | [03](prds/E3-gestao-de-contratos/03-contrato-juridico.md) |
@@ -291,6 +296,7 @@ serve (épico **não** é departamento).
           ├─► 06d ─► 06a   (fluxo de apagamento por pessoa)
           ├─► 11a
           └─► 11b
+00 ─► 13   (confiabilidade do deploy e do rollback)
 ```
 
 (01 → 02a é dependência **soft**; as demais são duras — ver a coluna **Depende de**.)
@@ -304,7 +310,8 @@ serve (épico **não** é departamento).
   (**não** do PCR nem do BR/Projeto). Encontra-se com os contratos só na **alocação (08)**.
   `11a`, `11b` e `06d` dependem só de `00`/`01` e podem correr em paralelo se houver capacidade; a
   `06a` depende também da `06d`, porque só pluga o anonimizador do colaborador num fluxo de
-  apagamento por pessoa que já existe.
+  apagamento por pessoa que já existe. A `13` depende só da `00` e corre em paralelo a todas as
+  demais.
 
 ---
 
@@ -315,8 +322,8 @@ serve (épico **não** é departamento).
 
 | Épico | Features | Objetivo / critério de pronto |
 |-------|----------|-------------------------------|
-| **E0 — Fundação** | 00 | v1 em produção: login + shell com as 3 áreas expandindo seus 7 departamentos. **00 (shell/auth) e 01 (autorização) permanecem separados** — o acesso não nasce no 00. A **liveness pós-deploy** e a **execução da reversão pelo artefato** são **entregues pela própria 00** e permanecem **sob ela** — a aplicação implantável da 00 é o **próprio stack de fundação**, **já implantado em produção**; a **liveness** está **MEDIDA**, a **execução da reversão** segue **entregue como mecanismo, porém NÃO-MEDIDA / em aberto sob a 00** (pendente de um exercício real bem-sucedido) (ADR-010 itens 5b/9); a 01 **não** herda essas medições nem essa propriedade. |
-| **E1 — Controle de Acesso** | 01, 06d | **Acesso por departamento** aplicado. Cobertura da **06d** (desativação, correção e apagamento de usuário) no critério de pronto = **`[a definir]`**. |
+| **E0 — Fundação** | 00, 13 | v1 em produção: login + shell com as 3 áreas expandindo seus 7 departamentos. **00 (shell/auth) e 01 (autorização) permanecem separados** — o acesso não nasce no 00. A **liveness pós-deploy** e a **execução da reversão pelo artefato** são **entregues pela própria 00** e permanecem **sob ela** — a aplicação implantável da 00 é o **próprio stack de fundação**, **já implantado em produção**; a **liveness** está **MEDIDA** e a **execução da reversão** também (execução capturada em **2026-09-21**, run 35559037188) (ADR-010 itens 5b/9); a 01 **não** herda essas medições nem essa propriedade. O **E0 está pronto e recebe a 13** (confiabilidade do deploy e do rollback em produção): épico pronto pode receber novas features. |
+| **E1 — Controle de Acesso** | 01, 06d | **Acesso por departamento** aplicado. Cobertura da **06d** (desativação, correção e apagamento de dados pessoais de usuário) no critério de pronto = **`[a definir]`**. |
 | **E2 — Integração NetCorp** | 02a, 02b | **Clientes/Grupos** e **catálogo de CR (`tbcencus`)** do NetCorp disponíveis (unicidade garantida) para todo o sistema — habilita Departamentos (06a) e CR de projeto (05a). |
 | **E3 — Gestão de Contratos** | 03, 04, 05a, 05b | Hierarquia Jurídico→Operacional→BR+PCR operante. |
 | **E4 — Gestão de Custos** | 06a, 06b, 06c, 07, 08, 09 | Colaboradores, skills/SPC, alocação e **custo do mês** calculável. Cobertura da **06c** (vínculo colaborador–usuário) no critério de pronto = **`[a definir]`**. |
@@ -340,14 +347,14 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
 
 | Concern | Como se materializa | Constitution |
 |---------|---------------------|--------------|
-| **Acesso por departamento** | **Fronteira:** Supabase Auth = só **autenticação**; **autorização** (quem acessa o quê) = domínio itallus (`department_access` + papel/**permissão**). **Enforcement por permissão** (papel = bundle de dados) com **interseção escopo∧capacidade**, deny-by-default: **RLS = eixo escopo** (dept/área), **PEP na app = eixo capacidade/ação**, escrita valida os dois; UI condicionada ao departamento/área. Catálogo de áreas/depts **semeado, sem CRUD**. **Escalonamento de privilégio:** Admin concede **usuário/manager**; **só o SuperAdmin** concede **admin/superadmin** (sem auto-elevação) — ADR-009. **Mecanismo:** conexão de runtime com **role não-privilegiado** (nunca `service_role`) + **propagação dos claims do JWT por transação pelo trilho da 00** (`set_config('request.jwt.claims', …, true)`, inalterado); a policy lê **só o `sub`** desse JSON e decide o escopo por `EXISTS`/`JOIN` em `department_access`/`role_permission` para todos os papéis — escopo global de admin/superadmin por **permissão explícita** em `role_permission`, não por papel propagado — ADR-002/006 | V |
-| **LGPD (desde v1)** | Mapa de dados sensíveis, retenção com prazos; **right-to-erase = ANONIMIZAÇÃO do PII** (não hard-delete — preserva o registro de-identificado p/ SCD-2/auditoria/custo); o direito é do **titular-pessoa, não do registro** — a **feature 06d é dona de um fluxo único de apagamento por pessoa** que **coordena um anonimizador por entidade** (o da **01** para o usuário, o da **06a** para o colaborador quando entregue, futuros). **Executor = SuperAdmin**, **dois gatilhos** (pedido do titular / fim de retenção), **sem disparo automático** (ADR-009); **anonimização do usuário** = **mecanismo da feature 01, sem interface**, acionado na **feature 06d**, que **desativa antes de anonimizar**; a **06d é dona do mecanismo de retenção** dos dados do usuário e da trilha de auditoria (o prazo do **perfil** do usuário corre a partir do **fim da finalidade** — quando ele deixou de estar ativo —, e o **perfil de usuário ativo nunca entra em retenção**; as trilhas mantêm o expurgo por faixa de data; prazos/base legal `[a definir]` com responsável nomeado); **auditoria de operações sensíveis em tabela de auditoria** (PII de colaboradores + valores) — casa fixada no ADR-008 | VIII |
+| **Acesso por departamento** | **Fronteira:** Supabase Auth = só **autenticação**; **autorização** (quem acessa o quê) = domínio itallus (`department_access` + papel/**permissão**). **Enforcement por permissão** (papel = bundle de dados) com **interseção escopo∧capacidade**, deny-by-default: **RLS = eixo escopo** (dept/área), **PEP na app = eixo capacidade/ação**, escrita valida os dois; UI condicionada ao departamento/área. Catálogo de áreas/depts **semeado, sem CRUD**. **Escalonamento de privilégio:** Admin concede **usuário/manager**; **só o SuperAdmin** concede **admin/superadmin** (sem auto-elevação) — ADR-009. **Mecanismo:** conexão de runtime com **role não-privilegiado** (nunca `service_role`) + **propagação dos claims do JWT por transação pelo trilho da 00** (`set_config('request.jwt.claims', …, true)`), **reaplicada a cada transação da sessão** (feature 06d); a policy lê **só o `sub`** desse JSON e decide o escopo por `EXISTS`/`JOIN` em `department_access`/`role_permission` para todos os papéis — escopo global de admin/superadmin por **permissão explícita** em `role_permission`, não por papel propagado; o **usuário desativado não tem identidade** nas regras de acesso (feature 06d) — ADR-002/006 | V |
+| **LGPD (desde v1)** | Mapa de dados sensíveis, retenção com prazos; **right-to-erase = ANONIMIZAÇÃO do PII** (não hard-delete — preserva o registro de-identificado p/ SCD-2/auditoria/custo); o direito é do **titular-pessoa, não do registro** — a **feature 06d é dona de um fluxo único de apagamento por pessoa** que **coordena um anonimizador por entidade** (o da **01** para o usuário, o da **06a** para o colaborador quando entregue, futuros). **Executor = SuperAdmin**, **dois gatilhos** (pedido do titular / fim de retenção), **sem disparo automático** (ADR-009); **anonimização do usuário** = **mecanismo da feature 01, sem interface**, acionado e **adaptado** na **feature 06d**, que **desativa antes de anonimizar**; o **contrato comum de anonimizador** está fechado no PRD e no DESIGN da 06d; a **06d é dona do mecanismo de retenção** dos dados do usuário e da trilha de auditoria (o prazo do **perfil** do usuário corre a partir do **fim da finalidade** — quando ele deixou de estar ativo —, e o **perfil de usuário ativo nunca entra em retenção**; as trilhas mantêm o expurgo por faixa de data, e o **e-mail na trilha de autenticação do provedor** sai **só** por esse expurgo — **limite declarado** no PRD e no DESIGN da 06d; prazos/base legal `[a definir]` com responsável nomeado); **auditoria de operações sensíveis em tabela de auditoria** (PII de colaboradores + valores) — casa fixada no ADR-008 | VIII |
 | **Correção monetária** | Valores e percentuais em **`Decimal`/`NUMERIC`/string-JSON**, **nunca `float`** — sem erro de arredondamento no núcleo de valor (R$) — ADR-006 | I, II |
 | **Plugabilidade** | Ports & adapters (auth, banco, NetCorp e demais); **catálogo de ports/adapters** fixado no ADR-004 (critério: dependência de **saída** que o domínio chama e se troca/mocka) | III, VI, VII |
 | **Observabilidade** | **structlog desde a v1** (logs suficientes p/ diagnosticar só pelos logs; **sem PII/segredo**); **OpenTelemetry posterior**. **Painel de monitoramento = usar o do Supabase por ora** (não construir painel próprio agora — ADR-009, coerente com OTel posterior); como o **stack Supabase completo** roda em dev e prod (ADR-010), o **Studio fica disponível no ambiente** como esse painel, sem ferramenta extra. Logging/métricas = **transversais via facade nas bordas** (não ports — ADR-004) | V, VI |
 | **Eficiência de performance** | **Sem custo oculto** (N+1, full scan, O(n²)); onde o uso justifica, o **caminho crítico** tem alvo **explícito** de latência/throughput, **derivado de decisão registrada** | II |
 | **Config externalizada** | 100% por ambiente; sem hardcode; **seleciona o ambiente (dev/prod) e o alvo NetCorp (stub/teste/prod)** por config — ADR-010; no `web`, **distingue a URL do Supabase voltada ao navegador da URL interna (rede do compose) usada server-side** — ADR-011 | VII |
-| **Compatibilidade de contrato** | **Convenções transversais de API** (paginação, **envelope de erro único**, versionamento) decididas 1× e herdadas; **filtro/ordenação** fica p/ a 1ª lista filtrável real (feature 02+), não na 00; **gate de drift OpenAPI→orval em CI** — ADR-007/008 | III |
+| **Compatibilidade de contrato** | **Convenções transversais de API** (paginação, **envelope de erro único**, versionamento) decididas 1× e herdadas; **filtro de lista** = convenção da lista de usuários da 06d (**um parâmetro de situação; omitido = todos**), não na 00; **ordenação** fica p/ a 1ª lista ordenável real; **gate de drift OpenAPI→orval em CI** — ADR-007/008 | III |
 | **Histórico/auditoria** | SCD-2 nos 3 históricos obrigatórios; **trilha de auditoria** (ADR-008; **leitura integral só para o SuperAdmin**, demais usuários leem **só as próprias ações**); cobertos por **testes point-in-time** (ADR-007) | IV, VIII |
 
 ---
@@ -419,7 +426,7 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
   explícita de escopo global** em `role_permission`, verificada **no mesmo `EXISTS`** da policy —
   **não** por papel propagado. Um **índice cobre o `EXISTS`/`JOIN`** da policy (sem full scan).
   Propagação da identidade: ver ADR-006. **Desenho exato** da permissão de escopo global e da
-  cláusula `EXISTS` = **[a definir no Design da 01]**.
+  cláusula `EXISTS`: fechado no **DESIGN da 01** (arquivado).
 - **Catálogo de áreas/departamentos = semeado, sem CRUD de usuário:** as **3 áreas + 7
   departamentos** são criadas por **seed/migração** e mudam **só via desenvolvimento** — **não há
   cadastro/CRUD** de área/departamento pelo usuário. A **associação de departamento a usuário**
@@ -468,7 +475,7 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
   - **`apps/web`** — frontend **Next.js + Tailwind + shadcn**: `app/` (App Router),
     `components/`, `lib/api/` (client tipado gerado do OpenAPI — ver ADR-005),
     `design-system/` (`MASTER.md` + `pages/*.md` do **ui-ux-pro-max**).
-  - **Raiz:** `docs/`, `.specify/`, `.github/`, `.githooks/` e a skill embutida
+  - **Raiz:** `docs/`, `.github/`, `.githooks/` e a skill embutida
     `.claude/skills/ui-ux-pro-max/` permanecem no nível-repo.
 - **Catálogo de ports/adapters** — critério: **port/adapter = dependência de SAÍDA que o
   domínio chama e que se troca/mocka**.
@@ -545,10 +552,11 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
     ícone** da Italtel vinculam-se à marca; **tipografia e iconografia NÃO ficam vinculadas à
     marca** (escolhidas pelo padrão SaaS/ERP acima). **Revoga a ancoragem tipográfica anterior**
     (tipografia presa ao guia — em ADR-005/`MASTER.md`/`globals.css`). A **referência de marca
-    está versionada em `docs/brand-identity/`**: guia `brand-guidelines/Italtel_Brand_Guidelines_2024.pdf`
-    (cores) e ícones em `logo/icons/` (`Icon@2x (3).png` default, `Icon_black@2x.png`,
-    `Icon_white@2x.png`). Os **valores concretos de cor/uso de logo** são **extraídos do guia na
-    implementação** (PRD 00) — a visão **não** os transcreve (fonte externa).
+    fica em `docs/references/brand-identity/`**: ícones em `logo/icons/` (`Icon@2x (3).png` default,
+    `Icon_black@2x.png`, `Icon_white@2x.png`). O **guia da marca em PDF** (fonte das cores) **não é
+    versionado**. Os **valores concretos de cor/uso de logo** são **extraídos do guia na
+    implementação** (PRD 00) e ficam em `apps/web/design-system/MASTER.md` — a visão **não** os
+    transcreve (fonte externa).
   - **v1 (login + casca) realiza integralmente o padrão** — com estados, movimento, contraste
     e foco no nível de um produto moderno (não é placeholder visual); **responsividade segue o
     alvo por tela** acima (login ≥375px; casca ≥768px, abaixo disso na casca = fora de suporte v1).
@@ -601,7 +609,7 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
     `set_config('request.jwt.claims', '<claims-json>', true)` (equivale a `SET LOCAL`, seguro
     com pool) executada pelo role **não-privilegiado `itallus_app`** antes de qualquer query; as
     policies lerão `current_setting('request.jwt.claims', true)::jsonb`. **As policies concretas
-    por tabela ficam `[a definir no Design da feature 01]`.**
+    por tabela** estão fechadas no **DESIGN da 01** (arquivado).
     **Refino 2026-09-23 (brainstorm da 01):** a policy decide o escopo por `EXISTS`/`JOIN` em
     `department_access`/`role_permission` para **todos** os papéis, inclusive o escopo global de
     Admin/SuperAdmin (permissão explícita em `role_permission` — ADR-002). **A identidade chega à
@@ -610,6 +618,10 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
     `user_id`**; a policy da 01 lê **só o `sub`** de dentro desse JSON
     (`current_setting('request.jwt.claims', true)::jsonb ->> 'sub'`). A 01 **não altera o
     mecanismo de propagação** — só as policies que o consomem.
+    **Feature 06d:** a identidade passa a ser **reaplicada a cada transação da sessão** (um
+    `commit` no meio de uma operação não descarta a identidade do requisitante), e o **usuário
+    desativado deixa de ter identidade nas regras de acesso** — toda policy e o PEP o negam desde a
+    desativação, sem esperar a expiração do token. Mecanismo no **DESIGN da 06d**.
   - **Dinheiro e percentuais = Decimal/NUMERIC, nunca float.** Valores monetários (invoice,
     revenue, valor de contrato, SPC valor/hora, custo do mês) e percentuais (% 1ª/2ª margem,
     rebate) usam **`Decimal` no Python**, **`NUMERIC` no Postgres** e **string no JSON** do
@@ -696,9 +708,11 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
     grandes/estáveis, **envelope de erro único**
     `{ error: { code, message, details[]?, request_id } }` (`code` estável p/ máquina/i18n;
     `message` ao usuário; `request_id` correlaciona com o log) e **versionamento de API**.
-    Decididas na feature 00 e herdadas pelas demais. **Filtro/ordenação NÃO é definido aqui:** o
-    catálogo de navegação da 00 é **estático** (sem lista filtrável real); a **convenção de
-    filtro/ordenação fica para a 1ª lista filtrável real (feature 02+)**, quando houver uso concreto.
+    Decididas na feature 00 e herdadas pelas demais. **Filtro/ordenação NÃO é definido na 00:** o
+    catálogo de navegação da 00 é **estático** (sem lista filtrável real). A **convenção de filtro
+    de lista** é a da **lista de usuários da feature 06d** (1ª lista filtrável real): **um parâmetro
+    de situação; omitido = todos** (mecanismo no DESIGN da 06d). A **convenção de ordenação** fica
+    para a 1ª lista ordenável real.
   - **Trilha de auditoria de uso/operações sensíveis:** casa de implementação fixada —
     **tabela de auditoria** + **mecanismo de escrita** (ex.: nos casos de uso/adapters das
     operações **sensíveis** sobre **dados pessoais de colaboradores** e **valores**). Registra
@@ -760,8 +774,8 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
      de sessão da 00** (acessível **sem sessão prévia**), **sem abrir as demais rotas do produto**; a
      superfície exposta sem sessão é **só o consumo do token**. **Contexto verificável:** o stack
      vendorizado **não tem serviço de e-mail provisionado** (dev nem produção) — e-mail transacional
-     é gancho futuro. **Formato, armazenamento e tempo de expiração do token** = **[a definir no
-     Design da 01]**.
+     é gancho futuro. **Formato, armazenamento e tempo de expiração do token**: fechados no
+     **DESIGN da 01** (arquivado).
   4. **Papéis cumulativos + escalonamento de privilégio:** cumulatividade
      **`usuário ⊂ manager ⊂ admin ⊂ superadmin`** — cada papel **contém** o anterior (o **Admin faz
      tudo o que o Manager faz** — inclusive **aprovações** e ver/editar — porém em **escopo
@@ -804,7 +818,13 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
      nomeado antes** e executa a operação. A **feature 01**
      entrega o **mecanismo de anonimização do usuário** — **nome e e-mail no domínio do itallus** e
      **conta no provedor de identidade** —, **sem interface**, que o **executor da feature 06d
-     aciona**. Forma concreta do mecanismo = **[a definir no Design da 01]**.
+     aciona**. Forma concreta do mecanismo: fechada no **DESIGN da 01** (arquivado). A **06d adapta**
+     a guarda de acesso e a política de anonimização da 01 — o usuário desativado deixa de ter
+     identidade nas regras de acesso, e a restrição da anonimização ao SuperAdmin passa ao registro
+     da anonimização, já que a correção de nome e e-mail pelo Admin escreve esses dados (DESIGN da
+     06d). **Operações e superfície** da 06d (apagar os dados pessoais = ação própria e irreversível
+     do SuperAdmin; desativar/reativar e corrigir = reversíveis, do Admin): fechadas no **PRD da
+     06d** (§4) e no **DESIGN da 06d**.
      **Apagamento por pessoa** (refino 2026-10-02): o direito ao apagamento é do **titular-pessoa,
      não do registro** — quando usuário e colaborador são a mesma pessoa, o pedido cobre **todo o PII
      dela** (usuário, colaborador vinculado se houver e PII futura); substitui o recorte anterior de
@@ -814,7 +834,10 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
      dependência é da **06a em relação à 06d**, não o inverso (refino 2026-10-07): a 06a só pluga o
      seu anonimizador num fluxo que já existe; e, como o **vínculo colaborador↔usuário só passa a
      existir com a 06c**, que depende da 06a, **não ocorre colaborador vinculado e não coberto** pelo
-     fluxo. A anonimização tem **dois gatilhos** — **pedido do titular** (LGPD art. 18) e **fim do
+     fluxo. O **contrato comum de anonimizador** entre 01, 06a e features futuras (entrada,
+     resultado por entidade, idempotência, auditoria) está fechado no **DESIGN da 06d**; a **06d é
+     dona do fluxo** e a **06a, do anonimizador do colaborador** que se pluga nele, e cada uma declara
+     a sua fatia da métrica de direitos do titular. A anonimização tem **dois gatilhos** — **pedido do titular** (LGPD art. 18) e **fim do
      prazo de retenção** —, ambos **executados pelo SuperAdmin**, **sem disparo automático**, e a
      anonimização **desativa o usuário antes de anonimizar**, no mesmo ato. A anonimização **a pedido do titular alcança o
      usuário em qualquer estado** — ativo ou desativado (o registro desativado ainda contém PII): o
@@ -824,7 +847,10 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
      do fim da finalidade** — o instante da **desativação** (refino 2026-10-08) —, **não da criação
      da conta** (refino 2026-10-07): reativar **zera** a contagem, e o **perfil de usuário ativo
      nunca entra em retenção** nem é anonimizado por fim de prazo; as **trilhas** (auditoria e autenticação do provedor) mantêm o **expurgo por faixa de
-     data**. A **LGPD do titular usuário** (incluindo o **mecanismo de retenção** dos dados do usuário e da
+     data**; o **e-mail na trilha de autenticação do provedor** não é apagado no acionamento e sai
+     **só** por esse expurgo — **limite declarado** (PRD da 06d §4; DESIGN da 06d). A execução da
+     retenção alcança, por classe, todos os registros vencidos; a anonimização **a pedido do
+     titular** é **por pessoa**. A **LGPD do titular usuário** (incluindo o **mecanismo de retenção** dos dados do usuário e da
      **trilha de auditoria** — janela por classe de dado, expurgo auditado e destino ao vencer, prazos e base
      legal **[a definir]** com responsável nomeado) é da **06d**; o **anonimizador do titular
      colaborador** é da **06a**.
@@ -948,9 +974,8 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
        aplicação implantável da 00 é ela mesma, e a implantação real **já ocorreu**. Portanto a
        **liveness pós-deploy** é **MEDIDA sob a 00** (deploys de produção 35136474611/35223484216/
        35227709700 com passo de saúde + smoke test passando). A **execução da reversão pelo artefato**
-       (item 9), porém, **permanece NÃO-MEDIDA / em aberto sob a própria 00** — entregue como mecanismo
-       (dispara em falha), mas **uma reversão íntegra e saudável nunca foi capturada** (ver item 9);
-       **nenhuma** das duas é transferida à feature 01.
+       (item 9) também está **MEDIDA sob a 00**, com a execução capturada em **2026-09-21** (run 35559037188) (ver item
+       9); **nenhuma** das duas é transferida à feature 01.
   7. **Provisionamento reproduzível do servidor = entregável da 00 (infra-as-code).** Hoje o CD
      **pressupõe o runner já existindo**; falta o requisito de **ENTREGAR os meios de criá-lo**. A
      00 passa a entregar o **provisionamento do servidor de forma reproduzível, idempotente e
@@ -987,13 +1012,8 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
        reversão** — o passo que reverte **não dispõe de construção de imagem**, verificável na própria
        **definição do pipeline** — está **medida sob a 00**. Já a **EXECUÇÃO da reversão** (voltar para
        a versão imutável anterior, lida do estado do deploy persistido no host, **sem reconstruir**)
-       **permanece NÃO-MEDIDA / em aberto sob a própria 00**: o mecanismo é entregue pela 00 e
-       **dispara em falha**, mas **uma reversão íntegra e saudável nunca foi capturada** — nos deploys
-       de produção que passaram (35136474611/35223484216/35227709700) o rollback ficou **skipped** e no
-       único em que **disparou** (35218615973) **falhou por resíduo de host, não por defeito do
-       mecanismo**; a medição fica **pendente de um exercício real bem-sucedido**. Separar: "o
-       mecanismo dispara em falha" (verdade, entregue) ≠ "a reversão foi medida com sucesso" (ainda
-       não). A **liveness (item 5b)** segue medida.
+       também está **MEDIDA sob a 00**, com a execução capturada em **2026-09-21** (run 35559037188). A **liveness
+       (item 5b)** segue medida.
      - O **mecanismo de entrega permanece inalterado** (pull-based, runner self-hosted, egress-only,
        sem ingress — item 5), assim como a **rejeição de um 2º ambiente always-on por custo** (item 1).
      - **Forma concreta** (registry concreto, esquema de versão/tag, como o estado é persistido,
@@ -1028,7 +1048,7 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
       - **Ordenação resultante:** definição do pipeline **integrada** → **prova do mecanismo** sobre
         a **revisão da branch** (item 5a — **critério de pronto da 00**) → **liveness pós-deploy**
         (item 5b — **entregue E MEDIDA pela 00**) e **execução da reversão pelo artefato** (item 9 —
-        **entregue como mecanismo pela 00, porém ainda NÃO-MEDIDA / em aberto sob a 00**), pois a
+        **entregue E MEDIDA pela 00**, execução capturada em 2026-09-21, run 35559037188), pois a
         aplicação implantável da 00 é o próprio stack de fundação, já implantado em produção.
 - **Consequências:** + simplicidade e segurança em 16 GB (qa não disputa recurso com prod);
   + integração NetCorp real validada **desde o dev** contra a réplica de teste (mitiga o
@@ -1048,9 +1068,8 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
   produção** (reinstalação a frio em 2026-09-17) —, **destravando o gate de DoD**;
   + a **feature 00 entrega** os mecanismos (smoke test + rollback automático) e **mede a liveness
   pós-deploy** — a medição **não depende** de uma aplicação de negócio mergear, pois a implantação
-  real da fundação **já ocorreu**; a **execução da reversão pelo artefato** segue **entregue como
-  mecanismo, porém ainda não medida com sucesso** (pendente de um exercício real bem-sucedido, sob a
-  00); + **rollback rápido e determinístico** — volta para um artefato **já construído e
+  real da fundação **já ocorreu**; a **execução da reversão pelo artefato** também está **medida sob a
+  00** (execução capturada em 2026-09-21, run 35559037188); + **rollback rápido e determinístico** — volta para um artefato **já construído e
   testado**, **sem reconstruir sob incidente** (item 9); + o **build sai do host de produção** (poupa
   CPU/RAM do host — coerente com o trade-off dos 16 GB); − o **registry** entra no **caminho de
   deploy/rollback** (nova superfície: disponibilidade por egress, autenticação, retenção das imagens);
@@ -1214,7 +1233,7 @@ Não são features isoladas; são **propriedades** que **toda** feature respeita
 | **CD pull-based — operação do runner self-hosted** | BAIXO | MÉDIA | Mecanismo **decidido** = runner self-hosted no host de produção (event-driven, egress-only); **runner provisionado de forma reproduzível/idempotente** (infra-as-code — deixa de ser pressuposto) + **runbook `DEPLOY.md`**; mecanismo **provado pré-PR** (com evidência, a partir da **definição já integrada à linha principal**, apontando para a **revisão da branch**); **liveness pós-deploy com rollback = re-implantação do artefato imutável anterior** (sem reconstruir) é **entregue como mecanismo E medida sob a própria 00** — a aplicação implantável da 00 é o próprio stack de fundação, **já implantado em produção** (reinstalação a frio em 2026-09-17) com o rollback automático observado disparando; latência aceitável p/ sistema interno (ADR-010). |
 | **Integrar a definição do pipeline dispara deploy de produção** (linha principal ainda **sem aplicação** e **sem versão boa anterior** para onde reverter) | ALTO | MÉDIA | O gatilho do deploy é **fato verificado, não intenção declarada**: a integração fecha com **prova de origem** — **nenhuma execução de deploy chega a ser criada**, isto é, o **registro de execuções logo após ela não exibe execução de deploy alguma**, com **evidência** capturada. Execução **criada e interrompida** não satisfaz (aparece no registro e obriga a **interpretar**; só a **ausência** é fato) — ADR-010 item 10. |
 | **Gate sem objeto lido como aprovação** no PR que integra a definição do pipeline (a aplicação ainda não está na linha principal) | ALTO | MÉDIA | A exceção existe **apenas** como **não-execução visível**: o **job sem fonte nunca é reportado como aprovado** — certificar como verificado o que ninguém verificou é **pior do que não ter gate**; e **assim que a aplicação existe na linha principal** os gates **voltam a ser exigidos em todo PR, sem exceção** (ADR-010 item 10 / ADR-007). |
-| **Registry no caminho de deploy/rollback** (produção depende de **obter a imagem**) | MÉDIO | BAIXA | O registry é dependência de **egress** — postura já decidida (sem ingress, com saída); a **imagem imutável por versão** torna a (re)implantação **idempotente**; o **estado do deploy (última versão boa conhecida) persiste no host de produção**, dando ao rollback um **alvo determinado**; **produção nunca constrói** — o insumo é sempre um artefato **já validado na CI** (ADR-010 item 9 / ADR-011 item 5). |
+| **Registry no caminho de deploy/rollback** (produção depende de **obter a imagem**) | MÉDIO | BAIXA | O registry é dependência de **egress** — postura já decidida (sem ingress, com saída); a **imagem imutável por versão** torna a (re)implantação **idempotente**; o **estado do deploy (última versão boa conhecida) persiste no host de produção**, dando ao rollback um **alvo determinado**; **produção nunca constrói** — o insumo é sempre um artefato **já validado na CI** (ADR-010 item 9 / ADR-011 item 5). Deploy e rollback que não precisam de imagem nova de terceiros deixam de depender do registro de imagens de terceiros = **feature 13**. |
 
 **Contingência:** se a integração NetCorp atrasar/bloquear: a **02a** (conector + Clientes)
 bloqueia **03–05b**, **10** e a própria **02b**; a **02b** (catálogo de CR) bloqueia **05a** e
@@ -1275,7 +1294,8 @@ não lista plana) e **acesso/RLS são a nível de departamento** (feature 01).
   explicitamente (um só "cérebro" de design). **Padrão-alvo = SaaS/ERP corporativo moderno
   para uso interno diário** (sóbrio/baixo ruído/minimalista; **vedados** marketing/conversão
   e gradientes "AI" roxo/rosa); brief = **plataforma operacional multi-módulo** (não "Analytics
-  Dashboard"). **Marca restrita a CORES + LOGOTIPO** (`docs/brand-identity/`) — **tipografia e
+  Dashboard"). **Marca restrita a CORES + LOGOTIPO** (ativos em `docs/references/brand-identity/`; guia em PDF não
+  versionado) — **tipografia e
   iconografia NÃO vinculadas à marca** (revoga a ancoragem tipográfica anterior). **Requisitos
   transversais de UI** no design system: stepper/pipeline de status (fluxos lineares pós-venda),
   tabelas densas server-side, anexo/preview de documentos, trilha de auditoria; **variação por
@@ -1297,7 +1317,7 @@ não lista plana) e **acesso/RLS são a nível de departamento** (feature 01).
 - **Mecanismo identidade→RLS** (ADR-006): **trilho fixado na 00** = conexão com **role
   não-privilegiado `itallus_app`** (nunca `service_role`) + **propagação dos claims por
   transação** via `set_config('request.jwt.claims', …, true)`. As **policies concretas por
-  tabela** ficam `[a definir no Design da feature 01]`. Coerente com ADR-002 (tabela é a
+  tabela** estão fechadas no **DESIGN da 01** (arquivado). Coerente com ADR-002 (tabela é a
   verdade; `app_metadata` segue [a avaliar] só p/ performance). **Refino 2026-09-23 (brainstorm
   da 01):** a 01 **reaproveita o trilho da 00 sem alterá-lo** — a API segue propagando o JSON
   completo dos claims, **sem canal novo dedicado ao `user_id`**, e a policy lê **só o `sub`**
@@ -1323,7 +1343,8 @@ não lista plana) e **acesso/RLS são a nível de departamento** (feature 01).
 - **Convenções de API + auditoria** (ADR-008): **paginação cursor** (limit default 50, máx 200),
   **envelope de erro único** `{error:{code,message,details[]?,request_id}}`,
   versionamento — decididos 1× na 00 e herdados; **filtro/ordenação NÃO** entra na 00 (catálogo
-  estático), fica p/ a **1ª lista filtrável real (feature 02+)**; **tabela de auditoria de uso/operações
+  estático); o **filtro de lista** segue a lista de usuários da **06d** (um parâmetro de situação;
+  omitido = todos) e a **ordenação** fica p/ a 1ª lista ordenável real; **tabela de auditoria de uso/operações
   sensíveis** (PII de colaboradores + valores; LGPD = um dos drivers).
 
 **Decididos neste refino — ciclo de vida de usuário e administração (ADR-009):**
@@ -1464,7 +1485,9 @@ não lista plana) e **acesso/RLS são a nível de departamento** (feature 01).
   **permanece** critério de pronto da 00 é **a CI publicar a imagem versionada no registry**, **a
   produção puxar essa imagem sem construir no host** e **construir ser estruturalmente impossível no
   passo de reversão**; o que **sai** é a **execução** da reversão. As **obrigações correspondentes
-  estão registradas no PRD 01**; a **forma da evidência** de cada uma fica `[a definir no Design da 01]`.
+  estão registradas no PRD 01**; a **forma da evidência** de cada uma fica `[a definir no Design da 01]`
+  (não resolvido no DESIGN da 01; o dono passou a ser a **00** — bullet de 2026-09-17 — e as duas
+  medições estão fechadas sob ela — bullet de 2026-10-13).
   **Fecha** o item que estava em aberto ("qual feature realiza a primeira implantação real").
 - **Liveness pós-deploy e execução da reversão são propriedade da 00, dadas como MEDIDAS** (refino
   **2026-09-17**; **ADR-010 itens 5b e 9**; **supersede** os bullets datados de **2026-07-27** —
@@ -1497,6 +1520,12 @@ não lista plana) e **acesso/RLS são a nível de departamento** (feature 01).
   redação: "o mecanismo dispara em falha" (verdade) ≠ "a reversão foi medida com sucesso" (falso).
   **Propagação:** PRD 00 (M0.1, M0.10, O0.8, RNF0.11, §2, §4, §7) e PRD 01 §8 ajustados; itens
   5b/9/10 e consequências da ADR-010 acima alinhados.
+- **Execução da reversão pelo artefato MEDIDA sob a 00** (refino **2026-10-13**; **ADR-010 item 9**;
+  **supersede** o bullet anterior, "Correção: execução da reversão é NÃO-MEDIDA / em aberto sob a 00",
+  que fica como histórico): a **execução da reversão** — voltar para a **versão imutável anterior**,
+  lida do estado do deploy persistido no host, **sem reconstruir** — foi **capturada em
+  2026-09-21** (run 35559037188) e está **medida sob a 00**; a issue #101 segue fechada. A **liveness pós-deploy** segue medida. Nada muda na
+  propriedade (00) nem no mecanismo.
 - **Prova de origem da integração = NENHUMA execução de deploy criada** (refino 2026-07-27; **ADR-010
   item 10**): a métrica que prova que **integrar não é exercitar** deixa de se satisfazer com "o
   **registro de execuções não contém deploy de produção**" — redação que admite uma implementação que
@@ -1614,7 +1643,8 @@ não lista plana) e **acesso/RLS são a nível de departamento** (feature 01).
   (§6). Os critérios de pronto das fases 0–3 migram para E0–E4 (§7); a fase de ganhos rápidos
   desaparece. O cabeçalho de cada PRD nomeia o seu épico.
 
-**Diferidos de propósito (não esquecidos — entram quando a maturidade exigir):**
+**Diferidos de propósito (não esquecidos — entram quando a maturidade exigir; origem e gatilho de
+cada um no registro de evoluções, issues com a label `deferred`):**
 - **Runtime/agendador do job de sync NetCorp** (cron/systemd/worker) — detalhe de deploy da
   feature 02a (o *adapter de entrada* scheduler é decidido; o **runtime** que o dispara, não).
 - **Testes e2e de frontend** (Playwright) — Vitest (unit) já entra na v1.
@@ -1626,28 +1656,37 @@ não lista plana) e **acesso/RLS são a nível de departamento** (feature 01).
 **Continua em aberto (estrutura/frontend e data layer):** **detalhes internos por feature**
 (arquivos/módulos dentro de cada app — ficam para o **Design**); **middlewares e circuit breaker** (posteriores — o
 ADR-004 só reserva o lugar); **espelhar escopo/papel em `app_metadata`** via Auth Hook
-(performance — a avaliar, ADR-002/006); **adequação do catálogo do ui-ux-pro-max** a um app
+(performance — **não adotado no DESIGN da 01**, que propaga papel e escopo pela tabela; segue como
+**evolução** no registro de evoluções, com o gatilho "latência das policies acima do alvo medido
+(M1.3 do PRD 01)" — ADR-002/006); **adequação do catálogo do ui-ux-pro-max** a um app
 interno LOB/admin (mitigação: gerar o `MASTER.md` **uma vez**, disciplinado, no padrão SaaS/ERP
-moderno, e as telas herdam dele); **valores concretos de marca** (**paleta** e **regras de uso de
-logo/ícone** — marca restrita a cores + logotipo) — **a extrair do guia da marca**
-(`docs/brand-identity/Italtel_Brand_Guidelines_2024.pdf`) na implementação do design system
-(PRD 00), não fixados na visão; **tipografia e iconografia = escolha do padrão SaaS/ERP**, não do
-guia da marca.
+moderno, e as telas herdam dele).
+
+**Fechado — valores concretos de marca (refino 2026-10-13):** a **paleta** e as **regras de uso de
+logo/ícone** (marca restrita a cores + logotipo), extraídas do guia da marca (PDF **não versionado**;
+os ativos versionados ficam em `docs/references/brand-identity/`) na implementação do design system
+(PRD 00), estão em `apps/web/design-system/MASTER.md` — não são fixados na visão; **tipografia e
+iconografia = escolha do padrão SaaS/ERP**, não do guia da marca.
 
 **Continua em aberto (ciclo de vida de usuário — ADR-008/009):** **campos/política exatos da
-anonimização** (right-to-erase) `[a definir]` — para o **usuário**, o alcance (nome e e-mail no
-domínio + conta no provedor de identidade) está decidido; a **forma concreta do mecanismo** =
-`[a definir no Design da 01]`; **em que operações e por qual superfície a feature 06d aciona** esse
-mecanismo `[a definir]`; **qual feature entrega a consulta da trilha de auditoria pela
-interface** `[a definir]`; **conteúdo detalhado das "configurações complexas"
-do SuperAdmin** — anexa-se **feature a feature** (ex.: NetCorp = 02a, retenção LGPD = transversal,
-fator dias→horas = 09); o **mapeamento da credencial privilegiada** = `[a definir no Design da
-01]`. **Do refino 2026-09-23 (brainstorm da 01), `[a definir no Design da 01]`:** desenho exato da
-**permissão de escopo global** em `role_permission` e da **cláusula `EXISTS`** que a reconhece; **formato, armazenamento
-e tempo de expiração do token** de convite/reset; **mapeamento endpoints↔telas** da tela admin de
-gestão de usuários/acessos, com as **telas de referência adaptadas à identidade visual do
-projeto**; **se/como o seed inicial de usuários** entra como migração/script versionado. (As **aprovações do Manager** seguem em
+anonimização do colaborador** (right-to-erase) `[a definir]` — dono: **06a**; **qual feature entrega a
+consulta da trilha de auditoria pela interface** `[a definir]`; **conteúdo detalhado das
+"configurações complexas" do SuperAdmin** — anexa-se **feature a feature** (ex.: NetCorp = 02a,
+retenção LGPD = transversal, fator dias→horas = 09). (As **aprovações do Manager** seguem em
 aberto — ver acima — e **não** são resolvidas aqui.)
+
+**Fechados — ciclo de vida de usuário (refino 2026-10-13):** os itens antes marcados `[a definir no
+Design da 01]` — **forma concreta do mecanismo de anonimização do usuário** (campos do usuário
+inclusive), **mapeamento da credencial privilegiada**, desenho da **permissão de escopo global** e da
+**cláusula `EXISTS`**, **formato, armazenamento e tempo de expiração do token** de convite/reset,
+**mapeamento endpoints↔telas** da tela admin com as telas de referência adaptadas à identidade
+visual, e **se/como o seed inicial de usuários** entra — estão fechados no **DESIGN da 01**
+(arquivado). **Em que operações e por qual superfície a 06d aciona** a anonimização, o **contrato
+comum de anonimizador** e o **limite do e-mail na trilha do provedor**: fechados no **PRD da 06d** e
+no **DESIGN da 06d**. **Identidade nas regras de acesso:** o usuário desativado deixa de ter
+identidade, e a identidade é reaplicada a cada transação da sessão (**DESIGN da 06d**; ADR-006).
+**Convenção de filtro de lista:** a da lista de usuários da 06d — um parâmetro de situação, omitido =
+todos (ADR-008).
 
 **Em aberto — épicos (refino 2026-09-28):** **objetivo e critério de pronto** dos épicos **E5**,
 **E6** e **E7** `[a definir]`; **cobertura da 06d** no critério de pronto do **E1** e **da 06c** no

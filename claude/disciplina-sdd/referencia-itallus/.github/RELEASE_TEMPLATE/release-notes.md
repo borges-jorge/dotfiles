@@ -17,7 +17,8 @@
                            patch  correção, documentação, manutenção
            Quebra declarada é a exclamação antes dos dois-pontos no assunto, em
            qualquer tipo, ou o rodapé BREAKING CHANGE no corpo. Sobe minor porque
-           a v1.0.0 fica para quando o produto tiver ciclo de vida de usuário.
+           a v1.0.0 fica para quando a primeira feature de gestão de contratos
+           (épico E3) estiver em produção.
 
   TÍTULO   v{X.Y.Z} — {componente}: {capacidade entregue}
            Nomeia a CAPACIDADE, não o assunto do commit que a trouxe.

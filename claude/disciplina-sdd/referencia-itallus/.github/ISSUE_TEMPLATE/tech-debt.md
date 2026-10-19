@@ -44,6 +44,21 @@ labels: [tech-debt, deferred]
 
 {What should happen instead.}
 
+## Delivery
+
+<!-- Which path delivers this, decided before work starts (AGENTS.md, "Caminho de entrega").
+     PRD when at least one holds:
+       1. proven correct only by running it (test, stack or deploy) — reading the diff is not enough;
+       2. changes runtime behaviour of the system or its operation (API, screen, stored data, deploy);
+       3. changes a requirement, business rule or constraint (fixing a stale fact does not count);
+       4. touches security, LGPD or the database schema.
+     Simple task when none holds: a direct docs/chore/fix PR, no PRD.
+     Name the path, the criterion that decides it and, on a borderline case, the risk,
+     reversibility and reach. The owner validates by adding the label delivery:prd or
+     delivery:simple; without it, work does not start. -->
+
+{PRD | simple task} — {criterion that decides it, and the borderline assessment if any}.
+
 ## Why it was postponed
 
 <!-- The decision, in one or two lines: what took priority, or what has to exist first. -->
