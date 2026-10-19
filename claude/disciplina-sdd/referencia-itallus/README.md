@@ -1,6 +1,6 @@
 # Referência: disciplina SDD do itallus
 
-Cópia dos artefatos de processo do itallus (`borgesj-itl/itallus`, branch `qa`, commit `36850ff`),
+Cópia dos artefatos de processo do itallus (`borgesj-itl/itallus`, branch `qa`, commit `44dc226`),
 usada como referência para reformular a disciplina e empacotá-la (issue #10). Ao executar o plano, o
 que é específico do itallus sai ou vira parâmetro do projeto.
 
@@ -22,4 +22,5 @@ que é específico do itallus sai ou vira parâmetro do projeto.
 | `.github/workflows/ci.yml` | CI do itallus: o job `release` é da disciplina; os demais são do projeto |
 | `.pre-commit.yaml` | configuração de pre-commit, inativa no itallus |
 | `.claude/sdd/templates/REVIEW_REPORT_TEMPLATE.md` | modelo do relatório de code review e de security review, entrada do `conformance-gate` |
+| `.claude/sdd/templates/VALIDATION_REPORT_TEMPLATE.md` | modelo do relatório de validação feita pelo responsável, lido pelo `conformance-gate` como evidência |
 | `.claude/hooks/check_iterate_argument.py` | hook que barra o `/iterate` sem as seções `Mudança:`, `Fato provado:` e `Hipótese:` |

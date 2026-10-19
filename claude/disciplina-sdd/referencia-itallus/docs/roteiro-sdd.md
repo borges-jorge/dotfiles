@@ -292,7 +292,14 @@ controle** que evitam drift e retrabalho. Sequência completa (sempre as 5 fases
    ao remoto (`@{upstream}...HEAD`) mais a árvore, e o escopo muda com o estado do repositório: por
    isso o alvo explícito. O security review não aceita alvo e compara com a branch padrão
    (`origin/HEAD`), que contém o diff contra a `qa`.
-10. **▶ Gate de conformidade — conformance (`/conformance-gate conformance`), OBRIGATÓRIO antes de PR.**
+10. **▶ Validação que o gate não consegue repetir.** Quando a prova de um critério exige credencial
+    do responsável (ex.: leitura real de um sistema externo só de produção), o responsável a
+    executa no terminal dele e a saída é gravada sem alteração em
+    `.claude/sdd/reports/VALIDATION_{FEATURE}.md` (template
+    `.claude/sdd/templates/VALIDATION_REPORT_TEMPLATE.md`), com o commit validado, num commit
+    próprio. Saída colada no chat não chega ao gate, que roda num agente novo; sem o relatório, o
+    critério fica não medido e bloqueia.
+11. **▶ Gate de conformidade — conformance (`/conformance-gate conformance`), OBRIGATÓRIO antes de PR.**
     Como a delegação do `/build` é automática, este é **a única trava forte e roda depois do código** —
     por isso é obrigatório **sem exceção**. **Antes de abrir PR para `qa`/declarar "done"**, rodar o gate
     em modo `conformance`: além do readiness, confronta **artefatos↔código** e **exige evidência ao vivo**
@@ -302,7 +309,7 @@ controle** que evitam drift e retrabalho. Sequência completa (sempre as 5 fases
     Achados que **não** são critério de DoD seguem o limiar do readiness.
     *(Enforcement hoje = esta regra + o bullet do `AGENTS.md`; hook de harness que barre o PR mecanicamente
     = pendência futura — se entrar, marcador com hash da árvore + interceptar `gh pr create --base qa`.)*
-11. **`/ship`** → arquiva os artefatos em `.claude/sdd/archive/{FEATURE}/` + `SHIPPED_{DATA}.md` com
+12. **`/ship`** → arquiva os artefatos em `.claude/sdd/archive/{FEATURE}/` + `SHIPPED_{DATA}.md` com
     lessons learned, incluídos os relatórios de review.
 
 **Princípios do ciclo:** (a) artefato AgentSpec muda **re-rodando o comando** (`/iterate` para
