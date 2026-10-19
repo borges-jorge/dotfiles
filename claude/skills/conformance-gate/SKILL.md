@@ -215,7 +215,7 @@ a eles o mesmo critério dos próprios achados.
    declarada é a branch do PR ou a branch padrão (o diff contra esta contém o diff contra aquela), e
    o patch entre o ponto de divergência declarado e o commit revisado tem o mesmo
    `git patch-id --stable` que o patch entre `git merge-base HEAD <base declarada>` e `HEAD`,
-   excluídos os relatórios de review. Cada relatório é conferido contra a própria base; qualquer
+   excluídos os relatórios de review e de validação. Cada relatório é conferido contra a própria base; qualquer
    mudança no diff contra ela quebra a âncora. Relatório ausente, sem os campos ou desancorado é achado de classe C contra a convenção
    do projeto, e o relatório não é usado.
 2. **Prova.** Cada achado do relatório é re-derivado neste run: ler o código citado e, quando o
@@ -235,7 +235,8 @@ relatório com a saída da execução feita pelo responsável.
 
 1. **Presença e âncora.** O relatório segue o template e declara o comando, o commit validado e a
    base do diff. Está ancorado pela mesma regra dos relatórios de review: o código que ele validou é
-   o código de hoje contra a mesma base (mesmo `git patch-id --stable`, excluídos os relatórios).
+   o código de hoje contra a mesma base (mesmo `git patch-id --stable`, excluídos os relatórios de
+   review e de validação).
    Desancorado, não vale como evidência.
 2. **Leitura.** A saída é a evidência: o critério fica `VERIFICADO(sim)` só se ela mostra o que o
    falsificador do critério exige; o que ela não mostra fica `NÃO-MEDIDO`. Saída que mostra falha
