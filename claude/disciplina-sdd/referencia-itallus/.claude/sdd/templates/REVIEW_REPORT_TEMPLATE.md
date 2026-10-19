@@ -1,6 +1,6 @@
 # {CODE | SECURITY} REVIEW: {Feature Name}
 
-> Saída do `{/code-review high | /security-review}` sobre o build da feature, gravada sem alteração.
+> Saída do `{/code-review high origin/qa...HEAD | /security-review}` sobre o build da feature, gravada sem alteração.
 > Entrada do `/conformance-gate conformance`, que prova, filtra e classifica cada achado.
 
 <!--
@@ -22,7 +22,7 @@ Como preencher:
 | Attribute | Value |
 |-----------|-------|
 | **Feature** | {FEATURE_NAME} |
-| **Review** | {`/code-review high` \| `/security-review`} |
+| **Review** | {`/code-review high origin/qa...HEAD` \| `/security-review`} |
 | **Commit revisado** | {SHA completo} |
 | **Base do diff** | {referência} @ {SHA do ponto de divergência} |
 | **Date** | {YYYY-MM-DD} |

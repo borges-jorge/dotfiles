@@ -278,8 +278,8 @@ controle** que evitam drift e retrabalho. Sequência completa (sempre as 5 fases
 8. **`/build`** → código + `BUILD_REPORT_{FEATURE}.md`. O build-agent **gera as tasks on-the-fly do
    File Manifest** e **delega a especialistas automaticamente** (a delegação é o modelo do AgentSpec,
    não requer aprovação passo-a-passo); verificação por arquivo (import/lint) e cheia (lint/tipos/testes).
-9. **▶ Reviews de código e de segurança (`/code-review high` e `/security-review`).** Procuram o que o
-   gate não procura: defeito de código (bug, caso de erro, validação de entrada) e vulnerabilidade
+9. **▶ Reviews de código e de segurança (`/code-review high origin/qa...HEAD` e
+   `/security-review`).** Procuram o que o gate não procura: defeito de código (bug, caso de erro, validação de entrada) e vulnerabilidade
    explorável no diff da branch. Não ancoram em afirmação dos artefatos, não verificam o que acham e
    não classificam pela régua — um achado deles pode ser decisão registrada, cenário fora da régua
    ou falso positivo. Por isso **não decidem nada**: a saída de cada um é gravada **sem alteração**
@@ -287,8 +287,11 @@ controle** que evitam drift e retrabalho. Sequência completa (sempre as 5 fases
    `.claude/sdd/templates/REVIEW_REPORT_TEMPLATE.md`), com o commit revisado e a base do diff, num
    commit próprio, e vira **entrada do conformance**, que prova cada achado contra o código, aplica
    o filtro de admissão e a tabela de severidade. Classificar no chat criaria uma segunda régua. O
-   relatório vale enquanto o diff da branch contra a base for o que ele revisou (mesmo hash de patch):
-   trazer a `qa` para a branch sem mudar o que ela traz não o invalida; mudar o código, sim.
+   relatório vale enquanto o diff contra a base que ele declara for o que ele revisou (mesmo hash de
+   patch); mudar o código o invalida. Sem alvo, o code review revisa só os commits ainda não enviados
+   ao remoto (`@{upstream}...HEAD`) mais a árvore, e o escopo muda com o estado do repositório: por
+   isso o alvo explícito. O security review não aceita alvo e compara com a branch padrão
+   (`origin/HEAD`), que contém o diff contra a `qa`.
 10. **▶ Gate de conformidade — conformance (`/conformance-gate conformance`), OBRIGATÓRIO antes de PR.**
     Como a delegação do `/build` é automática, este é **a única trava forte e roda depois do código** —
     por isso é obrigatório **sem exceção**. **Antes de abrir PR para `qa`/declarar "done"**, rodar o gate
