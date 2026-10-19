@@ -206,11 +206,12 @@ a eles o mesmo critério dos próprios achados.
 
 1. **Presença e âncora.** Para cada review que o projeto exige, o relatório existe, segue o template
    e declara o commit revisado e a base do diff (referência e ponto de divergência). O relatório
-   está ancorado quando **o diff que ele revisou é o diff da branch hoje**: o patch entre o ponto de
-   divergência declarado e o commit revisado tem o mesmo `git patch-id --stable` que o patch entre
-   `git merge-base HEAD <branch do PR>` e `HEAD`, excluídos os relatórios de review. Merge da branch
-   do PR que não muda o que a branch traz mantém a âncora; qualquer mudança no diff da branch a
-   quebra. Relatório ausente, sem os campos ou desancorado é achado de classe C contra a convenção
+   está ancorado quando **o diff que ele revisou é o diff de hoje contra a mesma base**: a base
+   declarada é a branch do PR ou a branch padrão (o diff contra esta contém o diff contra aquela), e
+   o patch entre o ponto de divergência declarado e o commit revisado tem o mesmo
+   `git patch-id --stable` que o patch entre `git merge-base HEAD <base declarada>` e `HEAD`,
+   excluídos os relatórios de review. Cada relatório é conferido contra a própria base; qualquer
+   mudança no diff contra ela quebra a âncora. Relatório ausente, sem os campos ou desancorado é achado de classe C contra a convenção
    do projeto, e o relatório não é usado.
 2. **Prova.** Cada achado do relatório é re-derivado neste run: ler o código citado e, quando o
    comportamento depende de execução ou de biblioteca, reproduzir o gatilho (teste, chamada,
