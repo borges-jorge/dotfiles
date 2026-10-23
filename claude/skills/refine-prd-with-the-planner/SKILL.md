@@ -38,7 +38,7 @@ description: |
 |---|---|
 | **Antes do ciclo da feature** | O brainstorm da feature + o PRD da feature |
 | **Durante o ciclo** (define, design, build) | O PRD da feature + a decisão que muda a base (constituição, ADR, concern cross-feature), com ou sem brainstorm |
-| **Na entrega** (sincronização, antes do arquivamento) | O PRD da feature + o relatório do último gate de conformidade: as seções de sincronização de documentos e de confirmações respondidas |
+| **Na entrega** (sincronização, antes do arquivamento) | O PRD da feature + o relatório do último gate de conformidade (seção de sincronização de documentos) + as respostas do responsável dos relatórios do gate (readiness e conformance), que são cumulativas |
 | **Depois da entrega** (uso em produção) | O PRD da feature + a decisão de subir a régua, com a evidência de uso que a justifica |
 
 Antes do ciclo, brainstorm e refino podem se alternar até o PRD ficar adequado, a critério do

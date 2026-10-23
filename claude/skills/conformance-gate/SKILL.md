@@ -58,11 +58,16 @@ resolve tudo lendo o `AGENTS.md` do projeto onde roda. Opera por **classes de fa
   argumento, a varredura é neutra e completa. Se um fato do contexto for relevante, ele **tem de
   ser re-derivado do artefato/código aqui** para contar — citação de memória do chat não é prova.
   Issues, PRs e relatórios de gates anteriores **não** são entrada: uma decisão do responsável
-  conta quando está registrada nos artefatos. As exceções, no modo `conformance`, são os
-  relatórios que o projeto declara (Passo 0): os **de review** entram como **candidatos**, nunca como
+  conta quando está registrada nos artefatos. Exceções: nos dois modos, a seção de **respostas do
+  responsável** dos relatórios do gate (Passo 0), que é decisão registrada; no modo `conformance`,
+  os relatórios que o projeto declara (Passo 0): os **de review** entram como **candidatos**, nunca como
   achados prontos — cada um é provado de novo neste run (seção Relatórios de review); os **de
   validação** entram como **evidência** de execução que o gate não consegue repetir (seção
   Relatórios de validação).
+- **Não supor.** Todo destino, risco e manifestação se apoia num fato citado (artefato e local, ou
+  código e linha). Quando o fato que decide não está nos artefatos nem no código, o item é
+  **indeterminado** (seção Régua): o gate diz qual fato falta e faz a pergunta — nunca escolhe um
+  nível por padrão, nunca preenche a lacuna com o que "provavelmente" é.
 - **Read-only.** NÃO modifica nenhum arquivo. Nunca aplica correção. Se propõe remediação, é
   como **texto** — e a correção real entra **pelo fluxo** (corrige o artefato-fonte a montante e
   re-roda o comando para cascatear), NUNCA ad hoc.
@@ -77,17 +82,19 @@ resolve tudo lendo o `AGENTS.md` do projeto onde roda. Opera por **classes de fa
   confirmação do responsável (seção Régua).
 - **Sem viés de foco.** Rodar o gate = varredura neutra da taxonomia inteira; não prefaciar com um
   "foco" que vicie o resultado. O recorte é fixo: a varredura percorre todo ID rastreável do
-  upstream e do DEFINE e todo item do File Manifest; o que vira achado é decidido pelo filtro de
-  admissão, não pela escolha do agente.
+  upstream e do DEFINE, toda cláusula de critério de DoD (Matriz de provas), todo item da base
+  (Mapa da base) e todo item do File Manifest; o destino de cada coisa é decidido pelas regras da
+  seção Régua e da seção Severidade, não pela escolha do agente.
 
 ## Passo 0 — Resolver contexto do projeto (a partir do AGENTS.md)
 
 Ler o `AGENTS.md` (e/ou `CLAUDE.md`) do projeto e extrair, SEM assumir:
 
-- **Fonte-da-verdade upstream**: onde vivem requisitos, visão/arquitetura, ADRs, PRDs, constituição
-  (paths + em que branch). Ex. comum: `docs/requisitos.md`, `docs/visao-geral.md` (ADRs),
-  `docs/prds/NN-*.md` ou PRDs agrupados por épico (`docs/prds/E<n>-*/<id>-*.md`),
-  `docs/constitution/constitution.md`.
+- **Fonte-da-verdade upstream**: onde vivem visão/arquitetura, ADRs, PRDs, constituição
+  (paths + em que branch). Ex. comum: `docs/visao-geral.md` (ADRs), `docs/prds/NN-*.md` ou PRDs
+  agrupados por épico (`docs/prds/E<n>-*/<id>-*.md`), `docs/constitution/constitution.md`. O
+  documento de requisitos que semeou o plano (seed), quando o projeto o declara imutável, **não é
+  confrontado**: divergir dele é refinamento, não achado.
 - **Artefatos por-feature (AgentSpec)**: em `.claude/sdd/features/` (`DEFINE_{FEATURE}.md`,
   `DESIGN_{FEATURE}.md` — inclui File Manifest, ADRs inline, testing strategy) e
   `.claude/sdd/reports/` (`BUILD_REPORT_{FEATURE}.md`). Resolver a feature ativa pelo bloco
@@ -108,17 +115,24 @@ Ler o `AGENTS.md` (e/ou `CLAUDE.md`) do projeto e extrair, SEM assumir:
   a **base protegida** (o que o `AGENTS.md` declara como tal: segurança, dado pessoal e obrigação
   legal, integridade de dado, cláusulas estruturais, contrato, confiabilidade, ADRs) das
   **convenções de forma** (redação de documento, comentário, nomenclatura). Sem separação
-  declarada, valem as categorias da seção Severidade e a suposição é registrada.
-- **Documentos vivos**: os que sobrevivem à feature (ex.: PRDs, visão, ADRs, constituição, README,
-  runbook de deploy), em oposição aos da feature, arquivados na entrega (ex.: DEFINE, DESIGN,
-  BUILD_REPORT). A sincronização de texto alcança só os vivos; divergência num documento da feature
-  já arquivada não gera item.
+  declarada, valem as categorias da seção Severidade, e o relatório diz que a separação não foi
+  declarada.
+- **Documentos vivos**: os que sobrevivem à feature e que a sincronização da entrega atualiza
+  (ex.: PRDs e visão, com os ADRs), em oposição aos da feature, arquivados na entrega (ex.: DEFINE,
+  DESIGN, BUILD_REPORT). Divergência num documento da feature já arquivada não gera item.
+  Documento **entregue pelo build** (ex.: README, runbook de deploy) não é sincronizado: se diverge
+  do código, é achado P3 (seção Severidade), corrigido no próprio ciclo.
 - **Relatório do gate**: onde o projeto grava a saída de cada rodada e o template (ex.:
-  `.claude/sdd/reports/READINESS_{FEATURE}.md`, `CONFORMANCE_{FEATURE}.md`). As respostas do
-  responsável às confirmações de uma rodada anterior, registradas no relatório dela, contam como
-  decisão registrada.
-- **Decisões registradas**: onde os artefatos guardam decisão do responsável — Open Questions e
-  Revision History do DEFINE/DESIGN, limites declarados, Fora de escopo, Changelog do PRD, ADRs.
+  `.claude/sdd/reports/READINESS_{FEATURE}.md`, `CONFORMANCE_{FEATURE}.md`). Ler a seção de
+  **respostas do responsável** dos dois relatórios existentes: cada resposta é decisão registrada,
+  e a pergunta respondida não se repete.
+- **Decisões registradas**: só decisão **humana explícita** conta — entrada de Changelog do PRD
+  (refino), entrada de Revision History do DEFINE/DESIGN feita por `/iterate` (o argumento é do
+  responsável), resposta do responsável no relatório do gate, ADR e decisão da visão. O texto que
+  o agente de uma fase escreveu no corpo do DEFINE, do DESIGN ou do BUILD_REPORT — escolha,
+  "limite declarado", Fora de escopo acrescentado pelo agente, decisão autônoma do build — é
+  **decisão de agente**, mesmo que o artefato tenha sido aprovado como um todo. Ler a lista que o
+  `AGENTS.md` declara; na falta dela, vale esta.
 - **Registro de evoluções**: onde o projeto registra o que fica acima da régua, com a origem e o
   gatilho (ex.: issue com label própria). O gate não lê o registro; só aponta para ele.
 - **Relatórios de review**: quais reviews o projeto exige depois do build (ex.: code review e
@@ -128,8 +142,14 @@ Ler o `AGENTS.md` (e/ou `CLAUDE.md`) do projeto e extrair, SEM assumir:
   responsável), onde fica o relatório com a saída e o template. Sem declaração, o gate não lê
   relatório de validação.
 
-Se o projeto **não** declarar algo, cair nos defaults do AgentSpec (`.claude/sdd/`) e **registrar a
-suposição** no relatório (classe D).
+Se o projeto **não** declarar algo, o default do AgentSpec (`.claude/sdd/`) vale só quando o arquivo
+existe no caminho default; senão, o item é **indeterminado** (o que falta e a pergunta) — nunca uma
+suposição.
+
+**Árvore e refs:** antes da varredura, registrar `git status` e as refs usadas. Arquivo modificado
+ou não rastreado **entre os confrontados** torna a rodada indeterminada para esse arquivo; fora
+deles, registra e segue. Ref remota sem fetch nesta rodada é registrada como tal, sem inferir o
+estado do remoto.
 
 ## Modos
 
@@ -166,13 +186,21 @@ O gate cobra a régua declarada e **nunca a sobe**:
 
 - **Afirmação em vigor**: enunciado da base declarada ou de um artefato upstream, citável por ID ou
   por local (artefato + seção). Afirmação marcada `[a definir]`, diferida ou fora de escopo não
-  exige nada da camada de baixo; resolvê-la ou implementá-la sem decisão registrada vai para
-  confirmação.
+  exige nada da camada de baixo; resolvê-la ou implementá-la sem decisão registrada (Passo 0) vai
+  para confirmação.
 - **O que foi especificado** é o DoD em vigor no DEFINE — critérios de sucesso, testes de aceite e
   MUST —, lido junto com as **decisões registradas** posteriores que o alteram (Revision History do
   DEFINE e do DESIGN, Changelog do PRD, respostas do responsável no relatório do gate). Essa é a
   **variante decidida**: é ela que o DESIGN tem de realizar e que o `conformance` mede. O texto
   superado de um critério vai para a sincronização e não falha o DoD.
+- **Critério realizado e provado**: um critério de DoD está realizado no `readiness` só quando
+  **cada cláusula** dele tem prova **declarada** que a reprova. Cláusulas = cada falha que o
+  falsificador do critério nomeia **e** cada regra ou mecanismo que o DESIGN declara para
+  realizá-lo (ex.: as regras de uma Decision que o mapa de provas liga ao critério). Prova
+  declarada = linha do mapa de provas / testing strategy e item do File Manifest que a executa.
+  Prova que o DESIGN não declara — inspeção imaginada pelo gate, item que o mapa não liga ao
+  critério — **não conta**; o gate não supre a lacuna. No `conformance`, conta a prova declarada
+  executada e a validação declarada (seção Relatórios de validação).
 - **Variação**: a camada de baixo diz *a* onde a de cima diz *A* — muda, restringe, troca o lado de
   uma contradição da fonte, acrescenta escopo ou deixa de lado um item. Variação não é defeito por
   si; o que decide o destino é o risco e o registro.
@@ -183,7 +211,8 @@ Cada coisa que o gate encontra vai para **um** destino:
 |---|---|---|
 | **Achado** | Risco à base protegida, ao DoD ou à qualidade do código (seção Severidade): a camada de baixo **derruba, contradiz, enfraquece, deixa ambígua** (duas leituras que mudam o que se constrói), **não realiza** ou **não prova** uma afirmação protegida ou um critério da variante decidida | pelo limiar do projeto |
 | **Sincronização** | Variação **com** decisão registrada, sem risco à base protegida; divergência de texto (documento↔documento, documento↔código) sem risco; texto superado pela variante decidida | não |
-| **Confirmação** | Variação **sem** decisão registrada e sem risco à base protegida: decisão unilateral de agente, scope creep, lado escolhido numa contradição da fonte, item da fonte deixado de lado | não |
+| **Confirmação** | Variação **sem** decisão registrada e sem risco à base protegida: decisão de agente (Passo 0), scope creep, lado escolhido numa contradição da fonte, item da fonte deixado de lado; e **ADR contradito sem exceção registrada**, quando nenhuma outra categoria P1/P2 está em risco | não |
+| **Indeterminado** | Falta, nos artefatos e no código, o fato que decide o destino, o risco ou a manifestação | só se o nível mais alto possível bloquearia (Veredito) |
 | **Observação de maturidade** | Sem afirmação em vigor para citar, ou cenário **improvável** (seção Severidade) não declarado no DoD | não |
 | **Decidido** | Limite aceito e registrado nos artefatos (mesmo objeto, mesmo estado esperado) | não |
 
@@ -195,7 +224,12 @@ Cada coisa que o gate encontra vai para **um** destino:
   acontece na entrega, pelo fluxo do projeto, não antes do avanço.
 - **Confirmação** é pergunta ao responsável, não bloqueio: a resposta "sim" vira decisão registrada
   (relatório do gate) e o item segue para a sincronização; "não" faz da variação um desvio da
-  variante decidida, que se corrige pelo fluxo antes de avançar.
+  variante decidida, que se corrige pelo fluxo antes de avançar. Para ADR, a pergunta é "aceita
+  exceção ao ADR-xxx?": "sim" registra a exceção; "não" faz da contradição um achado P2.
+  Segurança, dado pessoal, integridade de dado e cláusula estrutural da constituição nunca vão
+  para confirmação: são achado direto.
+- **Indeterminado** traz o fato que falta, onde ele deveria estar e uma pergunta fechada. A
+  resposta, registrada no relatório do gate, decide o item sem nova rodada.
 - **Observação de maturidade** nunca bloqueia e não é candidata a issue — o responsável decide se
   a registra no registro de evoluções.
 - Critério de DoD que falha ou não foi medido no `conformance` segue bloqueando (Veredito).
@@ -204,6 +238,8 @@ Cada coisa que o gate encontra vai para **um** destino:
 
 Rodar as cinco classes. São ortogonais ao que os gates nativos do AgentSpec cobrem. Cada coisa
 encontrada vai para o seu destino (seção Régua); a classe diz onde ela foi achada, não se bloqueia.
+Um item sai **uma vez**: se cabe em mais de uma classe, fica com a classe da primeira linha da
+Matriz de confronto em que aparece.
 
 - **A. Drift de rastreabilidade (upstream → downstream).**
   Requisito/objetivo/métrica/critério/constraint/item **in-scope** da fonte que foi **dropado** ou
@@ -212,10 +248,13 @@ encontrada vai para o seu destino (seção Régua); a classe diz onde ela foi ac
   **contradita**. **Contradição latente na própria fonte** (ex.: a mesma métrica exigida numa
   seção e diferida noutra) — nunca resolver em silêncio para um lado. Destino: é **achado** quando
   o DESIGN não realiza a variante decidida do DEFINE, ou quando a variação fere a base protegida
-  (ex.: requisito de dado pessoal enfraquecido, ADR contradito sem exceção registrada); fora disso,
-  variação **com** registro vai para a **sincronização** e **sem** registro, para **confirmação**.
+  (ex.: requisito de dado pessoal enfraquecido); ADR contradito sem exceção registrada vai para
+  confirmação (seção Régua); fora disso, variação **com** registro vai para a **sincronização** e
+  **sem** registro, para **confirmação**.
 - **B. Satisfação / DoD não medida.**
-  Cada critério "sim/não" ou mensurável da **variante decidida** precisa de **evidência real** de
+  No `readiness`, cada cláusula de cada critério de DoD tem prova declarada que a reprova (seção
+  Régua, "Critério realizado e provado"); cláusula sem ela é achado P1. No `conformance`, cada
+  critério "sim/não" ou mensurável da **variante decidida** precisa de **evidência real** de
   que passou. Cada **acceptance scenario** (Given/When/Then) exercitado por teste/verificação. Cada
   **MUST** funcional com teste que **prova** o comportamento (não só código que "deveria").
 - **C. Não-conformidade artefato↔código** *(só `conformance`)*.
@@ -327,17 +366,27 @@ observação de maturidade e decidido não têm (seção Régua).
 
 | Risco | O que está em risco |
 |---|---|
-| P1 — proteção | segurança (validação de entrada, menor privilégio, segredo ou dado pessoal em log, superfície de ataque); dado pessoal e obrigação legal; integridade e perda de dado; critério de DoD da variante decidida (não realizado pelo DESIGN no `readiness`; falhando ou não medido no `conformance`) |
-| P2 — estrutura e contrato | cláusula estrutural declarada (ex.: dependência entre camadas, ports & adapters); compatibilidade de contrato; confiabilidade declarada (ex.: prazo em chamada que sai do processo, retry só em operação idempotente); ADR contradito sem exceção registrada; afirmação de mecanismo que sustenta decisão do DESIGN sem prova que a sustente |
-| P3 — qualidade | defeito de código sem cláusula específica que o reja (correção fora do DoD, clean code, duplicação); cobertura de teste fora do DoD; convenção de forma no código |
+| P1 — proteção | segurança (validação de entrada, menor privilégio, segredo ou dado pessoal em log, superfície de ataque); dado pessoal e obrigação legal; integridade e perda de dado; critério de DoD da variante decidida — no `readiness`, cláusula sem prova declarada que a reprove; no `conformance`, critério falhando ou não medido |
+| P2 — estrutura e contrato | cláusula estrutural declarada (ex.: dependência entre camadas, ports & adapters); compatibilidade de contrato; confiabilidade declarada (ex.: prazo em chamada que sai do processo, retry só em operação idempotente); ADR contradito com exceção recusada pelo responsável; afirmação de mecanismo que sustenta decisão do DESIGN sem prova que a sustente |
+| P3 — qualidade | defeito de código sem cláusula específica que o reja (correção fora do DoD, clean code, duplicação); cobertura de teste do que **não** é cláusula de critério de DoD; convenção de forma no código; documento entregue pelo build que diverge do código |
+
+**Ordem de decisão do risco** — percorrer na ordem e parar na primeira resposta "sim":
+1. Põe em risco segurança, dado pessoal, obrigação legal ou integridade de dado? → P1.
+2. É cláusula de critério de DoD sem prova declarada que a reprove (readiness), ou critério falhando
+   ou não medido (conformance)? → P1.
+3. Fere cláusula estrutural, de contrato ou de confiabilidade declarada, ou ADR com exceção
+   recusada, ou é afirmação de mecanismo sem prova que a sustente? → P2.
+4. Senão → P3.
 
 O risco é o do que pode quebrar, nunca o nível do documento que cita a afirmação: um MUST do PRD não
 é P1 por ser MUST — é P1 quando o que ele protege é P1. Convenção de forma em documento não tem
 risco: é sincronização. Achar um risco maior que rege o defeito encerra a escolha: não há dúvida a
 resolver pelo menor.
 
-**Manifestação** — o que precisa acontecer para a falha aparecer, decidido por quem controla o
-gatilho. O achado lista as condições do gatilho:
+**Manifestação** — o que precisa acontecer para a falha aparecer **no comportamento do sistema
+construído**, decidido por quem controla o gatilho; nunca a presença do defeito no documento. Lacuna
+de prova de critério de DoD é **certa**, porque o `conformance` a marcará NÃO-MEDIDO. O achado lista
+as condições do gatilho:
 
 | Manifestação | Teste |
 |---|---|
@@ -356,10 +405,10 @@ não declarado no DoD é observação de maturidade, não achado.
 | P2 | HIGH | MEDIUM |
 | P3 | MEDIUM | LOW |
 
-- Na dúvida entre dois níveis, de risco ou de manifestação, vale o **menor** que um fato citado
-  sustente. Há dúvida só quando nenhum fato citado decide entre os dois níveis; registrar dois
-  riscos ("P1 ou P3") para o mesmo achado e ficar com o menor, havendo fato citado que sustenta o
-  maior, é erro de aplicação.
+- O nível sai da ordem de decisão e da tabela de manifestação, com o fato citado de cada resposta.
+  Quando falta o fato que decide uma das perguntas, o item é **indeterminado** (seção Régua): o
+  gate registra os níveis possíveis, o fato que falta e a pergunta — nunca escolhe o menor nem o
+  maior por padrão.
 - A constituição entra pelo risco da cláusula que rege o caso: princípio de segurança ou de dado
   pessoal é P1; cláusula estrutural, de contrato ou de confiabilidade é P2. Princípio de adequação
   ("entregar o que foi especificado") se lê contra a variante decidida — não faz de divergência de
@@ -378,63 +427,81 @@ Emitir, **no idioma do projeto**, no template do relatório do gate quando o pro
 ### 1. Tabela de achados
 `| ID | Classe (A–E) | Afirmação em vigor (ID ou local) | Risco (P1–P3, com o fato) | Manifestação (condições do gatilho) | Severidade | Onde quebrou (artefato:linha ou código:arquivo) | Lacuna de evidência | Ação de fluxo (qual upstream corrigir + re-rodar qual comando) |`
 
-### 2. Ledger de conformidade por requisito *(o entregável central)*
+### 2. Matriz de provas do DoD
+Uma linha por **cláusula** de cada critério de DoD da variante decidida (seção Régua):
+`| Critério | Cláusula (falha do falsificador ou regra do DESIGN) | Origem da cláusula (artefato:linha) | Prova declarada (linha do mapa + item do manifesto) | Reprova? (sim · não · indeterminado) | Por quê (fato citado) |`
+"não" gera achado P1 automaticamente; "indeterminado" vai para a seção Indeterminados. Nenhuma
+célula de prova pode citar prova que o DESIGN não declara.
+
+### 3. Mapa da base
+Uma linha por princípio da constituição, por ADR e por concern cross-feature declarados:
+`| Item da base | Aplica-se à feature? (sim · não, com o fato) | Onde foi conferido (artefato:linha) | Resultado (ok · achado <ID> · confirmação <ID> · indeterminado <ID>) |`
+
+### 4. Ledger de conformidade por requisito *(o entregável central)*
 Uma linha por requisito/critério/métrica rastreável, na **variante decidida**:
 `| ID | Enunciado (curto) | Estado | Evidência / comando |`
 onde **Estado ∈ `VERIFICADO(sim)` · `FALHOU` · `NÃO-MEDIDO` · `N/A`**. No modo `readiness`, o estado
-máximo possível é "coberto por task adequada"/"não coberto" (sem execução); no `conformance`, exige
-evidência ao vivo para os "sim/não".
+é "coberto" só quando toda cláusula do critério tem "sim" na Matriz de provas; senão, "não coberto",
+com as cláusulas que faltam; no `conformance`, exige evidência ao vivo para os "sim/não".
 
-### 3. Métricas
+### 5. Métricas
 Total de requisitos rastreados · % VERIFICADO(sim) · # NÃO-MEDIDO · # CRITICAL · # por classe ·
-# confirmações pendentes · # itens de sincronização · # decididos · # observações de maturidade ·
+# confirmações pendentes · # indeterminados · # itens de sincronização · # decididos · # observações de maturidade ·
 achados de review por disposição.
 
-### 4. Veredito
+### 6. Veredito
 Aplicar o **limiar do projeto** (Passo 0):
 - `conformance`: **APROVADO para PR/done** só se **0 FALHOU e 0 NÃO-MEDIDO** em critérios de DoD
   (absoluto) **e** nenhum outro achado na faixa que o limiar bloqueia. Caso contrário **BLOQUEADO**,
   listando exatamente o que falta medir/corrigir.
 - `readiness`: **PRONTO para /build** se nenhum achado estiver na faixa que o limiar bloqueia; senão
   **NÃO PRONTO**, listando o que reconciliar **antes** de codar (via correção do upstream + re-rodar).
-- **Default, se o projeto não declarar limiar:** os dois modos bloqueiam com qualquer CRITICAL.
-  Registrar a suposição (classe D).
+- **AGUARDA RESPOSTA** no lugar de PRONTO ou APROVADO quando nenhum achado bloqueia, mas há
+  indeterminado cujo nível mais alto possível bloquearia. Listar as perguntas; com as respostas
+  registradas no relatório, o veredito se resolve sem nova rodada.
+- **Se o projeto não declarar limiar:** o limiar é indeterminado; perguntar ao responsável, sem
+  adotar um default.
 - Confirmações pendentes, sincronização, decididos e observações de maturidade não entram no
   veredito, salvo o DoD absoluto do `conformance`.
 
-### 5. Confirmações pendentes
+### 7. Confirmações pendentes
 `| ID | Variação (o que a camada de baixo decidiu) | Afirmação de cima (local) | Onde | Pergunta |`
 Uma linha por variação sem registro, com uma pergunta fechada ao responsável: "sim" mantém a
 variação, "não" volta à afirmação de cima. Não bloqueiam; a resposta é registrada no relatório do
 gate e vale como decisão registrada nas rodadas seguintes.
 
-### 6. Sincronização de documentos
+### 8. Indeterminados
+`| ID | Item | Níveis possíveis | Fato que falta | Onde deveria estar | Pergunta |`
+Uma linha por item cujo destino, risco ou manifestação depende de fato ausente dos artefatos e do
+código. Pergunta fechada; a resposta é registrada no relatório do gate.
+
+### 9. Sincronização de documentos
 `| ID | Documento vivo (local) | Afirmação antiga | Estado decidido ou entregue | Registro da decisão |`
 Uma linha por divergência de texto sem risco, só em documento vivo. É a entrada da sincronização que
 o projeto faz na entrega; não bloqueia e não é candidata a issue.
 
-### 7. Achados abaixo do limiar
+### 10. Achados abaixo do limiar
 Listar como **candidatos a issue**, **um por unidade que fecha sozinha** (um estado esperado, um
 caminho de entrega) — nunca agrupados. Cada um com: título curto, onde está, o estado esperado e o
 upstream que o corrige. Só achado entra aqui — nunca item de sincronização ou confirmação. Não
 bloqueiam; a abertura das issues é decisão do responsável.
 
-### 8. Disposição dos achados de review *(conformance, quando o projeto declara reviews)*
+### 11. Disposição dos achados de review *(conformance, quando o projeto declara reviews)*
 `| Review | # | Achado (curto) | Prova | Disposição |`
 onde **Disposição ∈ `refutado` · `observação` · `decidido` · `sincronização` · `finding <ID>`**, uma
 linha por achado de cada relatório, na ordem do relatório. Relatório recusado no passo de presença e
 âncora sai com a razão, sem linhas de achado.
 
-### 9. Decididos
+### 12. Decididos
 `| ID | Afirmação | Decisão registrada (artefato:seção) |`
 
-### 10. Observações de maturidade
+### 13. Observações de maturidade
 Uma linha cada: o que foi observado; por que não é achado (sem afirmação em vigor, ou improvável
 não declarado); o gatilho que justificaria subir a régua; e o caminho mais barato se o responsável
 quiser registrar (a evolução no registro do projeto, com o gatilho; o limite declarado no artefato
 de origem).
 
-### 11. Remediação (proposta, não aplicada)
+### 14. Remediação (proposta, não aplicada)
 Perguntar ao responsável se quer sugestões concretas de remediação para os top-N — **sem aplicá-las**.
 Cada sugestão:
 - aponta o **artefato-fonte a corrigir** e **qual comando re-rodar** para cascatear (nunca "editar
@@ -459,16 +526,20 @@ Esta skill **não** registra hooks próprios. O "sempre rodar antes do PR" é en
       decisões registradas).
 - [ ] Taxonomia A–E rodada na matriz de confronto direcional (código incluído no modo conformance),
       contra a variante decidida.
-- [ ] Cada coisa encontrada num destino só: achado (com afirmação em vigor e risco), sincronização,
-      confirmação, observação de maturidade ou decidido.
-- [ ] Severidade de cada achado por risco × manifestação, com o fato de cada um citado.
+- [ ] Respostas do responsável lidas nos relatórios do gate; nenhuma pergunta respondida repetida.
+- [ ] Matriz de provas do DoD com uma linha por cláusula, só com prova declarada; Mapa da base com
+      todo princípio, ADR e concern declarados.
+- [ ] Cada coisa encontrada num destino só e uma vez: achado (com afirmação em vigor e risco),
+      sincronização, confirmação, indeterminado, observação de maturidade ou decidido.
+- [ ] Severidade de cada achado pela ordem de decisão do risco × manifestação no comportamento,
+      com o fato de cada resposta citado; nenhum nível escolhido por padrão.
 - [ ] Relatórios de review declarados conferidos (presença, âncora pelo diff) e cada achado deles
       provado e com disposição (conformance).
 - [ ] Relatórios de validação declarados conferidos (presença, âncora) e lidos contra o
       falsificador de cada critério que provam (conformance).
 - [ ] Ledger de conformidade emitido; cada DoD "sim/não" com estado + evidência (conformance) ou
       cobertura (readiness).
-- [ ] Veredito (APROVADO/BLOQUEADO ou PRONTO/NÃO PRONTO) pelo limiar do projeto, com DoD
+- [ ] Veredito (APROVADO/BLOQUEADO, PRONTO/NÃO PRONTO ou AGUARDA RESPOSTA) pelo limiar do projeto, com DoD
       FALHOU/NÃO-MEDIDO explicitados.
 - [ ] Confirmações pendentes com pergunta fechada; sincronização só com documento vivo.
 - [ ] Achados abaixo do limiar listados como candidatos a issue, um por unidade.
