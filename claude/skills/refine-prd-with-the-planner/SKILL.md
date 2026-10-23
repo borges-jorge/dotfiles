@@ -6,9 +6,10 @@ description: |
   durante o ciclo do AgentSpec, propaga a mudança aos artefatos afetados sem drift de formato e
   versiona via Changelog. Parte da afirmação que deixou de ser verdadeira para achar o raio de
   alcance e o ponto de entrada. Use antes do /define para levar o brainstorm ao PRD (iterando até
-  o PRD ficar adequado), ou a qualquer momento do ciclo quando uma decisão muda requisito,
-  regra de negócio ou restrição de uma feature — inclusive quando o uso em produção justifica
-  subir a régua de exigência. Não use para criar o plano nem para dividir um
+  o PRD ficar adequado), durante o ciclo quando uma decisão muda a base (constituição, ADR,
+  concern cross-feature), na entrega para sincronizar PRD e visão com o que foi decidido e
+  entregue (a partir do relatório do gate), ou depois da entrega quando o uso em produção
+  justifica subir a régua de exigência. Não use para criar o plano nem para dividir um
   PRD em dois ou mais — isso é decompose-requirements-with-the-planner.
 ---
 
@@ -36,11 +37,17 @@ description: |
 | Situação | Entrada |
 |---|---|
 | **Antes do ciclo da feature** | O brainstorm da feature + o PRD da feature |
-| **Durante o ciclo** (define, design, build) | O PRD da feature + a decisão, com ou sem brainstorm |
+| **Durante o ciclo** (define, design, build) | O PRD da feature + a decisão que muda a base (constituição, ADR, concern cross-feature), com ou sem brainstorm |
+| **Na entrega** (sincronização, antes do arquivamento) | O PRD da feature + o relatório do último gate de conformidade: as seções de sincronização de documentos e de confirmações respondidas |
 | **Depois da entrega** (uso em produção) | O PRD da feature + a decisão de subir a régua, com a evidência de uso que a justifica |
 
 Antes do ciclo, brainstorm e refino podem se alternar até o PRD ficar adequado, a critério do
 responsável. O brainstorm **decide**; esta skill **aplica** — o brainstorm não escreve o PRD.
+
+Durante o ciclo, a decisão que muda só requisito da feature fica no `DEFINE`/`DESIGN` e chega ao PRD
+e à visão **na entrega**: cada item de sincronização e cada confirmação respondida com "sim" é uma
+decisão, aplicada pelo mesmo procedimento. O item diz o estado entregue; o filtro de altitude decide
+o que sobe — mecanismo do design não sobe.
 
 ## Papéis
 
@@ -53,7 +60,8 @@ responsável. O brainstorm **decide**; esta skill **aplica** — o brainstorm n�
 ## Pré-condições
 
 - O PRD da feature existe (criado pela decomposição).
-- A decisão está escrita — no brainstorm ou como texto curto e inequívoco.
+- A decisão está escrita — no brainstorm, como texto curto e inequívoco, ou como item do relatório
+  do gate.
 - Branch de trabalho, nunca branch protegida (ver `AGENTS.md`).
 
 ## Procedimento
@@ -64,7 +72,8 @@ responsável. O brainstorm **decide**; esta skill **aplica** — o brainstorm n�
    > Tarefa de **refino** do PRD de uma feature (modo update).
    > **Use só as entradas desta tarefa e os arquivos que ela nomeia; nenhum outro contexto.**
    > Entrada: o PRD «caminho», a visão geral (caminho no `AGENTS.md`) e «o brainstorm "caminho" |
-   > a decisão: "…"».
+   > a decisão: "…" | o relatório do gate "caminho", seções de sincronização e de confirmações
+   > respondidas — cada item é uma decisão».
    >
    > **Análise, antes de editar.** Para cada decisão:
    > a. **Frase morta:** escreva a afirmação que **deixa de ser verdadeira** com a decisão (não o
