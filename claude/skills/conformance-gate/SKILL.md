@@ -59,7 +59,10 @@ resolve tudo lendo o `AGENTS.md` do projeto onde roda. Opera por **classes de fa
   ser re-derivado do artefato/código aqui** para contar — citação de memória do chat não é prova.
   Issues, PRs e relatórios de gates anteriores **não** são entrada: uma decisão do responsável
   conta quando está registrada nos artefatos. Exceções: nos dois modos, a seção de **respostas do
-  responsável** dos relatórios do gate (Passo 0), que é decisão registrada; no modo `conformance`,
+  responsável** dos relatórios do gate (Passo 0), que é decisão registrada, e o relatório da
+  **rodada anterior** (Passo 0), que é **piso de verificação**: diz o que esta rodada tem de
+  reverificar, nunca o resultado — o "sim", o "não" e a severidade de antes não valem aqui, e cada
+  célula se apoia num fato coletado neste run; no modo `conformance`,
   os relatórios que o projeto declara (Passo 0): os **de review** entram como **candidatos**, nunca como
   achados prontos — cada um é provado de novo neste run (seção Relatórios de review); os **de
   validação** entram como **evidência** de execução que o gate não consegue repetir (seção
@@ -83,8 +86,9 @@ resolve tudo lendo o `AGENTS.md` do projeto onde roda. Opera por **classes de fa
 - **Sem viés de foco.** Rodar o gate = varredura neutra da taxonomia inteira; não prefaciar com um
   "foco" que vicie o resultado. O recorte é fixo: a varredura percorre todo ID rastreável do
   upstream e do DEFINE, toda cláusula de critério de DoD (Matriz de provas), todo item da base
-  (Mapa da base) e todo item do File Manifest; o destino de cada coisa é decidido pelas regras da
-  seção Régua e da seção Severidade, não pela escolha do agente.
+  (Mapa da base) e todo item do File Manifest, e ainda todo achado e toda linha da Matriz de provas
+  da rodada anterior; a lista anterior é o mínimo a cobrir, não o limite. O destino de cada coisa é
+  decidido pelas regras da seção Régua e da seção Severidade, não pela escolha do agente.
 
 ## Passo 0 — Resolver contexto do projeto (a partir do AGENTS.md)
 
@@ -126,6 +130,12 @@ Ler o `AGENTS.md` (e/ou `CLAUDE.md`) do projeto e extrair, SEM assumir:
   `.claude/sdd/reports/READINESS_{FEATURE}.md`, `CONFORMANCE_{FEATURE}.md`). Ler a seção de
   **respostas do responsável** dos dois relatórios existentes: cada resposta é decisão registrada,
   e a pergunta respondida não se repete.
+- **Rodada anterior**: o relatório do mesmo modo já gravado no repositório, lido antes de ser
+  regenerado. No primeiro `conformance`, sem relatório próprio, vale o último `readiness`: a parte
+  documental dele é o piso, e a parte de código não tem piso. Extrair o commit avaliado, os
+  achados e as linhas da Matriz de provas, e registrar `git diff --stat <commit anterior>..HEAD`
+  dos arquivos confrontados — é a fonte da origem dos achados novos (seção Saída, Rodada anterior).
+  Sem relatório anterior, a rodada é a primeira e o resto não muda.
 - **Decisões registradas**: só decisão **humana explícita** conta — entrada de Changelog do PRD
   (refino), entrada de Revision History do DEFINE/DESIGN feita por `/iterate` (o argumento é do
   responsável), resposta do responsável no relatório do gate, ADR e decisão da visão. O texto que
@@ -429,7 +439,7 @@ Emitir, **no idioma do projeto**, no template do relatório do gate quando o pro
 (Passo 0):
 
 ### 1. Tabela de achados
-`| ID | Classe (A–E) | Afirmação em vigor (ID ou local) | Risco (P1–P3, com o fato) | Manifestação (condições do gatilho) | Severidade | Onde quebrou (artefato:linha ou código:arquivo) | Lacuna de evidência | Ação de fluxo (qual upstream corrigir + re-rodar qual comando) |`
+`| ID | Classe (A–E) | Afirmação em vigor (ID ou local) | Risco (P1–P3, com o fato) | Manifestação (condições do gatilho) | Severidade | Onde quebrou (artefato:linha ou código:arquivo) | Lacuna de evidência | Ação de fluxo (qual upstream corrigir + re-rodar qual comando) | Origem (seção 15) |`
 
 ### 2. Matriz de provas do DoD
 Uma linha por **cláusula** de cada critério de DoD da variante decidida (seção Régua):
@@ -452,7 +462,8 @@ com as cláusulas que faltam; no `conformance`, exige evidência ao vivo para os
 ### 5. Métricas
 Total de requisitos rastreados · % VERIFICADO(sim) · # NÃO-MEDIDO · # CRITICAL · # por classe ·
 # confirmações pendentes · # indeterminados · # itens de sincronização · # decididos · # observações de maturidade ·
-achados de review por disposição.
+achados de review por disposição · achados anteriores corrigidos, persistentes e mudados · achados
+novos de texto novo e não vistos antes.
 
 ### 6. Veredito
 Aplicar o **limiar do projeto** (Passo 0):
@@ -518,6 +529,16 @@ Cada sugestão:
 - não propõe mecanismo para cenário que a régua não exige (YAGNI/KISS), nem abre mão da base
   estrutural para baratear a correção.
 
+### 15. Rodada anterior
+Contra o relatório da rodada anterior (Passo 0), com o commit que ele avaliou. Sem relatório
+anterior: "primeira rodada".
+- Achados anteriores: `| Achado anterior | Status (corrigido · persiste · mudou) | Fato desta rodada |`.
+  "Mudou" = o problema segue com outra forma ou severidade; a linha aponta o ID desta rodada.
+- Linhas da Matriz de provas cujo "Reprova?" mudou: `| Critério / cláusula | Antes | Agora | Fato |`.
+- Origem de cada achado novo, na coluna da Tabela de achados: **texto novo**, com o trecho do diff
+  entre os dois commits avaliados, ou **não visto antes**, quando o trecho já existia no commit
+  anterior. A origem é informativa: não muda risco, manifestação, severidade nem veredito.
+
 ## Enforcement
 
 Esta skill **não** registra hooks próprios. O "sempre rodar antes do PR" é enforçado pelo
@@ -532,6 +553,8 @@ Esta skill **não** registra hooks próprios. O "sempre rodar antes do PR" é en
 - [ ] Taxonomia A–E rodada na matriz de confronto direcional (código incluído no modo conformance),
       contra a variante decidida.
 - [ ] Respostas do responsável lidas nos relatórios do gate; nenhuma pergunta respondida repetida.
+- [ ] Todo achado e toda linha da Matriz de provas da rodada anterior reverificados neste run, com
+      status; todo achado novo com origem.
 - [ ] Matriz de provas do DoD com uma linha por cláusula, só com prova declarada; Mapa da base com
       todo princípio, ADR e concern declarados.
 - [ ] Cada coisa encontrada num destino só e uma vez: achado (com afirmação em vigor e risco),
