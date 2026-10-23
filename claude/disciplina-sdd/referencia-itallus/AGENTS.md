@@ -270,8 +270,9 @@ falsificador próprio.
 
   O DoD é o do `DEFINE`, lido com as decisões registradas depois dele — a **variante decidida**. O
   texto superado de um critério vai para a sincronização e não reprova o DoD. Um critério só está
-  provado quando cada cláusula do falsificador tem prova declarada no `DESIGN` que a reprova; prova
-  que o `DESIGN` não declara não conta.
+  provado quando cada cláusula do falsificador tem prova declarada no `DESIGN` que a reprova: item
+  do manifesto citado na linha do mapa de provas daquele critério, cuja descrição nomeia a
+  verificação. Prova que o `DESIGN` não liga ao critério não conta.
 - **Decisão registrada** é só decisão humana explícita: entrada de Changelog do PRD, entrada de
   Revision History feita por `/iterate`, resposta no relatório do gate, ADR e visão. O texto que o
   agente de uma fase escreveu no `DEFINE`, no `DESIGN` ou no `BUILD_REPORT`, inclusive limite

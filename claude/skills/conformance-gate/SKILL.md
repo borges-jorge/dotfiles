@@ -197,7 +197,11 @@ O gate cobra a régua declarada e **nunca a sobe**:
   **cada cláusula** dele tem prova **declarada** que a reprova. Cláusulas = cada falha que o
   falsificador do critério nomeia **e** cada regra ou mecanismo que o DESIGN declara para
   realizá-lo (ex.: as regras de uma Decision que o mapa de provas liga ao critério). Prova
-  declarada = linha do mapa de provas / testing strategy e item do File Manifest que a executa.
+  declarada = item do File Manifest **citado na linha do mapa de provas daquele critério** (ou na
+  linha da testing strategy que nomeia o ID do critério), **cuja descrição nomeia a verificação**
+  que reprova a cláusula. Item que verifica a cláusula mas não está citado na linha do critério,
+  ou que está citado mas não descreve essa verificação, responde "não" na Matriz de provas — o
+  gate não liga item a critério por conta própria.
   Prova que o DESIGN não declara — inspeção imaginada pelo gate, item que o mapa não liga ao
   critério — **não conta**; o gate não supre a lacuna. No `conformance`, conta a prova declarada
   executada e a validação declarada (seção Relatórios de validação).
@@ -431,7 +435,8 @@ Emitir, **no idioma do projeto**, no template do relatório do gate quando o pro
 Uma linha por **cláusula** de cada critério de DoD da variante decidida (seção Régua):
 `| Critério | Cláusula (falha do falsificador ou regra do DESIGN) | Origem da cláusula (artefato:linha) | Prova declarada (linha do mapa + item do manifesto) | Reprova? (sim · não · indeterminado) | Por quê (fato citado) |`
 "não" gera achado P1 automaticamente; "indeterminado" vai para a seção Indeterminados. Nenhuma
-célula de prova pode citar prova que o DESIGN não declara.
+célula de prova pode citar item que a linha do mapa daquele critério não cita, nem item cuja
+descrição não nomeia a verificação.
 
 ### 3. Mapa da base
 Uma linha por princípio da constituição, por ADR e por concern cross-feature declarados:
