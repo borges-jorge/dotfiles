@@ -34,10 +34,12 @@ Cada artefato tem um template, e é nele que a regra está escrita, no momento d
 | argumento de `/iterate` | seções `Mudança:`, `Fato provado:` e `Hipótese:` (Fluxo AgentSpec) | `.claude/hooks/check_iterate_argument.py` — bloqueia |
 | relatório de review | `.claude/sdd/templates/REVIEW_REPORT_TEMPLATE.md` (Gates) | `/conformance-gate conformance` — bloqueia |
 | relatório de validação | `.claude/sdd/templates/VALIDATION_REPORT_TEMPLATE.md` (Gates) | `/conformance-gate conformance` — lê como evidência |
+| relatório do gate | `.claude/sdd/templates/GATE_REPORT_TEMPLATE.md` (Gates) | `/refine-prd-with-the-planner` na entrega — lê a sincronização |
 
 Assunto e título passam por `scripts/check_subject.sh`; os corpos, por `scripts/check_body.sh`.
 Uma implementação por regra, várias portas. **Uma issue por achado:** cada issue é uma unidade que
-fecha sozinha, nunca uma lista de achados.
+fecha sozinha, nunca uma lista de achados. Divergência de texto entre documentos não vira issue:
+entra na sincronização da entrega (Gates).
 
 **Versionamento — automático.** SemVer em `0.x`: desde a última tag, um commit `feat` ou uma quebra
 declarada faz minor, qualquer outro faz patch. Quando a CI fecha verde na `master`, o job `release`
@@ -104,7 +106,13 @@ qualidade da estrutura**.
 - **Base fixa, desde a primeira entrega:** constituição, convenções deste arquivo, ADRs e regras de
   CI, onde entram segurança e obrigação legal. Inclui a qualidade estrutural: Clean Architecture
   (regra de dependência entre camadas, ports & adapters), SOLID, clean code, padrões de projeto e
-  de mercado. Não varia com o estágio do produto.
+  de mercado. Não varia com o estágio do produto. Tem duas partes:
+  - **base protegida** — segurança, dado pessoal e obrigação legal (LGPD), integridade e perda de
+    dado, cláusulas estruturais da constituição (dependência entre camadas, ports & adapters),
+    compatibilidade de contrato, confiabilidade (prazo em chamada que sai do processo, retry só em
+    operação idempotente) e ADRs. Violação dela bloqueia, pela severidade do gate;
+  - **convenções de forma** — redação de documento, conteúdo de comentário, nomenclatura. São
+    cobradas sem bloquear: no código viram issue; em documento, sincronização na entrega.
 - **Régua que sobe com o uso:** robustez para cenário raro, escala além do uso atual, automação de
   operação rara, observabilidade profunda e cobertura exaustiva de casos de borda. Sobe só com
   justificativa registrada: evidência de uso (incidente, volume, retorno de usuário), obrigação nova
@@ -137,11 +145,15 @@ qualidade da estrutura**.
     próprio (retry, lock, reconciliação, fila), e a estrutura deixa ponto de extensão onde há
     evolução registrada, nunca por especulação. As seções de tratamento de erro, segurança e
     observabilidade do template cobrem o que o `DEFINE` e a base exigem;
-  - **gates** — o `conformance-gate` mede o desvio em relação à régua e à base; o que a régua não
-    exige é observação de maturidade, não bloqueia e, aceita pelo responsável, vira evolução
-    registrada;
-  - **ship e produção** — limites e evoluções ficam listados no arquivamento, com a issue de cada
-    um; problema observado em uso volta pelo refino e sobe a régua.
+  - **gates** — o `conformance-gate` bloqueia só o que põe em risco a base protegida ou o DoD da
+    feature. Divergência de texto entre documentos, ou entre documento e código, sem esse risco não
+    bloqueia nem vira issue: com decisão registrada entra na sincronização da entrega; sem registro,
+    vira confirmação do responsável. O que a régua não exige é observação de maturidade, não
+    bloqueia e, aceita pelo responsável, vira evolução registrada;
+  - **ship e produção** — antes do `/ship`, a visão e o PRD se sincronizam com o que foi decidido e
+    entregue (Gates); `DEFINE`, `DESIGN` e `BUILD_REPORT` são arquivados como estão. Limites e
+    evoluções ficam listados no arquivamento, com a issue de cada um; problema observado em uso
+    volta pelo refino e sobe a régua.
 
 ### Caminho de entrega: PRD ou tarefa simples
 Feature entregue não é reaberta: mudança posterior no que ela entregou é entrega nova. O peso dessa
@@ -172,7 +184,9 @@ entrega segue o critério abaixo, aplicado por issue antes de o trabalho começa
      repetem até o PRD ficar adequado, a critério do responsável.
   4. Ciclo do AgentSpec: **Define → Design → Build → Ship**.
 
-  Durante o ciclo, uma decisão que muda requisito, regra ou restrição da feature volta ao PRD pelo
+  Durante o ciclo, a decisão que muda requisito, regra ou restrição só da feature entra pelo
+  `/iterate` no `DEFINE` ou no `DESIGN` e chega à visão e ao PRD na sincronização da entrega
+  (Gates); a que muda a base — constituição, ADR, concern cross-feature — volta na hora pelo
   `/refine-prd-with-the-planner`, com ou sem brainstorm. Feature que se revela grande demais volta
   ao `/decompose-requirements-with-the-planner` para ser reformulada em dois ou mais PRDs. O
   AgentSpec não decompõe o projeto nem cruza features: a **constituição**
@@ -207,8 +221,8 @@ entrega segue o critério abaixo, aplicado por issue antes de o trabalho começa
   arquivo e a linha) e `Hipótese:` (o que não foi provado, ou "nenhuma"). O hook
   `.claude/hooks/check_iterate_argument.py` barra a chamada ao agente do `/iterate` sem as três.
 - **Decisões em lote, uma passada por camada.** As decisões de uma rodada (gate, teste, revisão)
-  entram juntas: um refino, depois um `/iterate` no `DEFINE` e um no `DESIGN`, nessa ordem e só nas
-  camadas que a decisão alcança — nunca um `/iterate` por achado.
+  entram juntas: um refino quando alguma delas muda a base, depois um `/iterate` no `DEFINE` e um no
+  `DESIGN`, nessa ordem e só nas camadas que a decisão alcança — nunca um `/iterate` por achado.
 
 ### Critérios e provas
 Estas regras recaem sobre **critérios de DoD**: métricas do PRD, critérios de sucesso e testes de
@@ -237,9 +251,43 @@ falsificador próprio.
   monta só o próprio código (ADR-011).
 
 ### Gates (`/conformance-gate`)
-- **`readiness`, antes do `/build`:** consistência DEFINE↔DESIGN e fidelidade ao upstream
-  (PRD/visão/ADRs/constituição). Achado **crítico ou alto bloqueia o `/build`**; médio e baixo viram
-  issue, uma por unidade que fecha sozinha.
+- **`readiness`, antes do `/build`:** confere se o `DESIGN` realiza o DoD do `DEFINE` e se a cadeia
+  (PRD/visão/ADRs/constituição → `DEFINE` → `DESIGN`) põe em risco a base protegida. Achado
+  **crítico ou alto bloqueia o `/build`**; médio e baixo viram issue, uma por unidade que fecha
+  sozinha. Corrigido um bloqueante, o `readiness` roda de novo, num agente novo.
+- **O que o gate encontra tem um destino só:**
+  - **achado** — risco à base protegida, ao DoD ou à qualidade do código, com severidade;
+  - **sincronização** — divergência de texto sem risco, coberta por decisão registrada; vale só
+    para a visão e os PRDs, os documentos que sobrevivem à feature;
+  - **confirmação** — variação sem decisão registrada (decisão de agente, escopo acrescentado, lado
+    escolhido numa contradição) e ADR contradito sem exceção registrada: pergunta fechada ao
+    responsável, sem bloquear; "sim" vai para a sincronização (no ADR, registra a exceção), "não"
+    se corrige pelo `/iterate` antes de avançar (no ADR, vira achado P2);
+  - **indeterminado** — falta nos artefatos o fato que decide o destino ou o nível: o gate diz qual
+    fato falta e pergunta, sem supor; se o nível mais alto possível bloquearia, o veredito é
+    **AGUARDA RESPOSTA**, resolvido pela resposta, sem nova rodada;
+  - **observação de maturidade** e **decidido**, como na régua.
+
+  O DoD é o do `DEFINE`, lido com as decisões registradas depois dele — a **variante decidida**. O
+  texto superado de um critério vai para a sincronização e não reprova o DoD. Um critério só está
+  provado quando cada cláusula do falsificador tem prova declarada no `DESIGN` que a reprova; prova
+  que o `DESIGN` não declara não conta.
+- **Decisão registrada** é só decisão humana explícita: entrada de Changelog do PRD, entrada de
+  Revision History feita por `/iterate`, resposta no relatório do gate, ADR e visão. O texto que o
+  agente de uma fase escreveu no `DEFINE`, no `DESIGN` ou no `BUILD_REPORT`, inclusive limite
+  declarado, é decisão de agente, mesmo com o artefato aprovado. Segurança, dado pessoal,
+  integridade de dado e cláusula estrutural da constituição nunca vão para confirmação. O seed
+  (`docs/requisitos.md`) não é confrontado. Documento entregue pelo build (README, `DEPLOY.md`) que
+  diverge do código é achado P3, nunca sincronização.
+- **Relatório do gate:** o agente principal grava cada rodada, sem alteração, em
+  `.claude/sdd/reports/READINESS_{FEATURE}.md` ou `CONFORMANCE_{FEATURE}.md`, no template, num
+  commit próprio; cada rodada regenera o próprio relatório. As respostas do responsável às
+  confirmações e aos indeterminados entram no campo próprio do relatório, valem como decisão
+  registrada e são **cumulativas**: a regeneração carrega as anteriores, e pergunta respondida não
+  se repete. O `/ship` arquiva os dois.
+- **Sincronização na entrega:** antes do `/ship`, o `/refine-prd-with-the-planner` lê o relatório do
+  último `conformance` (sincronização) e as respostas dos relatórios do gate, e leva à visão e ao PRD o que foi
+  decidido e entregue; o resultado entra no PR do arquivamento.
 - **Reviews, depois do `/build` e antes do `conformance`:** o responsável roda
   `/code-review high origin/qa...HEAD` (sem `--fix`) e `/security-review` sobre o commit do build,
   com a árvore limpa. O agente principal grava a saída de cada um, sem alteração, em `.claude/sdd/reports/CODE_REVIEW_{FEATURE}.md` e
@@ -255,9 +303,10 @@ falsificador próprio.
   o relatório como evidência dos critérios que a execução prova; vale enquanto o código contra a
   `qa` for o validado.
 - **`conformance`, antes do PR para `qa` ou de declarar a feature pronta:** confronta artefatos↔código
-  e exige evidência ao vivo. **Critério de DoD não medido ou falhando bloqueia sempre**; os demais
-  achados seguem o limiar do `readiness`. Relatório de review ausente, ou cujo diff contra a base
-  declarada mudou, bloqueia. É a única trava forte depois do código — obrigatório sem exceção.
+  e exige evidência ao vivo, na variante decidida. **Critério de DoD não medido ou falhando bloqueia
+  sempre**; os demais achados seguem o limiar do `readiness`. Relatório de review ausente, ou cujo
+  diff contra a base declarada mudou, bloqueia. É a única trava forte depois do código —
+  obrigatório sem exceção.
 
 ## Convenções
 - **Idioma — comunicação:** **pt-BR**.

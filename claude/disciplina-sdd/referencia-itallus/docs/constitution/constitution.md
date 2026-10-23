@@ -1,4 +1,33 @@
 <!--
+SYNC IMPACT REPORT — constituição v2.4.0 (emenda 2026-10-23)
+- Mudança de versão: 2.3.0 → 2.4.0 (MINOR — expansão material de guidance no princípio I, no
+  fluxo de desenvolvimento e na governança)
+- Motivação: o gate de conformidade passa a bloquear só o que põe em risco os princípios, os
+  concerns cross-feature, os ADRs e o DoD da feature; divergência de texto entre os documentos que
+  não fere nada disso se sincroniza na entrega.
+- Princípio MODIFICADO: I. Adequação e Experiência — "o que foi especificado" são os critérios de
+  aceite em vigor da feature, lidos com as decisões registradas depois deles.
+- Seções MODIFICADAS: Fluxo de Desenvolvimento (gate de conformidade/DoD) e Governança
+  (Conformidade).
+- Lastro: decisão do responsável de 2026-10-23 (issue #398).
+- Seções inalteradas: demais princípios, restrições e âncora cross-feature, rastreabilidade de
+  requisito.
+- Datas: ratificação original preservada (2026-06-24); emendas: 2026-07-13 (v2.0.0),
+  2026-09-21 (v2.1.0), 2026-10-10 (v2.2.0), 2026-10-17 (v2.3.0), 2026-10-23 (v2.4.0).
+
+--- histórico (emenda v2.3.0, 2026-10-17) ---
+SYNC IMPACT REPORT — constituição v2.3.0 (emenda 2026-10-17)
+- Mudança de versão: 2.2.0 → 2.3.0 (MINOR — exceção acrescentada ao princípio IV)
+- Motivação: a proteção da conexão com o NetCorp exige confirmação humana na troca do
+  certificado, o que contraria a recuperação sem intervenção manual.
+- Princípio MODIFICADO: IV. Confiabilidade — a intervenção manual é aceita quando um requisito de
+  segurança exigir confirmação humana.
+- Lastro: decisão do responsável de 2026-10-17 (refino da feature 02a).
+- Seções inalteradas: demais princípios, restrições, fluxo de desenvolvimento e governança.
+- Datas: ratificação original preservada (2026-06-24); emendas: 2026-07-13 (v2.0.0),
+  2026-09-21 (v2.1.0), 2026-10-10 (v2.2.0), 2026-10-17 (v2.3.0).
+
+--- histórico (emenda v2.2.0, 2026-10-10) ---
 SYNC IMPACT REPORT — constituição v2.2.0 (emenda 2026-10-10)
 - Mudança de versão: 2.1.0 → 2.2.0 (MINOR — expansão material de guidance no princípio VI)
 - Motivação: a qualidade estrutural passa a ser base desde a primeira entrega, separada da
@@ -59,7 +88,11 @@ SYNC IMPACT REPORT — constituição v2.2.0 (emenda 2026-10-10)
 ### I. Adequação e Experiência *(ISO/IEC 25010)*
 O sistema DEVE entregar o que foi especificado — completo, correto e cobrindo edge
 cases (nulos, limites, entradas inesperadas) — de forma **usável**: erros acionáveis,
-API/UX consistente e previsível, e documentação suficiente para operar sem suporte.
+API/UX consistente e previsível, e documentação suficiente para operar sem suporte. **O que
+foi especificado** são os critérios de aceite em vigor da feature, lidos com as decisões
+registradas depois deles; divergência de texto entre os documentos que não fere esses
+critérios nem os demais princípios se corrige na sincronização da entrega, não é falha de
+adequação.
 **Racional:** fazer a coisa certa e fazê-la de forma compreensível são faces da mesma
 entrega; software correto porém inusável (ou o inverso) falha com o usuário.
 
@@ -82,7 +115,8 @@ serviços.
 Toda chamada que **sai do processo** (banco, gateway, integração) DEVE ter **prazo**
 (timeout/deadline); **retry** aplica-se **apenas a operação idempotente**, com backoff e
 teto; o sistema DEVE degradar graciosamente quando uma dependência falha, ser idempotente
-onde precisa e recuperar-se **sem intervenção manual**. Circuit breaker é mecanismo
+onde precisa e recuperar-se **sem intervenção manual**; a intervenção manual é aceita quando
+um requisito de segurança exigir confirmação humana. Circuit breaker é mecanismo
 distinto e fica para quando a maturidade exigir — **não** coberto por este princípio agora.
 **Racional:** falhas são inevitáveis; o que diferencia é a recuperação sem perda de dados
 nem operador. "Chamada externa" é ambíguo — o que importa é **sair do processo** e poder
@@ -150,8 +184,10 @@ concerns aplicáveis; o **`conformance-gate readiness`** confronta os artefatos 
 - **Gates de CI em PR:** lint + testes (api) + build (web) + **gate de drift** do contrato
   OpenAPI→orval + **RLS via testcontainers** (ADR-007/010).
 - **Gate de conformidade/DoD:** o **`conformance-gate`** (modos `readiness` antes do Build e
-  `conformance` antes do PR para `qa`) — verifica fidelidade ao upstream e satisfação de DoD
-  medida ao vivo; é **obrigatório** antes de declarar a feature "done".
+  `conformance` antes do PR para `qa`) — bloqueia o que põe em risco estes princípios, os
+  concerns cross-feature, os ADRs e o DoD medido ao vivo; divergência de texto com o upstream que
+  não fere nada disso se sincroniza na entrega; é **obrigatório** antes de declarar a feature
+  "done".
 - **Idioma:** comunicação e documentação em **pt-BR** (fonte da verdade); identificadores
   de código em **en-US** (ver `AGENTS.md`).
 
@@ -166,8 +202,9 @@ Esta constituição **prevalece** sobre outras práticas de desenvolvimento.
   **PATCH** = clarificação, redação, correção não-semântica.
 - **Conformidade:** todo PR e revisão DEVE verificar aderência aos princípios; o
   **`conformance-gate readiness`** confronta os artefatos da feature (DEFINE/DESIGN) contra
-  esta constituição e o upstream; complexidade que viole um princípio DEVE ser justificada
-  no registro de decisões (ADR inline do DESIGN).
+  esta constituição e o upstream e bloqueia o que põe um princípio em risco, não a variação de
+  texto; complexidade que viole um princípio DEVE ser justificada no registro de decisões (ADR
+  inline do DESIGN).
 - **Rastreabilidade de requisito:** todo requisito normativo (MUST/DEVE) DEVE rastrear a
   uma **decisão humana registrada** — o seed de requisitos (`docs/requisitos.md`) **ou**
   uma decisão logada (Revision History/Open Questions do DEFINE, Changelog de PRD, ADR de
@@ -175,4 +212,4 @@ Esta constituição **prevalece** sobre outras práticas de desenvolvimento.
   ISO") legitima a **existência** dos pilares, **não** uma cláusula específica derivada deles.
 - **Guia operacional de runtime:** `AGENTS.md` (canônico; `CLAUDE.md` o espelha).
 
-**Versão**: 2.2.0 | **Ratificada**: 2026-06-24 | **Última emenda**: 2026-10-10
+**Versão**: 2.4.0 | **Ratificada**: 2026-06-24 | **Última emenda**: 2026-10-23
