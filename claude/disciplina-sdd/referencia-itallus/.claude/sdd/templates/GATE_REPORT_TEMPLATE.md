@@ -6,7 +6,11 @@
 <!--
 Como preencher:
 - Arquivo: .claude/sdd/reports/READINESS_{FEATURE}.md ou CONFORMANCE_{FEATURE}.md, conforme o modo.
-- Uma nova rodada regenera o arquivo inteiro; o histórico fica no git.
+- Uma nova rodada regenera o arquivo inteiro; o histórico fica no git. O gate lê o arquivo da
+  rodada anterior antes de ele ser regenerado: quem grava só sobrescreve depois que o gate
+  devolveu a saída.
+- Rodada anterior: SHA completo do commit avaliado no relatório que este substitui; "primeira
+  rodada" quando não há.
 - Commit avaliado: SHA completo do HEAD em que o gate rodou, com a árvore limpa. Base do diff: a
   branch do PR e o SHA do ponto de divergência (`git merge-base <commit avaliado> origin/qa`).
 - Veredito: o que a própria saída declara (PRONTO / NÃO PRONTO / AGUARDA RESPOSTA, APROVADO /
@@ -29,6 +33,7 @@ Como preencher:
 | **Modo** | {readiness \| conformance} |
 | **Commit avaliado** | {SHA completo} |
 | **Base do diff** | origin/qa @ {SHA do ponto de divergência} |
+| **Rodada anterior** | {SHA completo \| primeira rodada} |
 | **Date** | {YYYY-MM-DD} |
 | **Veredito** | {veredito declarado pela saída} |
 

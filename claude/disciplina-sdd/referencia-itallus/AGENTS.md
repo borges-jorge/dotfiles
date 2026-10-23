@@ -285,7 +285,8 @@ falsificador próprio.
   commit próprio; cada rodada regenera o próprio relatório. As respostas do responsável às
   confirmações e aos indeterminados entram no campo próprio do relatório, valem como decisão
   registrada e são **cumulativas**: a regeneração carrega as anteriores, e pergunta respondida não
-  se repete. O `/ship` arquiva os dois.
+  se repete. Cada rodada lê o relatório da anterior do mesmo modo como piso de verificação: diz o
+  status de cada achado anterior e a origem de cada achado novo. O `/ship` arquiva os dois.
 - **Sincronização na entrega:** antes do `/ship`, o `/refine-prd-with-the-planner` lê o relatório do
   último `conformance` (sincronização) e as respostas dos relatórios do gate, e leva à visão e ao PRD o que foi
   decidido e entregue; o resultado entra no PR do arquivamento.
