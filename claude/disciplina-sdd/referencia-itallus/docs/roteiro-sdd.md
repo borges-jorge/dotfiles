@@ -223,8 +223,10 @@ controle** que evitam drift e retrabalho. Sequência completa (sempre as 5 fases
 1. **`/brainstorm`** → `BRAINSTORM_{FEATURE}.md` (fase 0): explora abordagens (2-3), aplica YAGNI.
    Em seguida, **`/refine-prd-with-the-planner`** com o brainstorm e o PRD da feature leva as
    decisões ao PRD; brainstorm e refino se alternam até o PRD ficar adequado, a critério do
-   responsável. Durante o ciclo, decisão nova que muda requisito da feature volta ao PRD pelo mesmo
-   refino, com ou sem brainstorm; feature que se revela grande demais volta à decomposição (§4).
+   responsável. Durante o ciclo, decisão nova que muda só requisito da feature entra pelo `/iterate`
+   no DEFINE ou no DESIGN e chega ao PRD na sincronização da entrega (passo 12); a que muda a base
+   (constituição, ADR, concern cross-feature) volta ao PRD na hora pelo mesmo refino, com ou sem
+   brainstorm; feature que se revela grande demais volta à decomposição (§4).
 2. **`/define`** → `DEFINE_{FEATURE}.md`: problema, usuários, objetivos (MUST/SHOULD/COULD),
    critérios de sucesso, **acceptance tests**, fora de escopo, assumptions. Gate nativo: Clarity
    Score ≥12/15. **`/iterate` no `DEFINE`** é a ferramenta para ajustar o requisito depois.
@@ -239,7 +241,8 @@ controle** que evitam drift e retrabalho. Sequência completa (sempre as 5 fases
    (mudança em artefato AgentSpec flui re-executando o comando — não editar à mão).
 5. **▶ Loop 2 — higienizar a visão (back-port):** um `[a definir]` da visão/ADRs que o `/design`
    resolveu **fecha** na visão via `/refine-prd-with-the-planner` (o the-planner é o **único
-   escritor** da visão) — senão a visão "mente". **Filtro de altitude:** o que volta é a
+   escritor** da visão) — senão a visão "mente". Fecha na hora quando o ponto é de ADR ou concern
+   cross-feature; senão, na sincronização da entrega (passo 12). **Filtro de altitude:** o que volta é a
    **decisão**, com remissão ao DESIGN; o **mecanismo** (policies, rotas, forma do token, nomes de
    tabela) fica no DESIGN. Este loop foi o mecanismo do inchaço da 01: sem o filtro, cada
    back-port copiava mecanismo para cima — o PRD 00 foi de 5,7 para 87,6 KB, o PRD 01 de 4,4 para
@@ -272,9 +275,16 @@ controle** que evitam drift e retrabalho. Sequência completa (sempre as 5 fases
    cadeia com o upstream — pega **requisito enfraquecido/dropado**, **scope-creep**, **contradição
    na própria fonte** e **decisões de interpretação** resolvidas em silêncio — **antes** de codar.
    Read-only; a correção entra corrigindo o **upstream** (`/iterate` no DEFINE ou refine) e re-rodando.
-   **Limiar:** achado **crítico ou alto** bloqueia o `/build`; **médio e baixo** viram issue, **uma
-   por unidade que fecha sozinha**, e o ciclo segue. Sem limiar, cada rodada gera achados novos sobre
-   a precisão da rodada anterior e o gate não converge — na 01 foram sete rodadas.
+   **O que bloqueia é risco, não letra:** achado é o que põe em risco a **base protegida** ou o **DoD**
+   da feature; variação de texto entre as camadas sem esse risco vai para a **sincronização** (com
+   decisão registrada) ou para **confirmação** do responsável (sem registro), sem bloquear (AGENTS.md,
+   Gates). **Limiar:** achado **crítico ou alto** bloqueia o `/build`; **médio e baixo** viram issue,
+   **uma por unidade que fecha sozinha**, e o ciclo segue. Sem limiar, cada rodada gera achados novos
+   sobre a precisão da rodada anterior e o gate não converge — na 01 foram sete rodadas. A saída de
+   cada rodada fica em `.claude/sdd/reports/READINESS_{FEATURE}.md` (template
+   `.claude/sdd/templates/GATE_REPORT_TEMPLATE.md`), com as respostas às confirmações, cumulativas
+   entre rodadas. Sem o fato que decide um item, o gate não supõe: pergunta, e o veredito aguarda
+   a resposta.
 8. **`/build`** → código + `BUILD_REPORT_{FEATURE}.md`. O build-agent **gera as tasks on-the-fly do
    File Manifest** e **delega a especialistas automaticamente** (a delegação é o modelo do AgentSpec,
    não requer aprovação passo-a-passo); verificação por arquivo (import/lint) e cheia (lint/tipos/testes).
@@ -306,11 +316,19 @@ controle** que evitam drift e retrabalho. Sequência completa (sempre as 5 fases
     de cada critério de sucesso/métrica "sim/não" (sobe/roda o que for preciso: ambiente, migração, CI,
     performance, UI headless). Pega **placeholder marcado como pronto** e **DoD não medido**. **PROIBIDO**
     declarar "done"/abrir PR com um DoD **não medido** ou **falhando** — "existe código" ≠ "gate passou".
-    Achados que **não** são critério de DoD seguem o limiar do readiness.
+    Achados que **não** são critério de DoD seguem o limiar do readiness. O DoD é medido na **variante
+    decidida**: o critério do DEFINE lido com as decisões registradas depois dele; o texto superado
+    vai para a sincronização. A saída fica em `.claude/sdd/reports/CONFORMANCE_{FEATURE}.md`, no
+    mesmo template do readiness.
     *(Enforcement hoje = esta regra + o bullet do `AGENTS.md`; hook de harness que barre o PR mecanicamente
     = pendência futura — se entrar, marcador com hash da árvore + interceptar `gh pr create --base qa`.)*
-12. **`/ship`** → arquiva os artefatos em `.claude/sdd/archive/{FEATURE}/` + `SHIPPED_{DATA}.md` com
-    lessons learned, incluídos os relatórios de review.
+12. **▶ Sincronização da entrega, depois `/ship`.** A visão e o PRD são os documentos que sobrevivem
+    à feature; o DEFINE, o DESIGN e o BUILD_REPORT são arquivados como estão. Antes do arquivamento, o
+    `/refine-prd-with-the-planner` lê o relatório do último `conformance` (sincronização e
+    confirmações respondidas) e leva à visão e ao PRD o que foi decidido e entregue, com o filtro de
+    altitude. Depois, **`/ship`** → arquiva os artefatos em `.claude/sdd/archive/{FEATURE}/` +
+    `SHIPPED_{DATA}.md` com lessons learned, incluídos os relatórios de review e do gate; os dois
+    entram no PR do arquivamento.
 
 **Princípios do ciclo:** (a) artefato AgentSpec muda **re-rodando o comando** (`/iterate` para
 DEFINE/DESIGN; `/build` regenera código), nunca por edição manual; (b) argumentos dos comandos
@@ -330,7 +348,7 @@ Cada comando tem um **modo de escrita** diferente; violá-lo injeta comportament
 | `/design` | **cria do zero** (1ª vez); depois **INCREMENTAL** via `/iterate` |
 | `/build` | **REGENERA o código** a partir do File Manifest; escreve `BUILD_REPORT` |
 | `/ship` | arquiva; escreve `SHIPPED` + atualiza Status upstream |
-| `/conformance-gate` | **read-only** |
+| `/conformance-gate` | **read-only** sobre artefatos e código; a saída de cada rodada **regenera** o relatório do gate |
 
 **Consequências operacionais:**
 - **Não há `tasks.md` com checkboxes.** O Build gera as tasks on-the-fly do File Manifest; o estado
@@ -549,7 +567,7 @@ ela é construída determina se a infra nasce validada ou apodrece.
   sobe com evidência de uso (incidente, volume, retorno de usuário), obrigação nova ou decisão do
   responsável, nunca por antecipação de uma fase a jusante. Por isso o planejamento pesa as dimensões
   de risco e declara a régua, e o gate só mede o desvio em relação a ela, com severidade derivada de
-  fatos citados (peso da afirmação × manifestação). Boas práticas e convenções ficam fora dessa conta:
+  fatos citados (risco × manifestação). Boas práticas e convenções ficam fora dessa conta:
   são a base, cobrada desde a primeira entrega. A régua limita quais cenários o código trata, não a
   qualidade da estrutura — "o mais simples" lido ao pé da letra autoriza o `if` aninhado que trava a
   evolução; o desenho é o melhor para a feature dentro da arquitetura e dos princípios do projeto. E o
@@ -559,6 +577,27 @@ ela é construída determina se a infra nasce validada ou apodrece.
   como crítico o requisitante perder a permissão na janela de segundos antes de o reconciliador
   concluir — a correção pedia um lock novo no ciclo de vida do usuário, e o caso foi aceito como
   limite.
+- **Gate que protege a letra do documento não deixa a feature sair.** Se a severidade vem do nível do
+  documento citado — um MUST do PRD pesa o máximo —, toda variação que o DEFINE ou o DESIGN decidem
+  vira bloqueante, e cada correção reescreve prosa que a rodada seguinte audita de novo. O gate
+  protege o que não pode ser ferido — a base protegida (segurança, dado pessoal, integridade de dado,
+  estrutura, contrato, ADRs) e o DoD da feature —; a variação sem esse risco segue, e o texto de cima
+  se sincroniza uma vez, na entrega. Variação sem registro vira pergunta ao responsável, nunca
+  aceite silencioso. *Origem:* na 02b, quatro rodadas de readiness deram NÃO PRONTO; oito dos nove
+  bloqueantes eram o PRD dizendo uma coisa e o DEFINE ou o DESIGN outra, já decidida — a opção
+  "Em branco" em cada filtro, a identidade do CR, a data de cadastro —, e o código a construir
+  quase não mudou entre as rodadas. Fora dos gates, um terço das issues abertas era divergência de
+  texto do mesmo tipo.
+
+- **Gate que escolhe na dúvida não é reproduzível.** Se a skill deixa o agente supor — ficar com o
+  nível menor, aceitar uma prova que o design não declarou, tratar texto de agente como decisão —,
+  duas rodadas sobre a mesma entrada classificam a mesma lacuna de jeitos diferentes, e cada rodada
+  reabre o que a anterior fechou. A régua fecha essas portas: só prova declarada conta, cláusula a
+  cláusula; o risco sai de uma ordem fixa de perguntas; decisão registrada é só a humana explícita;
+  sem o fato, o item fica indeterminado e vira pergunta; a resposta vale para as rodadas seguintes.
+  *Origem:* na 02b, a mesma lacuna da prova do stub anonimizado saiu médio numa rodada e crítico na
+  seguinte; na mesma rodada, uma prova não declarada foi aceita para um critério e recusada para
+  outro.
 
 ## 10. Lastro humano: rastrear toda exigência a uma decisão registrada
 
