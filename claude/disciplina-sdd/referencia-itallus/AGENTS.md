@@ -218,8 +218,15 @@ entrega segue o critério abaixo, aplicado por issue antes de o trabalho começa
   o comportamento verificado como fato. O `readiness` reprova afirmação de mecanismo sem prova citada.
 - **Argumento de `/iterate` em três seções:** `Mudança:` (o que muda em requisito ou design),
   `Fato provado:` (cada afirmação de mecanismo com a prova — a execução que a mostrou ou o
-  arquivo e a linha) e `Hipótese:` (o que não foi provado, ou "nenhuma"). O hook
+  arquivo e a linha) e `Hipótese:` (o que não foi provado; "nenhuma" só depois de conferir, frase
+  a frase, que cada afirmação de mecanismo do argumento tem prova). O hook
   `.claude/hooks/check_iterate_argument.py` barra a chamada ao agente do `/iterate` sem as três.
+- **Revisão do argumento antes de entregar.** Quem monta o argumento o revisa atrás do que pode
+  levar o agente a entender diferente do pedido: comparação que importa comportamento além do
+  pretendido ("como X" traz tudo o que X faz); valor sem medida; outro ponto de entrada do mesmo
+  comportamento que o texto não cobre; palavra com duas leituras (estado ou ação, escopo, sujeito
+  omitido); conflito com outro critério que o agente vai ler junto; e o que não muda, quando o
+  agente pode estender demais. O que a revisão achou vai ao responsável antes de o comando rodar.
 - **Decisões em lote, uma passada por camada.** As decisões de uma rodada (gate, teste, revisão)
   entram juntas: um refino quando alguma delas muda a base, depois um `/iterate` no `DEFINE` e um no
   `DESIGN`, nessa ordem e só nas camadas que a decisão alcança — nunca um `/iterate` por achado.
