@@ -31,9 +31,10 @@ Cada artefato tem um template, e é nele que a regra está escrita, no momento d
 | issue | `.github/ISSUE_TEMPLATE/` — bug, tech-debt, chore | `check-issue.yml` — sinaliza e comenta |
 | pull request | `.github/PULL_REQUEST_TEMPLATE.md` | `check-pr-direction.yml` — título e corpo |
 | release notes | `.github/RELEASE_TEMPLATE/release-notes.md` | `check-release.yml` — sinaliza |
-| argumento de `/iterate` | seções `Mudança:`, `Fato provado:` e `Hipótese:` (Fluxo AgentSpec) | `.claude/hooks/check_iterate_argument.py` — bloqueia |
+| argumento de `/iterate` | seções `Mudança:`, `Caminhos:`, `Fato provado:` e `Hipótese:` (Fluxo AgentSpec) | `.claude/hooks/check_iterate_argument.py` — bloqueia |
 | relatório de review | `.claude/sdd/templates/REVIEW_REPORT_TEMPLATE.md` (Gates) | `/conformance-gate conformance` — bloqueia |
 | relatório de validação | `.claude/sdd/templates/VALIDATION_REPORT_TEMPLATE.md` (Gates) | `/conformance-gate conformance` — lê como evidência |
+| relatório de auditoria visual | `.claude/sdd/templates/VISUAL_AUDIT_REPORT_TEMPLATE.md` (Gates) | `/conformance-gate conformance` — lê como evidência; ausente depois de build que mudou tela é achado |
 | relatório do gate | `.claude/sdd/templates/GATE_REPORT_TEMPLATE.md` (Gates) | `/refine-prd-with-the-planner` na entrega — lê a sincronização |
 
 Assunto e título passam por `scripts/check_subject.sh`; os corpos, por `scripts/check_body.sh`.
@@ -216,10 +217,20 @@ entrega segue o critério abaixo, aplicado por issue antes de o trabalho começa
   a afirmação fica marcada como hipótese. O agente do `/design` tem shell para ler e provar; o do
   `/iterate` não, então no `/iterate` o agente principal prova antes de montar o argumento, que passa
   o comportamento verificado como fato. O `readiness` reprova afirmação de mecanismo sem prova citada.
-- **Argumento de `/iterate` em três seções:** `Mudança:` (o que muda em requisito ou design),
+- **Argumento de `/iterate` em quatro seções:** `Mudança:` (o que muda em requisito ou design),
+  `Caminhos:` (para cada comportamento pedido, todos os caminhos que chegam ao mesmo efeito —
+  cada origem e destino, ação do próprio usuário e de outro, mouse e teclado, cada tela que abre o
+  mesmo elemento, o que grava e o que falha —, ou "não muda comportamento"),
   `Fato provado:` (cada afirmação de mecanismo com a prova — a execução que a mostrou ou o
-  arquivo e a linha) e `Hipótese:` (o que não foi provado, ou "nenhuma"). O hook
-  `.claude/hooks/check_iterate_argument.py` barra a chamada ao agente do `/iterate` sem as três.
+  arquivo e a linha) e `Hipótese:` (o que não foi provado; "nenhuma" só depois de conferir, frase
+  a frase, que cada afirmação de mecanismo do argumento tem prova). O hook
+  `.claude/hooks/check_iterate_argument.py` barra a chamada ao agente do `/iterate` sem as quatro.
+- **Revisão do argumento antes de entregar.** Quem monta o argumento o revisa atrás do que pode
+  levar o agente a entender diferente do pedido: comparação que importa comportamento além do
+  pretendido ("como X" traz tudo o que X faz); valor sem medida; outro ponto de entrada do mesmo
+  comportamento que o texto não cobre; palavra com duas leituras (estado ou ação, escopo, sujeito
+  omitido); conflito com outro critério que o agente vai ler junto; e o que não muda, quando o
+  agente pode estender demais. O que a revisão achou vai ao responsável antes de o comando rodar.
 - **Decisões em lote, uma passada por camada.** As decisões de uma rodada (gate, teste, revisão)
   entram juntas: um refino quando alguma delas muda a base, depois um `/iterate` no `DEFINE` e um no
   `DESIGN`, nessa ordem e só nas camadas que a decisão alcança — nunca um `/iterate` por achado.
@@ -298,6 +309,14 @@ falsificador próprio.
   relatório vale enquanto o diff contra a base que ele declara for o que ele revisou (o code review
   compara com a `qa`, pelo alvo explícito; o security review, com a `master`); mudou o diff, roda-se
   de novo. O `/ship` arquiva os dois relatórios com a feature.
+- **Auditoria visual, depois do `/build` que muda tela e antes da inspeção do responsável:** o
+  agente principal executa no stack de dev cada caminho listado em `Caminhos:` nos argumentos da
+  rodada, grava a execução (vídeo do navegador) e confere quadro a quadro o comportamento esperado
+  e o que não pode acontecer (volta à origem, piscada, pulo, rolagem não pedida). O resultado vai,
+  no template, para `.claude/sdd/reports/VISUAL_AUDIT_{FEATURE}.md`, num commit próprio, sobre o
+  commit do build e com a árvore limpa. Caminho com defeito volta pelo `/iterate` antes da
+  inspeção. O `conformance` lê o relatório como evidência; relatório ausente depois de build que
+  mudou tela, ou sobre código diferente do auditado, é achado.
 - **Validação que o gate não consegue repetir** (exige credencial do responsável): o responsável
   roda a execução que o `DESIGN` define, no terminal dele, sobre o commit do build e com a árvore
   limpa. O agente principal grava a saída, sem alteração, em

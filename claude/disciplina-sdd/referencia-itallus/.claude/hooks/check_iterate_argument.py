@@ -4,7 +4,7 @@
 import json
 import sys
 
-REQUIRED_SECTIONS = ("Mudança:", "Fato provado:", "Hipótese:")
+REQUIRED_SECTIONS = ("Mudança:", "Caminhos:", "Fato provado:", "Hipótese:")
 TARGET_AGENT = "agentspec:workflow:iterate-agent"
 
 
@@ -19,9 +19,10 @@ def main() -> int:
     print(
         "BLOCKED: the /iterate argument does not follow AGENTS.md (Fluxo AgentSpec).\n"
         f"Missing sections: {', '.join(missing)}\n"
-        'Every mechanism claim goes under "Fato provado:" with its proof '
-        "(execution or file:line); anything unproven goes under "
-        '"Hipótese:" ("nenhuma" when there is none).',
+        '"Caminhos:" lists every path that reaches each requested behaviour '
+        '("não muda comportamento" when none); every mechanism claim goes under '
+        '"Fato provado:" with its proof (execution or file:line); anything unproven '
+        'goes under "Hipótese:" ("nenhuma" only after checking each claim).',
         file=sys.stderr,
     )
     return 2
