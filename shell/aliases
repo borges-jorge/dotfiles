@@ -25,3 +25,6 @@ alias sync='uv sync'
 alias grep='grep --color=auto'
 alias df='df -h'
 alias du='du -sh'
+
+# Claude Code com a segunda conta (pasta criada por scripts/setup-claude-segunda-conta.sh)
+alias claude2='CLAUDE_CONFIG_DIR=~/.claude-conta2 claude'
